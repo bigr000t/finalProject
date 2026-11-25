@@ -1,0 +1,566 @@
+/* ==================== 공통 색상 ==================== */
+
+:root {
+
+  --bg: #202020;
+  --card: #303030;
+  --input: #252525;
+  --hover: #404040;
+
+  --border: #505050;
+  --border-dark: #171717;
+
+  --text: #e4dfd3;
+  --muted: #a5a29c;
+
+  --gold: #c4a46b;
+  --gold-light: #e0c38c;
+  --gold-dark: #806a45;
+
+  --green: #86ad8b;
+  --red: #c97878;
+
+  --shadow: rgba(0, 0, 0, 0.4);
+
+}
+
+
+/* ==================== 기본 설정 ==================== */
+
+* {
+
+  box-sizing: border-box;
+
+}
+
+html {
+
+  scroll-behavior: smooth;
+  color-scheme: dark;
+
+}
+
+body {
+
+  margin: 0;
+
+  background-color: var(--bg);
+
+  color: var(--text);
+
+  font-family:
+    "Noto Sans KR",
+    "Malgun Gothic",
+    sans-serif;
+
+  font-size: 15px;
+
+  line-height: 1.6;
+
+}
+
+h1,
+h2,
+h3 {
+
+  font-family:
+    "Noto Serif KR",
+    "Batang",
+    serif;
+
+  color: var(--gold);
+
+  margin-top: 0;
+
+  letter-spacing: 1px;
+
+}
+
+h2 {
+
+  font-size: 22px;
+
+}
+
+h3 {
+
+  font-size: 18px;
+
+}
+
+p {
+
+  margin: 8px 0;
+
+}
+
+a {
+
+  color: var(--gold);
+
+  text-decoration: none;
+
+}
+
+a:hover {
+
+  color: var(--gold-light);
+
+}
+
+.hidden {
+
+  display: none !important;
+
+}
+
+
+/* ==================== 사이트 헤더 ==================== */
+
+.site-header {
+
+  background-color: #181818;
+
+  border-bottom: 3px double var(--gold-dark);
+
+  box-shadow: 0 4px 12px var(--shadow);
+
+}
+
+.header-content {
+
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  padding: 24px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 24px;
+
+}
+
+.site-title h1 {
+
+  margin: 0;
+
+  font-size: 30px;
+
+  letter-spacing: 3px;
+
+}
+
+.site-title p {
+
+  margin: 4px 0 0;
+
+  font-size: 12px;
+
+  color: var(--muted);
+
+  letter-spacing: 2px;
+
+}
+
+
+/* ==================== 내비게이션 ==================== */
+
+.navigation {
+
+  display: flex;
+
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 20px;
+
+}
+
+.navigation a {
+
+  padding: 8px 4px;
+
+  color: var(--muted);
+
+  border-bottom: 1px solid transparent;
+
+  transition: 0.2s;
+
+}
+
+.navigation a:hover {
+
+  color: var(--gold-light);
+
+  border-bottom-color: var(--gold);
+
+}
+
+
+/* ==================== 메인 영역 ==================== */
+
+main {
+
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  padding: 24px;
+
+}
+
+main > section {
+
+  margin-bottom: 24px;
+
+}
+
+
+/* ==================== 공통 패널 ==================== */
+
+.panel {
+
+  padding: 24px;
+
+  background-color: var(--card);
+
+  border: 1px solid var(--border);
+
+  border-top: 2px solid var(--gold-dark);
+
+  border-radius: 3px;
+
+  box-shadow: 0 4px 10px var(--shadow);
+
+}
+
+.panel-head {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 12px;
+
+  margin-bottom: 12px;
+
+}
+
+.panel-head h2 {
+
+  margin: 0;
+
+}
+
+.panel-actions {
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  flex-wrap: wrap;
+
+  gap: 12px;
+
+  margin-top: 20px;
+
+}
+
+.hint {
+
+  color: var(--muted);
+
+  font-size: 13px;
+
+}
+
+
+/* ==================== 공통 버튼 ==================== */
+
+button {
+
+  padding: 10px 18px;
+
+  background-color: #383838;
+
+  color: var(--text);
+
+  border: 1px solid #666666;
+
+  border-radius: 2px;
+
+  font-family: inherit;
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+  box-shadow: 0 3px 0 var(--border-dark);
+
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    transform 0.1s;
+
+}
+
+button:hover:not(:disabled) {
+
+  background-color: var(--hover);
+
+  border-color: var(--gold);
+
+  color: var(--gold-light);
+
+}
+
+button:active:not(:disabled) {
+
+  transform: translateY(2px);
+
+  box-shadow: 0 1px 0 var(--border-dark);
+
+}
+
+button:disabled {
+
+  opacity: 0.4;
+
+  cursor: not-allowed;
+
+  box-shadow: none;
+
+}
+
+button.primary {
+
+  background-color: var(--gold);
+
+  color: #202020;
+
+  border-color: var(--gold-light);
+
+  font-weight: bold;
+
+}
+
+button.primary:hover:not(:disabled) {
+
+  background-color: var(--gold-light);
+
+  color: #202020;
+
+}
+
+button:focus-visible,
+a:focus-visible {
+
+  outline: 2px solid var(--gold-light);
+
+  outline-offset: 3px;
+
+}
+
+
+/* ==================== 입력 요소 ==================== */
+
+input,
+textarea,
+select {
+
+  width: 100%;
+
+  padding: 12px;
+
+  background-color: var(--input);
+
+  color: var(--text);
+
+  border: 1px solid var(--border);
+
+  border-radius: 2px;
+
+  font-family: inherit;
+
+  font-size: 14px;
+
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+
+  outline: none;
+
+  border-color: var(--gold);
+
+}
+
+textarea {
+
+  resize: vertical;
+
+}
+
+label {
+
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: var(--muted);
+
+}
+
+form {
+
+  display: grid;
+
+  gap: 12px;
+
+}
+
+
+/* ==================== 계정 관리 ==================== */
+
+.auth-panel {
+
+  margin-top: 24px;
+
+}
+
+.auth-grid {
+
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 20px;
+
+}
+
+.auth-box {
+
+  padding: 20px;
+
+  background-color: var(--input);
+
+  border: 1px solid var(--border);
+
+}
+
+.auth-panel details {
+
+  margin: 20px 0;
+
+  padding: 16px;
+
+  background-color: var(--input);
+
+  border: 1px solid var(--border);
+
+}
+
+.auth-panel summary {
+
+  color: var(--gold);
+
+  cursor: pointer;
+
+}
+
+.auth-panel details form {
+
+  margin-top: 16px;
+
+}
+
+
+/* ==================== 스크롤바 ==================== */
+
+::-webkit-scrollbar {
+
+  width: 8px;
+
+  height: 8px;
+
+}
+
+::-webkit-scrollbar-track {
+
+  background-color: #202020;
+
+}
+
+::-webkit-scrollbar-thumb {
+
+  background-color: #606060;
+
+  border: 1px solid #303030;
+
+}
+
+::-webkit-scrollbar-thumb:hover {
+
+  background-color: var(--gold-dark);
+
+}
+
+
+/* ==================== 모바일 대응 ==================== */
+
+@media (max-width: 768px) {
+
+  .header-content {
+
+    flex-direction: column;
+
+    text-align: center;
+
+    padding: 20px 12px;
+
+  }
+
+  .navigation {
+
+    justify-content: center;
+
+    gap: 14px;
+
+  }
+
+  main {
+
+    padding: 12px;
+
+  }
+
+  .panel {
+
+    padding: 16px;
+
+  }
+
+  .auth-grid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+  .site-title h1 {
+
+    font-size: 25px;
+
+  }
+
+}

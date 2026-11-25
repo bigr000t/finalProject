@@ -1,0 +1,51 @@
+
+<section class="panel" id="leaderboard">
+
+  <div class="panel-head">
+
+    <div>
+
+      <h2>🏆 리더보드</h2>
+
+      <p class="hint">
+        사용자별 최고 클리어 기록 TOP 10
+      </p>
+
+    </div>
+
+    <button
+      type="button"
+      id="refreshLeaderboard"
+    >
+      새로고침
+    </button>
+
+  </div>
+
+  <table class="leaderboard-table">
+
+    <thead>
+
+      <tr>
+        <th scope="col">순위</th>
+        <th scope="col">도전자</th>
+        <th scope="col">최고 층수</th>
+      </tr>
+
+    </thead>
+
+    <tbody id="leaderboardBody">
+
+      <tr>
+        <td colspan="3">
+          기록을 불러오는 중입니다.
+        </td>
+      </tr>
+
+    </tbody>
+
+  </table>
+
+  <p id="leaderboardStatus" class="hint" aria-live="polite"></p>
+
+</section>

@@ -1,0 +1,326 @@
+/* ==================== 커뮤니티 헤더 ==================== */
+
+.community-header {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 16px;
+
+  margin-bottom: 20px;
+
+}
+
+.community-header h2 {
+
+  margin-bottom: 4px;
+
+}
+
+.community-header p {
+
+  color: var(--muted);
+
+  font-size: 13px;
+
+}
+
+
+/* ==================== 게시글 목록 ==================== */
+
+.post-list {
+
+  background-color: var(--input);
+
+  border: 1px solid var(--border);
+
+}
+
+.post-list-head,
+.post-list-row {
+
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr) 120px 110px;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 14px 16px;
+
+}
+
+.post-list-head {
+
+  background-color: #383838;
+
+  color: var(--gold);
+
+  border-bottom: 1px solid var(--gold-dark);
+
+  font-size: 13px;
+
+}
+
+.post-list-row {
+
+  width: 100%;
+
+  background-color: var(--input);
+
+  border: none;
+
+  border-bottom: 1px solid var(--border);
+
+  border-radius: 0;
+
+  box-shadow: none;
+
+  text-align: left;
+
+}
+
+.post-list-row:last-child {
+
+  border-bottom: none;
+
+}
+
+.post-list-row:hover:not(:disabled) {
+
+  background-color: #35332e;
+
+}
+
+.post-list-row:active:not(:disabled) {
+
+  transform: none;
+
+  box-shadow: none;
+
+}
+
+.post-title {
+
+  min-width: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  color: var(--text);
+
+}
+
+.post-author,
+.post-date {
+
+  min-width: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  color: var(--muted);
+
+  font-size: 12px;
+
+}
+
+.empty-posts {
+
+  padding: 32px 16px;
+
+  text-align: center;
+
+  color: var(--muted);
+
+}
+
+
+/* ==================== 게시글 모달 ==================== */
+
+.post-modal {
+
+  width: min(680px, calc(100% - 32px));
+
+  max-height: 85vh;
+
+  padding: 24px;
+
+  background-color: var(--card);
+
+  color: var(--text);
+
+  border: 3px double var(--gold-dark);
+
+  border-radius: 3px;
+
+  box-shadow: 0 12px 40px var(--shadow);
+
+}
+
+.post-modal::backdrop {
+
+  background-color: rgba(0, 0, 0, 0.75);
+
+}
+
+.modal-header {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 16px;
+
+  padding-bottom: 16px;
+
+  margin-bottom: 20px;
+
+  border-bottom: 1px solid var(--border);
+
+}
+
+.modal-header h2 {
+
+  margin: 0;
+
+  overflow-wrap: anywhere;
+
+}
+
+.modal-close {
+
+  flex-shrink: 0;
+
+  padding: 6px 12px;
+
+}
+
+.post-meta {
+
+  margin-bottom: 20px;
+
+  color: var(--muted);
+
+  font-size: 12px;
+
+}
+
+.post-content {
+
+  min-height: 120px;
+
+  padding: 18px;
+
+  background-color: var(--input);
+
+  border: 1px solid var(--border);
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+
+  line-height: 1.8;
+
+}
+
+
+/* ==================== 게시글 작성 및 수정 ==================== */
+
+.modal-form {
+
+  display: grid;
+
+  gap: 14px;
+
+}
+
+.modal-form textarea {
+
+  min-height: 200px;
+
+}
+
+.modal-form button {
+
+  justify-self: end;
+
+}
+
+#modalContent button {
+
+  margin-top: 12px;
+
+  margin-right: 8px;
+
+}
+
+
+/* ==================== 삭제 버튼 ==================== */
+
+.delete-btn {
+
+  background-color: #492929;
+
+  border-color: #754747;
+
+  color: #e2a5a5;
+
+}
+
+.delete-btn:hover:not(:disabled) {
+
+  background-color: #633333;
+
+  border-color: var(--red);
+
+  color: #f0baba;
+
+}
+
+
+/* ==================== 모바일 대응 ==================== */
+
+@media (max-width: 600px) {
+
+  .post-list-head,
+  .post-list-row {
+
+    grid-template-columns: minmax(0, 1fr) 70px 80px;
+
+    gap: 8px;
+
+    padding: 12px 8px;
+
+    font-size: 12px;
+
+  }
+
+  .post-author,
+  .post-date {
+
+    font-size: 10px;
+
+  }
+
+  .post-modal {
+
+    padding: 16px;
+
+  }
+
+}

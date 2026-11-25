@@ -1,0 +1,25 @@
+
+<header class="site-header">
+
+  <div class="header-content">
+
+    <div class="site-title">
+      <h1>기말과제</h1>
+      <p>202508070</p>
+    </div>
+
+    <nav class="navigation">
+      <a href="#game">게임</a>
+      <a href="#leaderboard">리더보드</a>
+      <a href="#community">커뮤니티</a>
+
+      <% if (user) { %>
+        <a href="#account"><%= user.username %></a>
+      <% } else { %>
+        <a href="#account">로그인</a>
+      <% } %>
+    </nav>
+
+  </div>
+
+</header>

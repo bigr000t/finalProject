@@ -1,0 +1,157 @@
+
+<section class="panel auth-panel" id="account">
+
+  <% if (user) { %>
+
+    <h2>계정 정보</h2>
+
+    <p>
+      환영합니다,
+      <strong><%= user.username %></strong>님!
+    </p>
+
+    <!-- 비밀번호 변경 -->
+    <details class="password-change">
+
+      <summary>비밀번호 변경</summary>
+
+      <form action="/change-password" method="POST">
+
+        <input
+          type="text"
+          name="username"
+          value="<%= user.username %>"
+          autocomplete="username"
+          hidden
+          readonly
+        >
+
+        <label for="currentPassword">현재 비밀번호</label>
+
+        <input
+          type="password"
+          id="currentPassword"
+          name="currentPassword"
+          autocomplete="current-password"
+          required
+        >
+
+        <label for="newPassword">새로운 비밀번호</label>
+
+        <input
+          type="password"
+          id="newPassword"
+          name="newPassword"
+          minlength="8"
+          autocomplete="new-password"
+          required
+        >
+
+        <label for="confirmPassword">새로운 비밀번호 확인</label>
+
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          minlength="8"
+          autocomplete="new-password"
+          required
+        >
+
+        <button type="submit" class="primary">
+          비밀번호 변경
+        </button>
+
+      </form>
+
+    </details>
+
+    <!-- 로그아웃 -->
+    <form action="/logout" method="POST">
+      <button type="submit">로그아웃</button>
+    </form>
+
+  <% } else { %>
+
+    <div class="auth-container">
+
+      <!-- 로그인 -->
+      <div class="auth-box">
+
+        <h2>로그인</h2>
+
+        <form action="/login" method="POST">
+
+          <label for="loginUsername">아이디</label>
+
+          <input
+            type="text"
+            id="loginUsername"
+            name="username"
+            autocomplete="username"
+            required
+          >
+
+          <label for="loginPassword">비밀번호</label>
+
+          <input
+            type="password"
+            id="loginPassword"
+            name="password"
+            autocomplete="current-password"
+            required
+          >
+
+          <button type="submit" class="primary">
+            로그인
+          </button>
+
+        </form>
+
+      </div>
+
+      <!-- 회원가입 -->
+      <div class="auth-box">
+
+        <h2>회원가입</h2>
+
+        <form action="/register" method="POST">
+
+          <label for="registerUsername">아이디</label>
+
+          <input
+            type="text"
+            id="registerUsername"
+            name="username"
+            placeholder="3~50자"
+            minlength="3"
+            maxlength="50"
+            autocomplete="username"
+            required
+          >
+
+          <label for="registerPassword">비밀번호</label>
+
+          <input
+            type="password"
+            id="registerPassword"
+            name="password"
+            placeholder="8자 이상"
+            minlength="8"
+            autocomplete="new-password"
+            required
+          >
+
+          <button type="submit" class="primary">
+            회원가입
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  <% } %>
+
+</section>

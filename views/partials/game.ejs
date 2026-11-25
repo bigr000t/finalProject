@@ -1,0 +1,391 @@
+<section id="game" class="game-container">
+
+  <!-- ==================== 전투 화면 ==================== -->
+
+  <div class="arena">
+
+    <div class="combat">
+
+      <!-- 전투 진행 정보 -->
+
+      <div class="topline">
+
+        <span id="floor">1층</span>
+
+        <span id="status">준비</span>
+
+        <button
+          type="button"
+          id="abandonRun"
+          class="abandon-button hidden"
+        >
+          도전 포기
+        </button>
+
+</div>
+
+
+      <!-- 전투 영역 -->
+
+      <div class="fighters battle-stage">
+
+        <!-- 환경 효과 레이어 -->
+
+        <div
+          id="environmentEffects"
+          class="environment-effects"
+          aria-hidden="true"
+        ></div>
+
+
+        <!-- 플레이어 -->
+
+        <article class="fighter player-fighter">
+
+          <div class="avatar" id="playerAvatar">
+            🛡️
+          </div>
+
+          <h2 id="playerName">도전자</h2>
+
+          <div class="hp player-hp">
+            <div id="playerHpBar"></div>
+          </div>
+
+          <p id="playerHp">HP —</p>
+
+          <p id="playerStats">
+            ATK — / DEF —
+          </p>
+
+        </article>
+
+
+        <!-- 중앙 구분 -->
+
+        <span class="versus">VS</span>
+
+
+        <!-- 몬스터 -->
+
+        <article class="fighter enemy-fighter">
+
+          <div class="avatar" id="enemyAvatar">
+            🐺
+          </div>
+
+          <h2 id="enemyName">몬스터</h2>
+
+          <div class="hp enemy-hp">
+            <div id="enemyHpBar"></div>
+          </div>
+
+          <p id="enemyHp">HP —</p>
+
+          <p id="enemyStats">
+            ATK — / DEF —
+          </p>
+
+        </article>
+
+
+        <!-- 전투 효과 레이어 -->
+
+        <div
+          id="battleEffects"
+          class="battle-effects"
+          aria-hidden="true"
+        ></div>
+
+      </div>
+
+
+      <!-- 보유 골드 -->
+
+      <p id="money">골드 0G</p>
+
+    </div>
+
+
+    <!-- ==================== 전투 로그 ==================== -->
+
+    <aside class="log">
+
+      <h2>전투 기록</h2>
+
+      <div
+        id="logs"
+        aria-live="polite"
+      ></div>
+
+    </aside>
+
+  </div>
+
+
+  <!-- ==================== 클래스 선택 ==================== -->
+
+  <div class="panel" id="setup">
+
+    <h2>도전 시작</h2>
+
+    <p>
+      클래스를 선택하여 탑에 도전하세요.
+      추가 능력치는 무작위로 배분됩니다.
+    </p>
+
+    <div class="classes" id="classList">
+
+
+      <!-- 전사 -->
+
+      <button
+        type="button"
+        class="class-card"
+        data-class="warrior"
+      >
+
+        <img
+          class="class-preview"
+          src="/images/class00.png"
+          alt="전사"
+          draggable="false"
+        >
+
+        <strong>전사</strong>
+
+        <small>
+          체력과 방어력 중심
+        </small>
+
+      </button>
+
+
+      <!-- 도적 -->
+
+      <button
+        type="button"
+        class="class-card"
+        data-class="rogue"
+      >
+
+        <img
+          class="class-preview"
+          src="/images/class01.png"
+          alt="도적"
+          draggable="false"
+        >
+
+        <strong>도적</strong>
+
+        <small>
+          공격 속도 중심
+        </small>
+
+      </button>
+
+
+      <!-- 마법사 -->
+
+      <button
+        type="button"
+        class="class-card"
+        data-class="mage"
+      >
+
+        <img
+          class="class-preview"
+          src="/images/class02.png"
+          alt="마법사"
+          draggable="false"
+        >
+
+        <strong>마법사</strong>
+
+        <small>
+          공격력 중심
+        </small>
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==================== 초기 스탯 선택 ==================== -->
+
+  <div class="panel hidden" id="statPanel">
+
+    <h2>초기 능력치 선택</h2>
+
+    <p id="statClassName"></p>
+
+    <table class="stat-table">
+
+      <thead>
+
+        <tr>
+
+          <th>능력치</th>
+
+          <th>기본</th>
+
+          <th>추가</th>
+
+          <th>최종</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody id="statPreview"></tbody>
+
+    </table>
+
+    <p id="statRerollStatus"></p>
+
+    <div class="panel-actions">
+
+      <button type="button" id="rerollStats">
+
+        스탯 리롤
+
+      </button>
+
+      <button
+        type="button"
+        class="primary"
+        id="confirmStats"
+      >
+
+        스탯 확정
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==================== 보상 선택 ==================== -->
+
+  <div class="panel hidden" id="rewardPanel">
+
+    <div class="panel-head">
+
+      <h2>층 클리어!</h2>
+
+      <button
+        type="button"
+        id="rerollRewards"
+      >
+
+        보상 리롤
+
+      </button>
+
+    </div>
+
+    <p>보상 하나를 선택하세요.</p>
+
+    <div
+      class="reward-grid"
+      id="rewards"
+    ></div>
+
+  </div>
+
+
+  <!-- ==================== 상점 ==================== -->
+
+  <div class="panel hidden" id="progressPanel">
+
+    <div class="panel-head">
+
+      <h2>상점</h2>
+
+      <button
+        type="button"
+        class="primary"
+        id="nextFloor"
+        disabled
+      >
+
+        다음 층 도전 →
+
+      </button>
+
+    </div>
+
+
+    <!-- 일반 상점 -->
+
+    <h3>일반 상점</h3>
+
+    <p>
+      회복약과 비급서를 구매할 수 있습니다.
+    </p>
+
+    <div
+      class="reward-grid"
+      id="shopItems"
+    ></div>
+
+
+    <!-- 패시브 상점 -->
+
+    <h3>패시브 상점</h3>
+
+    <p>
+      패시브는 각각 한 번만 구매할 수 있습니다.
+    </p>
+
+    <div
+      class="reward-grid"
+      id="passives"
+    ></div>
+
+  </div>
+
+
+  <!-- ==================== 게임 종료 ==================== -->
+
+  <div class="panel hidden" id="gameOver">
+
+    <h2 id="gameOverTitle">
+      도전 종료
+    </h2>
+
+    <p id="result"></p>
+
+    <p id="saveStatus" class="hint"></p>
+
+    <button
+      type="button"
+      class="primary"
+      id="restart"
+    >
+
+      새로운 도전
+
+    </button>
+
+  </div>
+
+
+  <!-- ==================== 현재 빌드 ==================== -->
+
+  <div class="panel" id="buildPanel">
+
+    <h2>현재 빌드</h2>
+
+    <div id="build">
+
+      도전을 시작하면 표시됩니다.
+
+    </div>
+
+  </div>
+
+</section>

@@ -1,0 +1,182 @@
+/* ==================== 리더보드 ==================== */
+
+#leaderboard {
+
+  border-top: 3px double var(--gold-dark);
+
+}
+
+#leaderboard .panel-head {
+
+  margin-bottom: 20px;
+
+}
+
+
+/* ==================== 순위 테이블 ==================== */
+
+.leaderboard-table {
+
+  width: 100%;
+
+  border-collapse: collapse;
+
+  background-color: var(--input);
+
+  border: 1px solid var(--border);
+
+  font-variant-numeric: tabular-nums;
+
+}
+
+.leaderboard-table th {
+
+  padding: 14px 16px;
+
+  background-color: #383838;
+
+  color: var(--gold);
+
+  border-bottom: 1px solid var(--gold-dark);
+
+  text-align: left;
+
+  font-size: 13px;
+
+  font-weight: normal;
+
+}
+
+.leaderboard-table td {
+
+  padding: 14px 16px;
+
+  border-bottom: 1px solid var(--border);
+
+}
+
+.leaderboard-table tbody tr:hover {
+
+  background-color: #35332e;
+
+}
+
+.leaderboard-table th:first-child,
+.leaderboard-table td:first-child {
+
+  width: 80px;
+
+  text-align: center;
+
+}
+
+.leaderboard-table th:last-child,
+.leaderboard-table td:last-child {
+
+  width: 140px;
+
+  text-align: right;
+
+}
+
+.leaderboard-table td:last-child {
+
+  font-weight: bold;
+
+}
+
+
+/* ==================== 상위 랭커 ==================== */
+
+.rank-first {
+
+  color: #d4b477;
+
+  font-weight: bold;
+
+}
+
+.rank-second {
+
+  color: #bfc3c7;
+
+  font-weight: bold;
+
+}
+
+.rank-third {
+
+  color: #bd8b64;
+
+  font-weight: bold;
+
+}
+
+.leaderboard-table tr.rank-first {
+
+  background-color: #38332a;
+
+}
+
+.leaderboard-table tr.rank-second {
+
+  background-color: #303234;
+
+}
+
+.leaderboard-table tr.rank-third {
+
+  background-color: #38302a;
+
+}
+
+
+/* ==================== 리더보드 상태 ==================== */
+
+#leaderboardStatus {
+
+  margin-top: 12px;
+
+  color: var(--muted);
+
+  font-size: 12px;
+
+}
+
+#refreshLeaderboard {
+
+  color: var(--gold);
+
+  border-color: var(--gold-dark);
+
+}
+
+
+/* ==================== 모바일 대응 ==================== */
+
+@media (max-width: 600px) {
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+
+    padding: 12px 8px;
+
+    font-size: 13px;
+
+  }
+
+  .leaderboard-table th:first-child,
+  .leaderboard-table td:first-child {
+
+    width: 50px;
+
+  }
+
+  .leaderboard-table th:last-child,
+  .leaderboard-table td:last-child {
+
+    width: 90px;
+
+  }
+
+}

@@ -1,0 +1,80 @@
+
+<section class="panel" id="community">
+
+  <!-- ==================== 게시판 헤더 ==================== -->
+
+  <div class="community-header">
+
+    <div>
+      <h2>커뮤니티</h2>
+      <p class="hint">도전 기록과 공략을 공유하세요.</p>
+    </div>
+
+    <% if (user) { %>
+
+      <button
+        type="button"
+        class="primary"
+        id="writePost"
+      >
+        글쓰기
+      </button>
+
+    <% } %>
+
+  </div>
+
+
+  <!-- ==================== 게시글 목록 ==================== -->
+
+  <div class="post-list">
+
+    <div class="post-list-head">
+      <span>제목</span>
+      <span>작성자</span>
+      <span>작성일</span>
+    </div>
+
+    <div id="postList">
+
+      <p class="empty-posts">
+        게시글을 불러오는 중입니다.
+      </p>
+
+    </div>
+
+  </div>
+
+  <% if (!user) { %>
+
+    <p class="hint">
+      게시글을 작성하려면 로그인해야 합니다.
+    </p>
+
+  <% } %>
+
+</section>
+
+
+<!-- ==================== 게시글 팝업 ==================== -->
+
+<dialog class="post-modal" id="postModal">
+
+  <div class="modal-header">
+
+    <h2 id="modalTitle">게시글</h2>
+
+    <button
+      type="button"
+      class="modal-close"
+      id="closePostModal"
+      aria-label="팝업 닫기"
+    >
+      ✕
+    </button>
+
+  </div>
+
+  <div id="modalContent"></div>
+
+</dialog>

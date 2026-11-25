@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>기말과제</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/game.css">
+  <link rel="stylesheet" href="/css/environment.css">
+  <link rel="stylesheet" href="/css/community.css">
+  <link rel="stylesheet" href="/css/leaderboard.css">
+
+  <!-- JavaScript -->
+  <script type="module" src="/js/game.js"></script>
+  <script type="module" src="/js/community.js"></script>
+  <script type="module" src="/js/leaderboard.js"></script>
+</head>
+
+<body data-user-id="<%= user ? user.id : '' %>">
+
+  <%- include("partials/header") %>
+
+  <main>
+
+    <%- include("partials/game") %>
+
+    <%- include("partials/leaderboard") %>
+
+    <%- include("partials/community") %>
+
+    <%- include("partials/account") %>
+
+  </main>
+
+</body>
+</html>
