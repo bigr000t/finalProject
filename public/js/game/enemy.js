@@ -11,9 +11,8 @@ export const MONSTERS = [
     id: "skeleton",
     name: "해골병사",
     image: "/images/enemy00.png",
-    hp: 90,
+    hp: 100,
     atk: 16,
-    def: 8,
     spd: 0.85,
     crit: 0.03
   },
@@ -22,9 +21,8 @@ export const MONSTERS = [
     id: "slime",
     name: "슬라임",
     image: "/images/enemy01.png",
-    hp: 100,
+    hp: 130,
     atk: 10,
-    def: 15,
     spd: 0.65,
     crit: 0.01
   },
@@ -33,9 +31,8 @@ export const MONSTERS = [
     id: "guardDog",
     name: "경비견",
     image: "/images/enemy02.png",
-    hp: 65,
+    hp: 75,
     atk: 12,
-    def: 5,
     spd: 1.20,
     crit: 0.03
   },
@@ -44,20 +41,18 @@ export const MONSTERS = [
     id: "skeletonArcher",
     name: "해골궁수",
     image: "/images/enemy03.png",
-    hp: 60,
+    hp: 70,
     atk: 13,
-    def: 5,
     spd: 0.85,
-    crit: 0.8
+    crit: 0.20
   },
 
   {
     id: "skeletonGuard",
     name: "해골방패병",
     image: "/images/enemy04.png",
-    hp: 160,
+    hp: 240,
     atk: 12,
-    def: 35,
     spd: 0.50,
     crit: 0.01
   },
@@ -66,9 +61,8 @@ export const MONSTERS = [
     id: "eagle",
     name: "독수리",
     image: "/images/enemy05.png",
-    hp: 85,
+    hp: 100,
     atk: 18,
-    def: 6,
     spd: 1.70,
     crit: 0.05
   },
@@ -77,9 +71,8 @@ export const MONSTERS = [
     id: "ghost",
     name: "유령",
     image: "/images/enemy06.png",
-    hp: 90,
+    hp: 110,
     atk: 20,
-    def: 8,
     spd: 0.90,
     crit: 0.16
   },
@@ -88,9 +81,8 @@ export const MONSTERS = [
     id: "skeletonKnight",
     name: "해골기사",
     image: "/images/enemy07.png",
-    hp: 160,
+    hp: 220,
     atk: 35,
-    def: 25,
     spd: 0.85,
     crit: 0.05
   },
@@ -99,9 +91,8 @@ export const MONSTERS = [
     id: "golem",
     name: "골렘",
     image: "/images/enemy08.png",
-    hp: 180,
+    hp: 300,
     atk: 15,
-    def: 48,
     spd: 0.45,
     crit: 0.01
   },
@@ -110,9 +101,8 @@ export const MONSTERS = [
     id: "skeletonCrossbowman",
     name: "해골석궁병",
     image: "/images/enemy09.png",
-    hp: 90,
+    hp: 110,
     atk: 35,
-    def: 10,
     spd: 0.55,
     crit: 0.24
   },
@@ -121,9 +111,8 @@ export const MONSTERS = [
     id: "gargoyle",
     name: "가고일",
     image: "/images/enemy10.png",
-    hp: 150,
+    hp: 320,
     atk: 20,
-    def: 70,
     spd: 0.60,
     crit: 0.03
   },
@@ -132,9 +121,8 @@ export const MONSTERS = [
     id: "griffin",
     name: "그리핀",
     image: "/images/enemy11.png",
-    hp: 90,
+    hp: 110,
     atk: 18,
-    def: 10,
     spd: 2.00,
     crit: 0.03
   },
@@ -143,9 +131,8 @@ export const MONSTERS = [
     id: "wraithAssassin",
     name: "망령 암살자",
     image: "/images/enemy12.png",
-    hp: 120,
+    hp: 150,
     atk: 24,
-    def: 12,
     spd: 1.25,
     crit: 0.32
   },
@@ -157,9 +144,8 @@ export const MONSTERS = [
     id: "cerberus",
     name: "케르베로스",
     image: "/images/elite00.png",
-    hp: 90,
+    hp: 130,
     atk: 16,
-    def: 8,
     spd: 1.44,
     crit: 0.05,
     isElite: true
@@ -169,9 +155,8 @@ export const MONSTERS = [
     id: "kingSlime",
     name: "킹슬라임",
     image: "/images/elite01.png",
-    hp: 160,
+    hp: 320,
     atk: 18,
-    def: 60,
     spd: 0.45,
     crit: 0.03,
     isElite: true
@@ -181,9 +166,8 @@ export const MONSTERS = [
     id: "boneWyvern",
     name: "본 와이번",
     image: "/images/elite02.png",
-    hp: 160,
+    hp: 240,
     atk: 45,
-    def: 25,
     spd: 1.00,
     crit: 0.32,
     isElite: true
@@ -193,9 +177,8 @@ export const MONSTERS = [
     id: "deathKnight",
     name: "데스나이트",
     image: "/images/elite03.png",
-    hp: 240,
+    hp: 360,
     atk: 75,
-    def: 32,
     spd: 1.00,
     crit: 0.30,
     isElite: true
@@ -208,9 +191,8 @@ export const MONSTERS = [
     id: "wyvern",
     name: "와이번",
     image: "/images/boss00.png",
-    hp: 160,
+    hp: 280,
     atk: 55,
-    def: 25,
     spd: 1.00,
     crit: 0.24,
     isBoss: true
@@ -220,12 +202,11 @@ export const MONSTERS = [
     id: "dragon",
     name: "드래곤",
     image: "/images/boss01.png",
-    hp: 270,
+    hp: 450,
     atk: 90,
-    def: 36,
     spd: 1.00,
     crit: 0.20,
-    isElite: true
+    isBoss: true
   }
 
 ];
@@ -249,6 +230,7 @@ export const ENEMY_POOLS = [
   },
 
   // 10층 엘리트
+
   {
     minFloor: 10,
     maxFloor: 10,
@@ -272,6 +254,7 @@ export const ENEMY_POOLS = [
   // ==================== 버려진 성채 ====================
 
   // 50층 엘리트
+
   {
     minFloor: 50,
     maxFloor: 50,
@@ -292,6 +275,7 @@ export const ENEMY_POOLS = [
   },
 
   // 100층 보스
+
   {
     minFloor: 100,
     maxFloor: 100,
@@ -318,6 +302,7 @@ export const ENEMY_POOLS = [
   // ==================== 마법 고탑 ====================
 
   // 150층 엘리트
+
   {
     minFloor: 150,
     maxFloor: 150,
@@ -338,6 +323,7 @@ export const ENEMY_POOLS = [
   },
 
   // 190층 엘리트
+
   {
     minFloor: 190,
     maxFloor: 190,
@@ -358,6 +344,7 @@ export const ENEMY_POOLS = [
   },
 
   // 200층 보스
+
   {
     minFloor: 200,
     maxFloor: 200,
@@ -373,17 +360,28 @@ export const ENEMY_POOLS = [
 
 export const ENEMY_GROWTH = {
 
-  hp: 0.04,
+  // 체력 성장 강화
+
+  hp: 0.06,
+
   atk: 0.008,
-  def: 0.012,
+
   spd: 0.004,
+
   crit: 0.0004,
 
-  hpPower: 1.16,
+
+  // 성장 지수
+
+  hpPower: 1.40,
+
   atkPower: 1.16,
-  defPower: 1.16,
+
+
+  // 능력치 상한
 
   maxSpd: 3.0,
+
   maxCrit: 0.5
 
 };
@@ -393,15 +391,24 @@ export const ENEMY_GROWTH = {
 
 export function calculateEnemyHp(baseHp, floor) {
 
-  return Math.floor(
+  return Math.max(
 
-    baseHp * (
+    1,
 
-      1 + ENEMY_GROWTH.hp *
+    Math.floor(
 
-      Math.pow(
-        floor - 1,
-        ENEMY_GROWTH.hpPower
+      baseHp * (
+
+        1 + ENEMY_GROWTH.hp *
+
+        Math.pow(
+
+          floor - 1,
+
+          ENEMY_GROWTH.hpPower
+
+        )
+
       )
 
     )
@@ -415,37 +422,24 @@ export function calculateEnemyHp(baseHp, floor) {
 
 export function calculateEnemyAtk(baseAtk, floor) {
 
-  return Math.floor(
+  return Math.max(
 
-    baseAtk * (
+    0,
 
-      1 + ENEMY_GROWTH.atk *
+    Math.floor(
 
-      Math.pow(
-        floor - 1,
-        ENEMY_GROWTH.atkPower
-      )
+      baseAtk * (
 
-    )
+        1 + ENEMY_GROWTH.atk *
 
-  );
+        Math.pow(
 
-}
+          floor - 1,
 
+          ENEMY_GROWTH.atkPower
 
-// ==================== 층별 방어력 계산 ====================
+        )
 
-export function calculateEnemyDef(baseDef, floor) {
-
-  return Math.floor(
-
-    baseDef * (
-
-      1 + ENEMY_GROWTH.def *
-
-      Math.pow(
-        floor - 1,
-        ENEMY_GROWTH.defPower
       )
 
     )
@@ -510,16 +504,24 @@ export function calculateEnemyCrit(baseCrit, floor) {
 export function getEnemyPool(floor) {
 
   if (
+
     !Number.isSafeInteger(floor) ||
+
     floor < 1
+
   ) {
 
-    throw new Error("잘못된 층수입니다.");
+    throw new Error(
+      "잘못된 층수입니다."
+    );
 
   }
 
+
   // 200층 단위 순환
+
   const localFloor = ((floor - 1) % 200) + 1;
+
 
   const pool = ENEMY_POOLS.find(group => {
 
@@ -533,11 +535,33 @@ export function getEnemyPool(floor) {
 
   });
 
-  return MONSTERS.filter(monster => {
+
+  if (!pool) {
+
+    throw new Error(
+      "해당 층의 몬스터 등장 규칙이 없습니다."
+    );
+
+  }
+
+
+  const monsters = MONSTERS.filter(monster => {
 
     return pool.monsters.includes(monster.id);
 
   });
+
+
+  if (monsters.length === 0) {
+
+    throw new Error(
+      "등장 가능한 몬스터가 없습니다."
+    );
+
+  }
+
+
+  return monsters;
 
 }
 
@@ -548,9 +572,13 @@ export function createEnemy(floor) {
 
   const pool = getEnemyPool(floor);
 
+
   const index = Math.floor(
+
     Math.random() * pool.length
+
   );
+
 
   const monster = pool[index];
 
@@ -558,28 +586,38 @@ export function createEnemy(floor) {
   // ==================== 최종 능력치 계산 ====================
 
   const maxHp = calculateEnemyHp(
+
     monster.hp,
+
     floor
+
   );
+
 
   const atk = calculateEnemyAtk(
+
     monster.atk,
+
     floor
+
   );
 
-  const def = calculateEnemyDef(
-    monster.def,
-    floor
-  );
 
   const spd = calculateEnemySpd(
+
     monster.spd,
+
     floor
+
   );
 
+
   const crit = calculateEnemyCrit(
+
     monster.crit,
+
     floor
+
   );
 
 
@@ -598,8 +636,6 @@ export function createEnemy(floor) {
     currentHp: maxHp,
 
     atk,
-
-    def,
 
     spd,
 
