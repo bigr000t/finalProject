@@ -22,6 +22,8 @@ import {
 
 export const REWARDS = [
 
+  // ==================== 회복약 ====================
+
   {
     id: "heal1",
     title: "회복약",
@@ -46,13 +48,16 @@ export const REWARDS = [
     amount: 0.7
   },
 
-    {
+
+  // ==================== 일반 비급서 ====================
+
+  {
     id: "bookHp",
     title: "생명 비급서",
-    desc: "기본 HP +10",
+    desc: "기본 HP +20",
     type: "stat",
     stat: "hp",
-    amount: 10
+    amount: 20
   },
 
   {
@@ -65,21 +70,24 @@ export const REWARDS = [
   },
 
   {
-    id: "bookDef",
-    title: "방어 비급서",
-    desc: "기본 방어력 +2",
+    id: "bookAp",
+    title: "주문 비급서",
+    desc: "기본 주문력 +2",
     type: "stat",
-    stat: "def",
+    stat: "ap",
     amount: 2
   },
+
+
+  // ==================== 상급 비급서 ====================
 
   {
     id: "advancedBookHp",
     title: "상급 생명 비급서",
-    desc: "기본 HP +20",
+    desc: "기본 HP +40",
     type: "stat",
     stat: "hp",
-    amount: 20
+    amount: 40
   },
 
   {
@@ -92,13 +100,16 @@ export const REWARDS = [
   },
 
   {
-    id: "advancedBookDef",
-    title: "상급 방어 비급서",
-    desc: "기본 방어력 +4",
+    id: "advancedBookAp",
+    title: "상급 주문 비급서",
+    desc: "기본 주문력 +4",
     type: "stat",
-    stat: "def",
+    stat: "ap",
     amount: 4
   },
+
+
+  // ==================== 골드 보상 ====================
 
   {
     id: "gold1",
@@ -125,17 +136,26 @@ export function getClearGold(floor, enemy = null) {
 
   const baseGold = floor * 5;
 
+
+  // 보스 몬스터 : 기본 골드 3배
+
   if (enemy?.isBoss) {
 
     return baseGold * 3;
 
   }
 
+
+  // 엘리트 몬스터 : 기본 골드 2배
+
   if (enemy?.isElite) {
 
     return baseGold * 2;
 
   }
+
+
+  // 일반 몬스터 : 기본 골드 1배
 
   return baseGold;
 
@@ -167,6 +187,7 @@ export function grantGold(state, amount) {
   const gold = calculateGoldAmount(
 
     amount,
+
     state.items
 
   );
@@ -177,69 +198,103 @@ export function grantGold(state, amount) {
 
 }
 
+
 // ==================== 특수 아이템 보상 생성 ====================
 
 function createSpecialReward(item, items, floor) {
 
   const currentCount = getItemCount(
+
     items,
+
     item.id
+
   );
 
   const nextCount = Math.min(
+
     ITEM_CONFIG.maxStack,
+
     currentCount + 1
+
   );
 
   let effectText = getItemEffectText(
+
     item.id,
+
     nextCount
+
   );
 
 
   // ==================== 최상급 비급서 증가량 계산 ====================
 
   const beforeBonuses = getFloorItemBonuses(
+
     items,
+
     floor
+
   );
 
   const afterBonuses = getFloorItemBonuses(
+
     {
       ...items,
       [item.id]: nextCount
     },
+
     floor
+
   );
 
 
   switch (item.id) {
 
+
+    // 최상급 생명 비급서
+
     case "supremeHpBook":
 
       effectText +=
+
         ` / 현재 층 기준 HP +${
+
           afterBonuses.hp - beforeBonuses.hp
+
         }`;
 
       break;
 
+
+    // 최상급 공격 비급서
 
     case "supremeAtkBook":
 
       effectText +=
+
         ` / 현재 층 기준 ATK +${
+
           afterBonuses.atk - beforeBonuses.atk
+
         }`;
 
       break;
 
 
-    case "supremeDefBook":
+    // 최상급 주문 비급서
+
+    case "supremeApBook":
 
       effectText +=
-        ` / 현재 층 기준 DEF +${
-          afterBonuses.def - beforeBonuses.def
+
+        ` / 현재 층 기준 AP +${
+
+          (afterBonuses.ap ?? 0) -
+
+          (beforeBonuses.ap ?? 0)
+
         }`;
 
       break;
@@ -284,19 +339,31 @@ export function drawRewards(
 
 ) {
 
+
+  // ==================== 보스 특수 아이템 확정 ====================
+
+  // 일반 몬스터 : 일반 확률
+  // 엘리트 몬스터 : 일반 확률 + 별도 패시브 포인트
+  // 보스 몬스터 : 특수 아이템 확정
+
   const forceSpecial = Boolean(
 
-    enemy?.isBoss || enemy?.isElite
+    enemy?.isBoss
 
   );
 
 
-  // 엘리트 및 보스 보상 대체용 상급 비급서
+  // ==================== 보상 추첨 목록 ====================
+
+  // 보스의 획득 가능한 특수 아이템이 부족하면
+  // 상급 비급서로 대체
 
   const pool = forceSpecial
 
     ? REWARDS.filter(
+
         reward => reward.id.startsWith("advancedBook")
+
       )
 
     : [...REWARDS];
@@ -306,6 +373,8 @@ export function drawRewards(
 
   const excludedItemIds = [];
 
+
+  // ==================== 보상 개수 검증 ====================
 
   if (
 
@@ -318,13 +387,18 @@ export function drawRewards(
   ) {
 
     throw new Error(
+
       "잘못된 보상 개수입니다."
+
     );
 
   }
 
 
+  // ==================== 보상 추첨 ====================
+
   for (let i = 0; i < count; i++) {
+
 
     // ==================== 특수 아이템 추첨 ====================
 
@@ -357,7 +431,9 @@ export function drawRewards(
       // 동일 특수 아이템 중복 등장 방지
 
       excludedItemIds.push(
+
         specialItem.id
+
       );
 
       continue;
@@ -380,7 +456,7 @@ export function drawRewards(
     };
 
 
-    // 금사의 반지 효과 반영
+    // ==================== 금사의 반지 효과 반영 ====================
 
     if (reward.type === "gold") {
 
@@ -407,6 +483,7 @@ export function drawRewards(
   return result;
 
 }
+
 
 // ==================== 체력 회복 ====================
 
@@ -447,38 +524,82 @@ export function increaseStat(
 
 ) {
 
+
+  // ==================== 증가 가능한 능력치 ====================
+
   const allowedStats = [
 
     "hp",
+
     "atk",
-    "def",
+
+    "ap",
+
     "spd",
+
     "crit"
 
   ];
 
+
+  // ==================== 능력치 검증 ====================
+
   if (!allowedStats.includes(stat)) {
 
     throw new Error(
+
       "잘못된 능력치입니다."
+
     );
 
   }
 
+
+  // 증가량 검증
+
+  if (
+
+    !Number.isFinite(amount) ||
+
+    amount <= 0
+
+  ) {
+
+    throw new Error(
+
+      "잘못된 능력치 증가량입니다."
+
+    );
+
+  }
+
+
+  // ==================== 기존 최대 체력 저장 ====================
+
   const beforeMaxHp = getMaxHp(state);
+
+
+  // ==================== 기본 능력치 증가 ====================
 
   state.player.base[stat] += amount;
 
 
-  // 최대 체력 증가 시 증가분만큼 현재 체력도 증가
+  // ==================== 최대 체력 증가 처리 ====================
+
+  // 생명 비급서 획득 시
+  // 증가한 최대 체력만큼 현재 체력도 증가
 
   if (stat === "hp") {
 
     const afterMaxHp = getMaxHp(state);
 
-    const growth =
+    const growth = Math.max(
 
-      afterMaxHp - beforeMaxHp;
+      0,
+
+      afterMaxHp - beforeMaxHp
+
+    );
 
     state.player.hp = Math.min(
 
@@ -497,23 +618,41 @@ export function increaseStat(
 
 function applySpecialReward(state, reward) {
 
+
+  // ==================== 아이템 조회 ====================
+
   const item = getItem(reward.itemId);
 
   if (!item) {
 
     throw new Error(
+
       "존재하지 않는 특수 아이템입니다."
+
     );
 
   }
+
+
+  // ==================== 최대 보유량 확인 ====================
 
   if (!canAcquireItem(state.items, item.id)) {
 
     throw new Error(
+
       "최대 보유량에 도달한 아이템입니다."
+
     );
 
   }
+
+
+  // ==================== 기존 최대 체력 저장 ====================
+
+  const beforeMaxHp = getMaxHp(state);
+
+
+  // ==================== 특수 아이템 획득 ====================
 
   const success = acquireItem(
 
@@ -526,10 +665,39 @@ function applySpecialReward(state, reward) {
   if (!success) {
 
     throw new Error(
+
       "특수 아이템 획득에 실패했습니다."
+
     );
 
   }
+
+
+  // ==================== 최대 체력 증가 처리 ====================
+
+  // 최상급 생명 비급서 등의 획득으로
+  // 최대 체력이 증가하면 현재 체력도 증가
+
+  const afterMaxHp = getMaxHp(state);
+
+  const hpGrowth = Math.max(
+
+    0,
+
+    afterMaxHp - beforeMaxHp
+
+  );
+
+  state.player.hp = Math.min(
+
+    afterMaxHp,
+
+    state.player.hp + hpGrowth
+
+  );
+
+
+  // ==================== 현재 아이템 보유량 ====================
 
   const count = getItemCount(
 
@@ -538,6 +706,9 @@ function applySpecialReward(state, reward) {
     item.id
 
   );
+
+
+  // ==================== 특수 아이템 보상 결과 ====================
 
   return {
 
@@ -564,16 +735,22 @@ function applySpecialReward(state, reward) {
 
 export function applyReward(state, rewardId) {
 
-  // 보상 선택 단계 확인
+
+  // ==================== 보상 선택 단계 확인 ====================
+
   if (state.phase !== "reward") {
 
     throw new Error(
+
       "현재 보상을 선택할 수 없습니다."
+
     );
 
   }
 
-  // 실제 등장한 보상인지 확인
+
+  // ==================== 실제 등장한 보상인지 확인 ====================
+
   const selectedReward = state.rewards.find(
 
     reward => reward.id === rewardId
@@ -583,7 +760,9 @@ export function applyReward(state, rewardId) {
   if (!selectedReward) {
 
     throw new Error(
+
       "선택할 수 없는 보상입니다."
+
     );
 
   }
@@ -604,7 +783,7 @@ export function applyReward(state, rewardId) {
   }
 
 
-  // ==================== 일반 보상 적용 ====================
+  // ==================== 일반 보상 조회 ====================
 
   const reward = REWARDS.find(item => {
 
@@ -615,22 +794,35 @@ export function applyReward(state, rewardId) {
   if (!reward) {
 
     throw new Error(
+
       "존재하지 않는 보상입니다."
+
     );
 
   }
 
+
+  // ==================== 보상 유형별 적용 ====================
+
   switch (reward.type) {
+
+
+    // ==================== 체력 회복 ====================
 
     case "heal":
 
       healPlayer(
+
         state,
+
         reward.amount
+
       );
 
       break;
 
+
+    // ==================== 능력치 증가 ====================
 
     case "stat":
 
@@ -647,6 +839,8 @@ export function applyReward(state, rewardId) {
       break;
 
 
+    // ==================== 골드 지급 ====================
+
     case "gold":
 
       grantGold(
@@ -654,6 +848,7 @@ export function applyReward(state, rewardId) {
         state,
 
         getClearGold(state.floor) *
+
         reward.amount
 
       );
@@ -661,10 +856,14 @@ export function applyReward(state, rewardId) {
       break;
 
 
+    // ==================== 잘못된 보상 ====================
+
     default:
 
       throw new Error(
+
         "잘못된 보상 유형입니다."
+
       );
 
   }
@@ -693,8 +892,11 @@ export function getRerollCost(
       floor *
 
       Math.pow(
+
         rerollCount + 1,
+
         1.2
+
       )
 
     )
@@ -731,6 +933,9 @@ export function canReroll(state) {
 
 export function rerollRewards(state) {
 
+
+  // ==================== 리롤 가능 여부 확인 ====================
+
   if (!canReroll(state)) {
 
     return {
@@ -743,6 +948,9 @@ export function rerollRewards(state) {
 
   }
 
+
+  // ==================== 리롤 비용 계산 ====================
+
   const cost = getRerollCost(
 
     state.floor,
@@ -751,22 +959,41 @@ export function rerollRewards(state) {
 
   );
 
+
+  // ==================== 새로운 보상 추첨 ====================
+
+  // 보스 몬스터의 특수 아이템 확정 보상은
+  // 리롤 시에도 유지
+
+  const rewards = drawRewards(
+
+    state.floor,
+
+    3,
+
+    state.items,
+
+    state.enemy
+
+  );
+
+
+  // ==================== 골드 차감 ====================
+
   state.gold -= cost;
+
+
+  // ==================== 리롤 횟수 증가 ====================
 
   state.rerollCount++;
 
-  // 리롤 시에도 특수 아이템 등장 가능
-state.rewards = drawRewards(
 
-  state.floor,
+  // ==================== 신규 보상 적용 ====================
 
-  3,
+  state.rewards = rewards;
 
-  state.items,
 
-  state.enemy
-
-  );
+  // ==================== 리롤 결과 반환 ====================
 
   return {
 
