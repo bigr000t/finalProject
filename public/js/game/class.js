@@ -51,7 +51,7 @@ export const CLASSES = {
         effects: [
           {
             type: "counterHpRatio",
-            amount: 0.005
+            amount: 0.003
           },
           {
             type: "counterApRatio",
