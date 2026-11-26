@@ -11,7 +11,7 @@ export const MONSTERS = [
     id: "skeleton",
     name: "해골병사",
     image: "/images/enemy00.png",
-    hp: 80,
+    hp: 90,
     atk: 16,
     def: 8,
     spd: 0.85,
@@ -48,17 +48,17 @@ export const MONSTERS = [
     atk: 13,
     def: 5,
     spd: 0.85,
-    crit: 0.15
+    crit: 0.8
   },
 
   {
     id: "skeletonGuard",
     name: "해골방패병",
     image: "/images/enemy04.png",
-    hp: 110,
-    atk: 10,
-    def: 20,
-    spd: 0.60,
+    hp: 160,
+    atk: 12,
+    def: 35,
+    spd: 0.50,
     crit: 0.01
   },
 
@@ -66,10 +66,10 @@ export const MONSTERS = [
     id: "eagle",
     name: "독수리",
     image: "/images/enemy05.png",
-    hp: 65,
-    atk: 13,
-    def: 5,
-    spd: 1.40,
+    hp: 85,
+    atk: 18,
+    def: 6,
+    spd: 1.70,
     crit: 0.05
   },
 
@@ -77,20 +77,20 @@ export const MONSTERS = [
     id: "ghost",
     name: "유령",
     image: "/images/enemy06.png",
-    hp: 75,
-    atk: 15,
-    def: 6,
+    hp: 90,
+    atk: 20,
+    def: 8,
     spd: 0.90,
-    crit: 0.20
+    crit: 0.16
   },
 
   {
     id: "skeletonKnight",
     name: "해골기사",
     image: "/images/enemy07.png",
-    hp: 110,
-    atk: 25,
-    def: 15,
+    hp: 160,
+    atk: 35,
+    def: 25,
     spd: 0.85,
     crit: 0.05
   },
@@ -99,9 +99,9 @@ export const MONSTERS = [
     id: "golem",
     name: "골렘",
     image: "/images/enemy08.png",
-    hp: 140,
+    hp: 180,
     atk: 15,
-    def: 28,
+    def: 48,
     spd: 0.45,
     crit: 0.01
   },
@@ -110,11 +110,11 @@ export const MONSTERS = [
     id: "skeletonCrossbowman",
     name: "해골석궁병",
     image: "/images/enemy09.png",
-    hp: 80,
-    atk: 22,
+    hp: 90,
+    atk: 35,
     def: 10,
     spd: 0.55,
-    crit: 0.30
+    crit: 0.24
   },
 
   {
@@ -122,8 +122,8 @@ export const MONSTERS = [
     name: "가고일",
     image: "/images/enemy10.png",
     hp: 150,
-    atk: 18,
-    def: 32,
+    atk: 20,
+    def: 70,
     spd: 0.60,
     crit: 0.03
   },
@@ -135,19 +135,19 @@ export const MONSTERS = [
     hp: 90,
     atk: 18,
     def: 10,
-    spd: 1.50,
-    crit: 0.05
+    spd: 2.00,
+    crit: 0.03
   },
 
   {
     id: "wraithAssassin",
     name: "망령 암살자",
     image: "/images/enemy12.png",
-    hp: 80,
-    atk: 20,
-    def: 8,
+    hp: 120,
+    atk: 24,
+    def: 12,
     spd: 1.25,
-    crit: 0.35
+    crit: 0.32
   },
 
 
@@ -157,10 +157,10 @@ export const MONSTERS = [
     id: "cerberus",
     name: "케르베로스",
     image: "/images/elite00.png",
-    hp: 110,
+    hp: 90,
     atk: 16,
-    def: 10,
-    spd: 1.50,
+    def: 8,
+    spd: 1.44,
     crit: 0.05,
     isElite: true
   },
@@ -169,10 +169,10 @@ export const MONSTERS = [
     id: "kingSlime",
     name: "킹슬라임",
     image: "/images/elite01.png",
-    hp: 180,
+    hp: 160,
     atk: 18,
-    def: 35,
-    spd: 0.50,
+    def: 60,
+    spd: 0.45,
     crit: 0.03,
     isElite: true
   },
@@ -181,11 +181,11 @@ export const MONSTERS = [
     id: "boneWyvern",
     name: "본 와이번",
     image: "/images/elite02.png",
-    hp: 180,
-    atk: 30,
+    hp: 160,
+    atk: 45,
     def: 25,
     spd: 1.00,
-    crit: 0.30,
+    crit: 0.32,
     isElite: true
   },
 
@@ -193,11 +193,11 @@ export const MONSTERS = [
     id: "deathKnight",
     name: "데스나이트",
     image: "/images/elite03.png",
-    hp: 220,
-    atk: 45,
-    def: 30,
-    spd: 0.80,
-    crit: 0.10,
+    hp: 240,
+    atk: 75,
+    def: 32,
+    spd: 1.00,
+    crit: 0.30,
     isElite: true
   },
 
@@ -209,10 +209,10 @@ export const MONSTERS = [
     name: "와이번",
     image: "/images/boss00.png",
     hp: 160,
-    atk: 30,
-    def: 20,
+    atk: 55,
+    def: 25,
     spd: 1.00,
-    crit: 0.10,
+    crit: 0.24,
     isBoss: true
   },
 
@@ -220,12 +220,12 @@ export const MONSTERS = [
     id: "dragon",
     name: "드래곤",
     image: "/images/boss01.png",
-    hp: 240,
-    atk: 50,
-    def: 35,
+    hp: 270,
+    atk: 90,
+    def: 36,
     spd: 1.00,
-    crit: 0.15,
-    isBoss: true
+    crit: 0.20,
+    isElite: true
   }
 
 ];
@@ -373,15 +373,15 @@ export const ENEMY_POOLS = [
 
 export const ENEMY_GROWTH = {
 
-  hp: 0.06,
-  atk: 0.012,
+  hp: 0.04,
+  atk: 0.008,
   def: 0.012,
-  spd: 0.006,
-  crit: 0.0006,
+  spd: 0.004,
+  crit: 0.0004,
 
-  hpPower: 1.24,
-  atkPower: 1.24,
-  defPower: 1.24,
+  hpPower: 1.16,
+  atkPower: 1.16,
+  defPower: 1.16,
 
   maxSpd: 3.0,
   maxCrit: 0.5
