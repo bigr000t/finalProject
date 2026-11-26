@@ -767,7 +767,10 @@ export function winBattle() {
 
   stopBattle();
 
-  const baseGold = getClearGold(state.floor);
+  const baseGold = getClearGold(
+    state.floor,
+    state.enemy
+  );
 
   const gold = grantGold(
     state,
@@ -781,7 +784,8 @@ export function winBattle() {
   state.rewards = drawRewards(
     state.floor,
     3,
-    state.items
+    state.items,
+    state.enemy
   );
 
   state.phase = "reward";
