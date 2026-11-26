@@ -121,9 +121,23 @@ export const REWARDS = [
 
 // ==================== 층 클리어 기본 골드 ====================
 
-export function getClearGold(floor) {
+export function getClearGold(floor, enemy = null) {
 
-  return floor * 5;
+  const baseGold = floor * 5;
+
+  if (enemy?.isBoss) {
+
+    return baseGold * 3;
+
+  }
+
+  if (enemy?.isElite) {
+
+    return baseGold * 2;
+
+  }
+
+  return baseGold;
 
 }
 
@@ -264,15 +278,34 @@ export function drawRewards(
 
   count = 3,
 
-  items = currentState.items
+  items = currentState.items,
+
+  enemy = currentState.enemy
 
 ) {
 
-  const pool = [...REWARDS];
+  const forceSpecial = Boolean(
+
+    enemy?.isBoss || enemy?.isElite
+
+  );
+
+
+  // 엘리트 및 보스 보상 대체용 상급 비급서
+
+  const pool = forceSpecial
+
+    ? REWARDS.filter(
+        reward => reward.id.startsWith("advancedBook")
+      )
+
+    : [...REWARDS];
+
 
   const result = [];
 
   const excludedItemIds = [];
+
 
   if (
 
@@ -290,6 +323,7 @@ export function drawRewards(
 
   }
 
+
   for (let i = 0; i < count; i++) {
 
     // ==================== 특수 아이템 추첨 ====================
@@ -298,11 +332,13 @@ export function drawRewards(
 
       items,
 
-      excludedItemIds
+      excludedItemIds,
+
+      forceSpecial
 
     );
 
-    // 특수 아이템 추첨 성공
+
     if (specialItem) {
 
       const reward = createSpecialReward(
@@ -317,7 +353,9 @@ export function drawRewards(
 
       result.push(reward);
 
-      // 같은 보상 화면에 동일 아이템 중복 등장 방지
+
+      // 동일 특수 아이템 중복 등장 방지
+
       excludedItemIds.push(
         specialItem.id
       );
@@ -342,7 +380,8 @@ export function drawRewards(
     };
 
 
-    // 금사의 반지 효과를 반영한 골드 표시
+    // 금사의 반지 효과 반영
+
     if (reward.type === "gold") {
 
       const baseGold =
@@ -368,7 +407,6 @@ export function drawRewards(
   return result;
 
 }
-
 
 // ==================== 체력 회복 ====================
 
@@ -646,15 +684,19 @@ export function getRerollCost(
 
 ) {
 
-  return Math.floor(
+  return Math.max(
 
-    floor *
+    1,
 
-    Math.pow(2, Math.SQRT2) *
+    Math.floor(
 
-    Math.pow(
-      rerollCount + 1,
-      Math.SQRT2
+      floor *
+
+      Math.pow(
+        rerollCount + 1,
+        1.2
+      )
+
     )
 
   );
@@ -714,13 +756,15 @@ export function rerollRewards(state) {
   state.rerollCount++;
 
   // 리롤 시에도 특수 아이템 등장 가능
-  state.rewards = drawRewards(
+state.rewards = drawRewards(
 
-    state.floor,
+  state.floor,
 
-    3,
+  3,
 
-    state.items
+  state.items,
+
+  state.enemy
 
   );
 
