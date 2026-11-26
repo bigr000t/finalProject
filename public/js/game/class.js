@@ -33,12 +33,12 @@ export const CLASSES = {
       {
         id: "warrior_iron_body",
         name: "강철의 육체",
-        desc: "레벨당 최대 생명력 4% 증가",
+        desc: "레벨당 최대 생명력 3% 증가",
 
         effects: [
           {
             type: "percentHp",
-            amount: 0.04
+            amount: 0.03
           }
         ]
       },
@@ -68,7 +68,7 @@ export const CLASSES = {
         effects: [
           {
             type: "apDamageReduction",
-            amount: 0.04
+            amount: 0.01
           }
         ]
       },
