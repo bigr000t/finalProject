@@ -1,25 +1,31 @@
 "use strict";
 
 import {
+  getMaxHp
+} from "./state.js";
+
+import {
   healPlayer,
-  increaseStat
+  increaseStat,
+  getBookAmount,
+  getBookCost,
+  getBookDescription
 } from "./reward.js";
 
 
-// ==================== 일반 상점 상품 데이터 ====================
+// ==================== 상점 설정 ====================
 
 export const SHOP_ITEMS = [
 
   // ==================== 회복약 ====================
 
   {
-    id: "heal1",
+    id: "heal",
     title: "회복약",
     desc: "최대 HP의 20% 회복",
     type: "heal",
     amount: 0.2,
-    cost: 3,
-    scaling: true
+    costMultiplier: 3
   },
 
 
@@ -28,12 +34,11 @@ export const SHOP_ITEMS = [
   {
     id: "bookHp",
     title: "생명 비급서",
-    desc: "기본 HP +20",
+    desc: getBookDescription(1, "hp"),
     type: "stat",
     stat: "hp",
-    amount: 20,
-    cost: 800,
-    scaling: false
+    amount: getBookAmount(1, "hp"),
+    cost: getBookCost(1)
   },
 
 
@@ -42,12 +47,11 @@ export const SHOP_ITEMS = [
   {
     id: "bookAtk",
     title: "공격 비급서",
-    desc: "기본 공격력 +2",
+    desc: getBookDescription(1, "atk"),
     type: "stat",
     stat: "atk",
-    amount: 2,
-    cost: 800,
-    scaling: false
+    amount: getBookAmount(1, "atk"),
+    cost: getBookCost(1)
   },
 
 
@@ -56,65 +60,159 @@ export const SHOP_ITEMS = [
   {
     id: "bookAp",
     title: "주문 비급서",
-    desc: "기본 주문력 +2",
+    desc: getBookDescription(1, "ap"),
     type: "stat",
     stat: "ap",
-    amount: 2,
-    cost: 800,
-    scaling: false
+    amount: getBookAmount(1, "ap"),
+    cost: getBookCost(1)
   }
 
 ];
 
 
-// ==================== 일반 상품 가격 계산 ====================
+// ==================== 상점 상품 조회 ====================
 
-export function getItemCost(item, floor) {
+function getShopItem(itemId) {
 
-  if (item.scaling) {
+  return SHOP_ITEMS.find(
 
-    return item.cost * floor;
+    item => item.id === itemId
 
-  }
-
-  return item.cost;
+  ) || null;
 
 }
 
 
-// ==================== 일반 상점 상품 조회 ====================
+// ==================== 상품 가격 계산 ====================
 
-export function getShopItems(floor) {
+export function getItemCost(item, floor) {
 
-  return SHOP_ITEMS.map(item => {
+  // 상품 ID로 호출하는 경우에도 대응
+
+  if (typeof item === "string") {
+
+    item = getShopItem(item);
+
+  }
+
+
+  if (!item) {
+
+    throw new Error(
+      "존재하지 않는 상점 상품입니다."
+    );
+
+  }
+
+
+  switch (item.type) {
+
+    // ==================== 회복약 ====================
+
+    case "heal":
+
+      return Math.max(
+
+        1,
+
+        Math.floor(
+          floor * item.costMultiplier
+        )
+
+      );
+
+
+    // ==================== 비급서 ====================
+
+    case "stat":
+
+      return getBookCost(floor);
+
+
+    default:
+
+      throw new Error(
+        "잘못된 상점 상품 유형입니다."
+      );
+
+  }
+
+}
+
+
+// ==================== 층별 상품 데이터 생성 ====================
+
+function getScaledShopItem(item, floor) {
+
+  const cost = getItemCost(
+    item,
+    floor
+  );
+
+
+  // 비급서 능력치와 가격 성장
+
+  if (item.type === "stat") {
 
     return {
 
       ...item,
 
-      cost: getItemCost(item, floor),
+      amount: getBookAmount(
+        floor,
+        item.stat
+      ),
 
-      scaling: false
+      desc: getBookDescription(
+        floor,
+        item.stat
+      ),
+
+      cost
 
     };
 
-  });
+  }
+
+
+  // 회복약 등 기존 상품
+
+  return {
+
+    ...item,
+
+    cost
+
+  };
 
 }
 
 
-// ==================== 일반 상품 구매 가능 여부 ====================
+// ==================== 전체 상점 상품 조회 ====================
+
+export function getShopItems(floor) {
+
+  return SHOP_ITEMS.map(
+
+    item => getScaledShopItem(
+      item,
+      floor
+    )
+
+  );
+
+}
+
+
+// ==================== 상품 구매 가능 여부 ====================
 
 export function canBuyItem(state, itemId) {
 
   if (
-
+    !state ||
     state.phase !== "shop" ||
-
     !state.player ||
-
     state.player.hp <= 0
-
   ) {
 
     return false;
@@ -124,11 +222,7 @@ export function canBuyItem(state, itemId) {
 
   // ==================== 상품 조회 ====================
 
-  const item = SHOP_ITEMS.find(item => {
-
-    return item.id === itemId;
-
-  });
+  const item = getShopItem(itemId);
 
   if (!item) {
 
@@ -140,35 +234,54 @@ export function canBuyItem(state, itemId) {
   // ==================== 상품 가격 계산 ====================
 
   const cost = getItemCost(
-
     item,
-
     state.floor
-
   );
 
 
   // ==================== 보유 골드 확인 ====================
 
-  return state.gold >= cost;
+  if (state.gold < cost) {
+
+    return false;
+
+  }
+
+
+  // ==================== 최대 체력 확인 ====================
+
+  if (
+    item.type === "heal" &&
+    state.player.hp >= getMaxHp(state)
+  ) {
+
+    return false;
+
+  }
+
+  return true;
 
 }
 
 
-// ==================== 일반 상품 구매 ====================
+// ==================== 상품 구매 ====================
 
 export function buyItem(state, itemId) {
 
+  // ==================== 구매 가능 상태 확인 ====================
 
-  // ==================== 구매 가능 여부 확인 ====================
-
-  if (!canBuyItem(state, itemId)) {
+  if (
+    !state ||
+    state.phase !== "shop" ||
+    !state.player ||
+    state.player.hp <= 0
+  ) {
 
     return {
 
       success: false,
 
-      message: "상품을 구매할 수 없습니다."
+      message: "현재 상점을 이용할 수 없습니다."
 
     };
 
@@ -177,22 +290,69 @@ export function buyItem(state, itemId) {
 
   // ==================== 상품 조회 ====================
 
-  const item = SHOP_ITEMS.find(item => {
+  const baseItem = getShopItem(itemId);
 
-    return item.id === itemId;
+  if (!baseItem) {
 
-  });
+    return {
+
+      success: false,
+
+      message: "존재하지 않는 상품입니다."
+
+    };
+
+  }
 
 
-  // ==================== 상품 가격 계산 ====================
+  // ==================== 층별 상품 정보 계산 ====================
 
-  const cost = getItemCost(
+  const item = getScaledShopItem(
 
-    item,
+    baseItem,
 
     state.floor
 
   );
+
+
+  const cost = item.cost;
+
+
+  // ==================== 보유 골드 확인 ====================
+
+  if (state.gold < cost) {
+
+    return {
+
+      success: false,
+
+      message: "골드가 부족합니다."
+
+    };
+
+  }
+
+
+  // ==================== 최대 체력 확인 ====================
+
+  if (
+    item.type === "heal" &&
+    state.player.hp >= getMaxHp(state)
+  ) {
+
+    return {
+
+      success: false,
+
+      message: "이미 최대 체력입니다."
+
+    };
+
+  }
+
+
+  let message = "";
 
 
   // ==================== 상품 효과 적용 ====================
@@ -200,7 +360,7 @@ export function buyItem(state, itemId) {
   switch (item.type) {
 
 
-    // ==================== 회복약 구매 ====================
+    // ==================== 회복약 ====================
 
     case "heal": {
 
@@ -213,9 +373,7 @@ export function buyItem(state, itemId) {
       );
 
 
-      // 회복할 체력이 없다면 골드를 차감하지 않음
-
-      if (healed === 0) {
+      if (healed <= 0) {
 
         return {
 
@@ -227,14 +385,18 @@ export function buyItem(state, itemId) {
 
       }
 
+
+      message =
+        `${item.title} 구매: HP +${healed}`;
+
       break;
 
     }
 
 
-    // ==================== 비급서 구매 ====================
+    // ==================== 비급서 ====================
 
-    case "stat":
+    case "stat": {
 
       increaseStat(
 
@@ -246,10 +408,34 @@ export function buyItem(state, itemId) {
 
       );
 
+
+      const statNames = {
+
+        hp: "최대 생명력",
+
+        atk: "공격력",
+
+        ap: "주문력"
+
+      };
+
+
+      const statName =
+        statNames[item.stat] || item.stat;
+
+
+      message =
+
+        `${item.title} 구매: ` +
+
+        `${statName} +${item.amount}`;
+
       break;
 
+    }
 
-    // ==================== 잘못된 상품 유형 ====================
+
+    // ==================== 잘못된 상품 ====================
 
     default:
 
@@ -275,11 +461,11 @@ export function buyItem(state, itemId) {
 
     success: true,
 
-    cost,
-
     item,
 
-    message: `${item.title} 구매 (-${cost}G)`
+    cost,
+
+    message: `${message} (-${cost}G)`
 
   };
 
