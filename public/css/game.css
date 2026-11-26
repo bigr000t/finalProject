@@ -1,84 +1,80 @@
 /* ==================== 게임 전체 영역 ==================== */
 
+.game-container,
+.game-container * {
+  box-sizing: border-box;
+}
+
 .game-container {
-
   display: flex;
-
   flex-direction: column;
 
-  gap: 20px;
+  width: 100%;
+  min-width: 0;
 
+  gap: 20px;
 }
 
 
 /* ==================== 전투 영역 ==================== */
 
 .arena {
-
   display: grid;
 
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-columns:
+    minmax(0, 2fr) minmax(0, 1fr);
+
+  align-items: stretch;
 
   gap: 16px;
 
   position: sticky;
-
   top: 12px;
 
   z-index: 10;
-
 }
 
 .combat,
 .log {
-
   min-width: 0;
 
   background-color: var(--card);
 
   border: 1px solid var(--border);
-
   border-top: 2px solid var(--gold-dark);
-
   border-radius: 3px;
 
   box-shadow: 0 4px 12px var(--shadow);
 
   padding: 20px;
-
 }
 
 
 /* ==================== 층수 및 전투 상태 ==================== */
 
 .topline {
-
   display: flex;
 
   align-items: center;
-
   justify-content: space-between;
+
+  gap: 8px;
 
   padding-bottom: 12px;
 
   border-bottom: 1px solid var(--border);
-
 }
 
 #floor {
-
   font-family: "Noto Serif KR", "Batang", serif;
 
   font-size: 26px;
-
   font-weight: bold;
 
   color: var(--gold);
-
 }
 
 #status {
-
   padding: 4px 12px;
 
   background-color: #242424;
@@ -88,52 +84,43 @@
   color: var(--muted);
 
   font-size: 12px;
-
 }
 
 
 /* ==================== 전투 캐릭터 ==================== */
 
 .fighters {
-
   display: grid;
 
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns:
+    minmax(0, 1fr) auto minmax(0, 1fr);
 
   align-items: center;
 
   gap: 20px;
 
   padding: 24px 0;
-
 }
 
 .fighter {
-
   min-width: 0;
 
   text-align: center;
-
 }
 
 .fighter h2 {
-
   font-size: 20px;
 
   margin: 12px 0;
-
 }
 
 .avatar {
-
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   width: 110px;
-
   height: 110px;
 
   margin: 0 auto;
@@ -145,541 +132,19 @@
   box-shadow: inset 0 0 16px var(--shadow);
 
   font-size: 56px;
-
 }
 
 .versus {
-
   color: var(--gold-dark);
 
   font-family: Georgia, serif;
 
   font-size: 26px;
-
   font-weight: bold;
-
 }
 
 
-/* ==================== 체력 바 ==================== */
-
-.hp {
-
-  width: 100%;
-
-  height: 16px;
-
-  overflow: hidden;
-
-  background-color: #171717;
-
-  border: 1px solid #666666;
-
-  box-shadow: inset 0 2px 4px var(--shadow);
-
-}
-
-.hp > div {
-
-  width: 0;
-
-  height: 100%;
-
-  background-color: #963e3e;
-
-  transition: width 0.18s ease-out;
-
-}
-
-#playerHp,
-#enemyHp {
-
-  font-size: 14px;
-
-  font-weight: bold;
-
-  font-variant-numeric: tabular-nums;
-
-}
-
-#playerStats,
-#enemyStats {
-
-  color: var(--muted);
-
-  font-size: 12px;
-
-  overflow-wrap: anywhere;
-
-}
-
-
-/* ==================== 골드 표시 ==================== */
-
-#money {
-
-  padding-top: 14px;
-
-  margin: 0;
-
-  border-top: 1px solid var(--border);
-
-  color: var(--gold);
-
-  text-align: center;
-
-  font-size: 18px;
-
-  font-weight: bold;
-
-  letter-spacing: 1px;
-
-}
-
-
-/* ==================== 전투 기록 ==================== */
-
-.log h2 {
-
-  margin-bottom: 12px;
-
-  font-size: 18px;
-
-}
-
-#logs {
-
-  height: 270px;
-
-  padding: 10px;
-
-  overflow-y: auto;
-
-  background-color: #242424;
-
-  border: 1px solid var(--border);
-
-  font-size: 13px;
-
-}
-
-.log-entry {
-
-  margin: 0;
-
-  padding: 6px 4px;
-
-  border-bottom: 1px solid #383838;
-
-  overflow-wrap: anywhere;
-
-}
-
-.log-normal {
-
-  color: var(--muted);
-
-}
-
-.log-player {
-
-  color: var(--text);
-
-}
-
-.log-enemy {
-
-  color: var(--red);
-
-}
-
-.log-critical {
-
-  color: var(--gold-light);
-
-  font-weight: bold;
-
-}
-
-.log-success {
-
-  color: var(--green);
-
-}
-
-.log-danger {
-
-  color: var(--red);
-
-  font-weight: bold;
-
-}
-
-
-/* ==================== 클래스 선택 ==================== */
-
-.classes {
-
-  display: grid;
-
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  gap: 16px;
-
-  margin-top: 20px;
-
-}
-
-.classes button {
-
-  min-height: 110px;
-
-  padding: 20px;
-
-  background-color: #282828;
-
-  border: 3px double var(--border);
-
-  font-family: "Noto Serif KR", "Batang", serif;
-
-  font-size: 22px;
-
-  font-weight: bold;
-
-}
-
-.classes button:hover:not(:disabled) {
-
-  background-color: #38352e;
-
-  border-color: var(--gold);
-
-}
-
-.classes small {
-
-  display: block;
-
-  margin-top: 10px;
-
-  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
-
-  font-size: 12px;
-
-  font-weight: normal;
-
-  color: var(--muted);
-
-}
-
-
-/* ==================== 초기 스탯 선택 ==================== */
-
-#statClassName {
-
-  color: var(--gold-light);
-
-  font-size: 20px;
-
-  font-weight: bold;
-
-  margin-bottom: 16px;
-
-}
-
-.stat-table {
-
-  width: 100%;
-
-  border-collapse: collapse;
-
-  background-color: var(--input);
-
-  font-variant-numeric: tabular-nums;
-
-}
-
-.stat-table th,
-.stat-table td {
-
-  padding: 12px;
-
-  border-bottom: 1px solid var(--border);
-
-  text-align: center;
-
-}
-
-.stat-table th {
-
-  background-color: #383838;
-
-  color: var(--gold);
-
-  font-weight: normal;
-
-}
-
-.stat-table th:first-child,
-.stat-table td:first-child {
-
-  text-align: left;
-
-}
-
-.stat-table tbody tr:hover {
-
-  background-color: #303030;
-
-}
-
-.stat-bonus {
-
-  color: var(--green);
-
-  font-weight: bold;
-
-}
-
-.stat-total {
-
-  color: var(--gold-light);
-
-  font-weight: bold;
-
-}
-
-#statRerollStatus {
-
-  margin-top: 16px;
-
-  color: var(--muted);
-
-}
-
-#confirmStats {
-
-  min-width: 140px;
-
-}
-
-
-/* ==================== 보상 및 상점 공통 ==================== */
-
-.reward-grid {
-
-  display: grid;
-
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  gap: 12px;
-
-  margin-top: 16px;
-
-}
-
-.choice-card {
-
-  display: flex;
-
-  flex-direction: column;
-
-  justify-content: center;
-
-  align-items: center;
-
-  gap: 8px;
-
-  min-width: 0;
-
-  min-height: 120px;
-
-  padding: 18px 12px;
-
-  background-color: #282828;
-
-  border: 3px double var(--border);
-
-  text-align: center;
-
-}
-
-.choice-card strong {
-
-  color: var(--gold-light);
-
-  font-size: 16px;
-
-}
-
-.choice-card small {
-
-  color: var(--muted);
-
-  font-size: 12px;
-
-  font-weight: normal;
-
-  overflow-wrap: anywhere;
-
-}
-
-.choice-card:hover:not(:disabled) {
-
-  background-color: #38352e;
-
-  border-color: var(--gold);
-
-}
-
-.item-price {
-
-  margin-top: 4px;
-
-  padding: 4px 12px;
-
-  background-color: #202020;
-
-  border: 1px solid var(--gold-dark);
-
-  color: var(--gold);
-
-  font-size: 13px;
-
-  font-weight: bold;
-
-}
-
-
-/* ==================== 보상 리롤 ==================== */
-
-#rerollRewards {
-
-  color: var(--gold);
-
-  border-color: var(--gold-dark);
-
-}
-
-
-/* ==================== 일반 상점 ==================== */
-
-#shopItems {
-
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-
-}
-
-#progressPanel h3 {
-
-  margin-top: 24px;
-
-  padding-bottom: 8px;
-
-  border-bottom: 1px solid var(--border);
-
-}
-
-
-/* ==================== 패시브 상점 ==================== */
-
-.choice-card.owned {
-
-  background-color: #29332b;
-
-  border-color: #60856b;
-
-  opacity: 0.85;
-
-}
-
-.choice-card.owned .item-price {
-
-  color: var(--green);
-
-  border-color: #60856b;
-
-}
-
-
-/* ==================== 현재 빌드 ==================== */
-
-#build {
-
-  display: grid;
-
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  gap: 10px;
-
-}
-
-#build p {
-
-  margin: 0;
-
-  padding: 12px;
-
-  background-color: var(--input);
-
-  border-left: 2px solid var(--gold-dark);
-
-  font-size: 13px;
-
-  overflow-wrap: anywhere;
-
-}
-
-
-/* ==================== 도전 종료 ==================== */
-
-#gameOver {
-
-  text-align: center;
-
-  padding: 36px 24px;
-
-  border: 3px double var(--gold-dark);
-
-}
-
-#gameOverTitle {
-
-  font-size: 28px;
-
-}
-
-#result {
-
-  font-size: 18px;
-
-}
-
-#saveStatus {
-
-  margin: 12px 0;
-
-}
-
-#restart {
-
-  min-width: 160px;
-
-  margin-top: 16px;
-
-}
-
-/* ==================== 전투 화면 배치 수정 ==================== */
-
-.game-container,
-.game-container * {
-  box-sizing: border-box;
-}
-
-.game-container {
-  width: 100%;
-  min-width: 0;
-}
+/* ==================== 전투 화면 배치 ==================== */
 
 .game-container .battle-stage {
   position: relative;
@@ -689,14 +154,16 @@
   grid-template-columns:
     minmax(0, 1fr) 40px minmax(0, 1fr);
 
-  grid-template-rows: 1fr;
+  grid-template-rows: auto;
 
-  align-items: end;
+  align-items: stretch;
 
   width: 100%;
-  height: 360px;
 
-  min-height: 0;
+  height: auto;
+  min-height: 400px;
+
+  gap: 20px;
 
   padding: 16px;
 
@@ -707,7 +174,38 @@
 }
 
 
-/* 플레이어 위치 */
+/* ==================== 전투 캐릭터 내부 정렬 ==================== */
+
+.battle-stage .fighter {
+  display: grid;
+
+  grid-template-rows:
+    minmax(200px, 1fr)
+    auto
+    16px
+    auto
+    minmax(63px, auto);
+
+  align-content: end;
+
+  min-width: 0;
+
+  text-align: center;
+}
+
+.battle-stage .fighter h2 {
+  min-height: 26px;
+
+  margin: 8px 0;
+
+  font-size: 20px;
+  line-height: 26px;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* ==================== 플레이어 위치 ==================== */
 
 .battle-stage .player-fighter {
   grid-column: 1;
@@ -715,17 +213,19 @@
 }
 
 
-/* VS 위치 */
+/* ==================== VS 위치 ==================== */
 
 .battle-stage .versus {
   grid-column: 2;
   grid-row: 1;
 
   align-self: center;
+
+  text-align: center;
 }
 
 
-/* 몬스터 위치 */
+/* ==================== 몬스터 위치 ==================== */
 
 .battle-stage .enemy-fighter {
   grid-column: 3;
@@ -733,30 +233,14 @@
 }
 
 
-/* 효과 레이어는 Grid 배치에서 제외 */
-
-#environmentEffects,
-#battleEffects {
-  position: absolute;
-
-  inset: 0;
-
-  width: 100%;
-  height: 100%;
-
-  pointer-events: none;
-
-  overflow: hidden;
-}
-
-
-/* 기존 아바타 테두리 제거 */
+/* ==================== 전투 캐릭터 아바타 ==================== */
 
 .battle-stage .avatar {
   display: flex;
 
   align-items: flex-end;
   justify-content: center;
+  align-self: end;
 
   width: 100%;
   height: 200px;
@@ -767,13 +251,14 @@
 
   border: none;
   box-shadow: none;
+
+  transform-origin: center bottom;
 }
 
 
 /* ==================== 전투 캐릭터 이미지 ==================== */
 
 .battle-stage .battle-sprite {
-
   display: block;
 
   width: 100%;
@@ -792,35 +277,13 @@
   user-select: none;
 
   transform-origin: center bottom;
-
-}
-
-.battle-stage .avatar {
-  display: flex;
-
-  align-items: flex-end;
-  justify-content: center;
-
-  width: 100%;
-  height: 200px;
-
-  margin: 0 auto;
-
-  background: transparent;
-
-  border: none;
-  box-shadow: none;
-
-  transform-origin: center bottom;
 }
 
 
 /* ==================== 플레이어 크기 ==================== */
 
 .battle-stage .player-fighter .battle-sprite {
-
   transform: translateY(12px) scale(0.78);
-
 }
 
 
@@ -828,9 +291,7 @@
 
 .battle-stage .enemy-fighter
 .avatar:not(.boss-avatar) .battle-sprite {
-
   transform: translateY(24px) scale(0.78);
-
 }
 
 
@@ -838,24 +299,182 @@
 
 .battle-stage .enemy-fighter
 .boss-avatar .battle-sprite {
-
   transform: translateY(6px) scale(1);
-
 }
 
-/* ==================== 클래스 선택 이미지 수정 ==================== */
 
+/* ==================== 체력 바 ==================== */
+
+.hp {
+  width: 100%;
+  height: 16px;
+
+  overflow: hidden;
+
+  background-color: #171717;
+
+  border: 1px solid #666666;
+
+  box-shadow: inset 0 2px 4px var(--shadow);
+}
+
+.hp > div {
+  width: 0;
+  height: 100%;
+
+  background-color: #963e3e;
+
+  transition: width 0.18s ease-out;
+}
+
+
+/* ==================== 체력 수치 표시 ==================== */
+
+#playerHp,
+#enemyHp {
+  min-height: 20px;
+
+  margin: 6px 0;
+
+  font-size: 14px;
+  font-weight: bold;
+
+  line-height: 20px;
+
+  font-variant-numeric: tabular-nums;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* ==================== 전투 능력치 표시 ==================== */
+
+#playerStats,
+#enemyStats {
+  min-width: 0;
+  min-height: 63px;
+
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 12px;
+  line-height: 21px;
+
+  text-align: center;
+
+  font-variant-numeric: tabular-nums;
+
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+
+/* ==================== 골드 표시 ==================== */
+
+#money {
+  padding-top: 14px;
+
+  margin: 0;
+
+  border-top: 1px solid var(--border);
+
+  color: var(--gold);
+
+  text-align: center;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  letter-spacing: 1px;
+}
+
+
+/* ==================== 전투 기록 ==================== */
+
+.log {
+  display: flex;
+  flex-direction: column;
+}
+
+.log h2 {
+  margin-bottom: 12px;
+
+  font-size: 18px;
+}
+
+#logs {
+  flex: 1;
+
+  height: 270px;
+  min-height: 270px;
+
+  padding: 10px;
+
+  overflow-y: auto;
+
+  background-color: #242424;
+
+  border: 1px solid var(--border);
+
+  font-size: 13px;
+}
+
+.log-entry {
+  margin: 0;
+  padding: 6px 4px;
+
+  border-bottom: 1px solid #383838;
+
+  overflow-wrap: anywhere;
+}
+
+.log-normal {
+  color: var(--muted);
+}
+
+.log-player {
+  color: var(--text);
+}
+
+.log-enemy {
+  color: var(--red);
+}
+
+.log-critical {
+  color: var(--gold-light);
+
+  font-weight: bold;
+}
+
+.log-success {
+  color: var(--green);
+}
+
+.log-danger {
+  color: var(--red);
+
+  font-weight: bold;
+}
+
+
+/* ==================== 클래스 선택 ==================== */
+
+.classes,
 #classList {
   display: grid;
 
   grid-template-columns:
     repeat(3, minmax(0, 1fr));
 
+  width: 100%;
+
   gap: 16px;
 
-  width: 100%;
+  margin-top: 20px;
 }
 
+.classes button,
 #classList button {
   display: flex;
 
@@ -865,9 +484,48 @@
   justify-content: center;
 
   min-width: 0;
+  min-height: 110px;
+
+  padding: 20px;
 
   overflow: hidden;
+
+  background-color: #282828;
+
+  border: 3px double var(--border);
+
+  font-family: "Noto Serif KR", "Batang", serif;
+
+  font-size: 22px;
+  font-weight: bold;
 }
+
+.classes button:hover:not(:disabled) {
+  background-color: #38352e;
+
+  border-color: var(--gold);
+}
+
+.classes small {
+  display: block;
+
+  margin-top: 10px;
+
+  font-family:
+    "Noto Sans KR",
+    "Malgun Gothic",
+    sans-serif;
+
+  font-size: 12px;
+  font-weight: normal;
+
+  color: var(--muted);
+
+  line-height: 1.6;
+}
+
+
+/* ==================== 클래스 선택 이미지 ==================== */
 
 #classList img.class-preview {
   display: block;
@@ -882,27 +540,470 @@
   pointer-events: none;
 }
 
+
+/* ==================== 초기 스탯 선택 ==================== */
+
+#statClassName {
+  color: var(--gold-light);
+
+  font-size: 20px;
+  font-weight: bold;
+
+  margin-bottom: 16px;
+}
+
+.stat-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  background-color: var(--input);
+
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-table th,
+.stat-table td {
+  padding: 12px;
+
+  border-bottom: 1px solid var(--border);
+
+  text-align: center;
+}
+
+.stat-table th {
+  background-color: #383838;
+
+  color: var(--gold);
+
+  font-weight: normal;
+}
+
+.stat-table th:first-child,
+.stat-table td:first-child {
+  text-align: left;
+}
+
+.stat-table tbody tr:hover {
+  background-color: #303030;
+}
+
+.stat-bonus {
+  color: var(--green);
+
+  font-weight: bold;
+}
+
+.stat-total {
+  color: var(--gold-light);
+
+  font-weight: bold;
+}
+
+#statRerollStatus {
+  margin-top: 16px;
+
+  color: var(--muted);
+}
+
+#confirmStats {
+  min-width: 140px;
+}
+
+
+/* ==================== 보상 및 상점 공통 ==================== */
+
+.reward-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+
+  margin-top: 16px;
+}
+
+.choice-card {
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 8px;
+
+  min-width: 0;
+  min-height: 120px;
+
+  padding: 18px 12px;
+
+  background-color: #282828;
+
+  border: 3px double var(--border);
+
+  text-align: center;
+}
+
+.choice-card strong {
+  color: var(--gold-light);
+
+  font-size: 16px;
+
+  overflow-wrap: anywhere;
+}
+
+.choice-card small {
+  color: var(--muted);
+
+  font-size: 12px;
+  font-weight: normal;
+
+  overflow-wrap: anywhere;
+}
+
+.choice-card:hover:not(:disabled) {
+  background-color: #38352e;
+
+  border-color: var(--gold);
+}
+
+.item-price {
+  margin-top: 4px;
+
+  padding: 4px 12px;
+
+  background-color: #202020;
+
+  border: 1px solid var(--gold-dark);
+
+  color: var(--gold);
+
+  font-size: 13px;
+  font-weight: bold;
+}
+
+
+/* ==================== 보상 리롤 ==================== */
+
+#rerollRewards {
+  color: var(--gold);
+
+  border-color: var(--gold-dark);
+}
+
+
+/* ==================== 일반 상점 ==================== */
+
+#shopItems {
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+}
+
+#progressPanel h3 {
+  margin-top: 24px;
+
+  padding-bottom: 8px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+
+/* ==================== 패시브 강화 UI ==================== */
+
+#passives {
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+
+/* ==================== 패시브 포인트 표시 ==================== */
+
+.passive-point-info {
+  grid-column: 1 / -1;
+
+  margin: 0;
+  padding: 12px 16px;
+
+  background-color: #28251f;
+
+  border: 1px solid var(--gold-dark);
+  border-left: 3px solid var(--gold);
+
+  color: var(--gold-light);
+
+  font-size: 16px;
+  font-weight: bold;
+}
+
+
+/* ==================== 패시브 강화 카드 ==================== */
+
+#passives .choice-card {
+  min-height: 160px;
+
+  justify-content: space-between;
+
+  padding: 16px 12px;
+}
+
+#passives .choice-card strong {
+  line-height: 1.5;
+}
+
+#passives .choice-card small {
+  line-height: 1.6;
+}
+
+
+/* ==================== 습득한 패시브 ==================== */
+
+#passives .choice-card.passive-learned:not(.owned) {
+  background-color: #302d25;
+
+  border-color: var(--gold-dark);
+}
+
+
+/* ==================== 최대 레벨 패시브 ==================== */
+
+.choice-card.owned,
+#passives .choice-card.owned {
+  background-color: #29332b;
+
+  border-color: #60856b;
+
+  opacity: 1;
+}
+
+.choice-card.owned .item-price {
+  color: var(--green);
+
+  border-color: #60856b;
+}
+
+#passives .choice-card.owned strong {
+  color: #81c784;
+}
+
+
+/* ==================== 강화 불가능 상태 ==================== */
+
+#passives .choice-card:disabled:not(.owned) {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+}
+
+
+/* ==================== 현재 빌드 ==================== */
+
+#build {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+#build p {
+  min-width: 0;
+
+  margin: 0;
+  padding: 12px;
+
+  background-color: var(--input);
+
+  border-left: 2px solid var(--gold-dark);
+
+  font-size: 13px;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* ==================== 현재 빌드 패시브 목록 ==================== */
+
+.passive-build-list {
+  grid-column: 1 / -1;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+
+  gap: 10px;
+
+  padding: 16px;
+
+  background-color: #222222;
+
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold-dark);
+}
+
+.passive-build-list h3 {
+  grid-column: 1 / -1;
+
+  margin: 0 0 8px;
+
+  padding-bottom: 10px;
+
+  color: var(--gold-light);
+
+  border-bottom: 1px solid var(--border);
+
+  font-family: "Noto Serif KR", "Batang", serif;
+
+  font-size: 18px;
+}
+
+#build .passive-build-list p {
+  padding: 12px 8px;
+
+  text-align: center;
+
+  line-height: 1.6;
+}
+
+
+/* ==================== 조건부 효과 표시 ==================== */
+
+#conditionalEffects {
+  grid-column: 1 / -1;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+#conditionalEffects:empty {
+  display: none;
+}
+
+.conditional-active,
+#build .conditional-active {
+  color: #81c784;
+
+  border-left-color: #81c784;
+
+  font-weight: bold;
+}
+
+.conditional-inactive,
+#build .conditional-inactive {
+  color: #888888;
+
+  border-left-color: #555555;
+}
+
+
+/* ==================== 도전 종료 ==================== */
+
+#gameOver {
+  text-align: center;
+
+  padding: 36px 24px;
+
+  border: 3px double var(--gold-dark);
+}
+
+#gameOverTitle {
+  font-size: 28px;
+}
+
+#result {
+  font-size: 18px;
+}
+
+#saveStatus {
+  margin: 12px 0;
+}
+
+#restart {
+  min-width: 160px;
+
+  margin-top: 16px;
+}
+
+
+/* ==================== 도전 포기 버튼 ==================== */
+
+.abandon-button {
+  margin-left: auto;
+
+  padding: 5px 12px;
+
+  background-color: #382323;
+
+  color: #df9898;
+
+  border: 1px solid #754444;
+
+  border-radius: 4px;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+.abandon-button:hover {
+  background-color: #653030;
+
+  border-color: #bd6666;
+
+  color: #ffffff;
+}
+
+.abandon-button:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+.abandon-button.hidden {
+  display: none;
+}
+
+
 /* ==================== 전투 효과 레이어 ==================== */
 
+#environmentEffects,
 #battleEffects {
-
   position: absolute;
 
   inset: 0;
 
+  width: 100%;
+  height: 100%;
+
   pointer-events: none;
 
   overflow: hidden;
+}
 
+#battleEffects {
   z-index: 20;
-
 }
 
 
 /* ==================== 일반 데미지 팝업 ==================== */
 
 .damage-popup {
-
   position: absolute;
 
   color: #ffffff;
@@ -910,7 +1011,6 @@
   font-family: Georgia, serif;
 
   font-size: 24px;
-
   font-weight: 900;
 
   line-height: 1;
@@ -918,48 +1018,34 @@
   white-space: nowrap;
 
   text-shadow:
-
     -1px -1px 0 #000,
-
      1px -1px 0 #000,
-
     -1px  1px 0 #000,
-
      1px  1px 0 #000,
-
      0 3px 5px #000;
 
   pointer-events: none;
-
   user-select: none;
 
   z-index: 21;
 
   animation: damage-rise 0.8s ease-out forwards;
-
 }
 
 
 /* ==================== 치명타 데미지 ==================== */
 
 .damage-popup.critical {
-
   color: #ffcf54;
 
   font-size: 32px;
 
   text-shadow:
-
     -1px -1px 0 #000,
-
      1px -1px 0 #000,
-
     -1px  1px 0 #000,
-
      1px  1px 0 #000,
-
      0 0 8px rgba(255, 180, 40, 0.6);
-
 }
 
 
@@ -968,162 +1054,29 @@
 @keyframes damage-rise {
 
   0% {
-
     opacity: 1;
 
     transform: translate(-50%, 0) scale(0.8);
-
   }
 
   20% {
-
     opacity: 1;
 
     transform: translate(-50%, -8px) scale(1.15);
-
   }
 
   60% {
-
     opacity: 1;
-
   }
 
   100% {
-
     opacity: 0;
 
     transform: translate(-50%, -65px) scale(1);
-
   }
 
 }
 
-
-/* ==================== 모션 감소 대응 ==================== */
-
-@media (prefers-reduced-motion: reduce) {
-
-  .damage-popup {
-
-    animation: none !important;
-
-    transform: translateX(-50%);
-
-  }
-
-}
-
-
-/* ==================== 태블릿 대응 ==================== */
-
-@media (max-width: 900px) {
-
-  .arena {
-
-    grid-template-columns: 1fr;
-
-    position: static;
-
-  }
-
-  #logs {
-
-    height: 180px;
-
-  }
-
-  #shopItems {
-
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-  }
-
-}
-
-/* ==================== 모바일 대응 ==================== */
-
-@media (max-width: 600px) {
-
-  .combat,
-  .log {
-    padding: 14px;
-  }
-
-  /* 전투 화면 */
-
-  .game-container .battle-stage {
-    height: 280px;
-
-    grid-template-columns:
-      minmax(0, 1fr) 24px minmax(0, 1fr);
-
-    gap: 10px;
-    padding: 8px;
-  }
-
-  .battle-stage .avatar {
-    width: 100%;
-    height: 130px;
-    font-size: 38px;
-  }
-
-  .versus {
-    font-size: 18px;
-  }
-
-  .fighter h2 {
-    font-size: 17px;
-  }
-
-  /* 클래스 선택 */
-
-  #classList,
-  .classes,
-  .reward-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .classes button {
-    min-height: 80px;
-  }
-
-  /* 보상 및 상점 */
-
-  .choice-card {
-    min-height: 100px;
-  }
-
-  /* 초기 스탯 */
-
-  .stat-table th,
-  .stat-table td {
-    padding: 10px 4px;
-    font-size: 12px;
-  }
-
-  /* 현재 빌드 */
-
-  #build {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-
-  .panel-actions button {
-    flex: 1;
-  }
-
-  /* 데미지 팝업 */
-
-  .damage-popup {
-    font-size: 20px;
-  }
-
-  .damage-popup.critical {
-    font-size: 26px;
-  }
-
-}
 
 /* ==================== 특수 아이템 보상 카드 ==================== */
 
@@ -1184,7 +1137,6 @@
   color: #dfbd78;
 
   font-size: 10px;
-
   font-weight: bold;
 
   letter-spacing: 1px;
@@ -1205,7 +1157,6 @@
   background-color: #222222;
 
   border: 1px solid var(--border);
-
   border-top: 2px solid var(--gold-dark);
 }
 
@@ -1222,7 +1173,6 @@
   font-family: "Noto Serif KR", "Batang", serif;
 
   font-size: 18px;
-
   font-weight: bold;
 
   color: var(--gold-light);
@@ -1233,7 +1183,6 @@
 
 #build .special-item-empty {
   margin: 0;
-
   padding: 16px;
 
   background-color: transparent;
@@ -1270,7 +1219,6 @@
   gap: 12px;
 
   min-width: 0;
-
   min-height: 80px;
 
   padding: 12px;
@@ -1278,7 +1226,6 @@
   background-color: #292929;
 
   border: 1px solid #484848;
-
   border-left: 2px solid var(--gold-dark);
 
   transition:
@@ -1323,13 +1270,11 @@
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   flex-shrink: 0;
 
   width: 48px;
-
   height: 48px;
 
   background-color: #1e1e1e;
@@ -1367,7 +1312,6 @@
   color: var(--gold-light);
 
   font-size: 14px;
-
   font-weight: bold;
 
   overflow-wrap: anywhere;
@@ -1392,7 +1336,6 @@
   flex-direction: column;
 
   align-items: center;
-
   justify-content: center;
 
   flex-shrink: 0;
@@ -1406,7 +1349,6 @@
   color: var(--muted);
 
   font-size: 13px;
-
   font-weight: bold;
 
   font-variant-numeric: tabular-nums;
@@ -1419,7 +1361,6 @@
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   gap: 4px;
@@ -1429,7 +1370,6 @@
   display: block;
 
   width: 9px;
-
   height: 9px;
 
   background-color: #181818;
@@ -1643,7 +1583,8 @@
 .log-revive {
   color: #f3d58b;
 
-  background-color: rgba(190, 150, 60, 0.08);
+  background-color:
+    rgba(190, 150, 60, 0.08);
 
   border-left: 2px solid #c7a35f;
 
@@ -1651,93 +1592,9 @@
 }
 
 
-/* ==================== 특수 아이템 태블릿 대응 ==================== */
-
-@media (max-width: 900px) {
-
-  .special-item-list {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-
-  .special-item-card {
-    gap: 8px;
-
-    padding: 10px;
-  }
-
-}
-
-
-/* ==================== 특수 아이템 모바일 대응 ==================== */
-
-@media (max-width: 600px) {
-
-  #specialItemInventory {
-    padding: 12px;
-  }
-
-  .special-item-list {
-    grid-template-columns: 1fr;
-  }
-
-  .special-item-card {
-    min-height: 70px;
-  }
-
-  .special-item-icon {
-    width: 40px;
-
-    height: 40px;
-
-    font-size: 22px;
-  }
-
-  .special-item-name {
-    font-size: 13px;
-  }
-
-  .special-item-effect {
-    font-size: 11px;
-  }
-
-  .damage-popup.lifesteal {
-    font-size: 18px;
-  }
-
-  .damage-popup.reflection {
-    font-size: 14px;
-  }
-
-  .damage-popup.revive {
-    font-size: 18px;
-  }
-
-}
-
-
-/* ==================== 특수 효과 모션 감소 대응 ==================== */
-
-@media (prefers-reduced-motion: reduce) {
-
-  .damage-popup.lifesteal,
-  .damage-popup.reflection,
-  .damage-popup.revive {
-    animation: none !important;
-
-    transform: translateX(-50%);
-  }
-
-  .special-item-card {
-    transition: none;
-  }
-
-}
-
-/* ==================== 전사 : 불굴의 의지 ==================== */
+/* ==================== 전사 : 피해 감소 ==================== */
 
 .damage-popup.reduction {
-
   color: #8fc7ff;
 
   font-family:
@@ -1753,20 +1610,44 @@
     -1px  1px 0 #000,
      1px  1px 0 #000,
      0 0 8px rgba(80, 160, 255, 0.6);
-
 }
 
 .log-reduction {
-
   color: #8ab6df;
+}
 
+
+/* ==================== 전사 : 응징 및 최후의 일격 ==================== */
+
+.damage-popup.counter-attack {
+  color: #ffad66;
+
+  font-family:
+    "Noto Sans KR",
+    "Malgun Gothic",
+    sans-serif;
+
+  font-size: 20px;
+  font-weight: bold;
+
+  text-shadow:
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000,
+     0 0 8px rgba(255, 140, 50, 0.6);
+}
+
+.log-counter-attack {
+  color: #ffad66;
+
+  font-weight: bold;
 }
 
 
 /* ==================== 도적 : 연격 ==================== */
 
 .damage-popup.extra-attack {
-
   color: #8ce0cc;
 
   font-family:
@@ -1782,11 +1663,9 @@
     -1px  1px 0 #000,
      1px  1px 0 #000,
      0 0 10px rgba(80, 220, 180, 0.6);
-
 }
 
 .log-extra-attack {
-
   color: #8ce0cc;
 
   font-weight: bold;
@@ -1795,14 +1674,12 @@
     rgba(80, 180, 150, 0.06);
 
   border-left: 2px solid #68baaa;
-
 }
 
 
 /* ==================== 마법사 : 마력 폭발 ==================== */
 
 .damage-popup.magic-burst {
-
   color: #c994ff;
 
   font-family:
@@ -1818,14 +1695,76 @@
     -1px  1px 0 #000,
      1px  1px 0 #000,
      0 0 10px rgba(180, 80, 255, 0.7);
-
 }
 
 .log-magic-burst {
-
   color: #c994ff;
 
   font-weight: bold;
+}
+
+
+/* ==================== 피해 증가 로그 ==================== */
+
+.log-damage-bonus {
+  color: #e7a75b;
+
+  font-weight: bold;
+}
+
+
+/* ==================== 작은 데스크톱 대응 ==================== */
+
+@media (max-width: 1200px) {
+
+  #passives,
+  .passive-build-list {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+}
+
+
+/* ==================== 태블릿 대응 ==================== */
+
+@media (max-width: 900px) {
+
+  .arena {
+    grid-template-columns: 1fr;
+
+    position: static;
+  }
+
+  #logs {
+    flex: none;
+
+    height: 180px;
+    min-height: 180px;
+  }
+
+  #shopItems {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  #passives,
+  .passive-build-list,
+  #conditionalEffects {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .special-item-list {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .special-item-card {
+    gap: 8px;
+
+    padding: 10px;
+  }
 
 }
 
@@ -1833,6 +1772,197 @@
 /* ==================== 모바일 대응 ==================== */
 
 @media (max-width: 600px) {
+
+  .combat,
+  .log {
+    padding: 14px;
+  }
+
+
+  /* ==================== 전투 화면 ==================== */
+
+  .game-container .battle-stage {
+    height: auto;
+    min-height: 340px;
+
+    grid-template-columns:
+      minmax(0, 1fr) 24px minmax(0, 1fr);
+
+    gap: 10px;
+
+    padding: 8px;
+  }
+
+  .battle-stage .fighter {
+    grid-template-rows:
+      minmax(130px, 1fr)
+      auto
+      16px
+      auto
+      minmax(72px, auto);
+  }
+
+  .battle-stage .avatar {
+    width: 100%;
+    height: 130px;
+
+    font-size: 38px;
+  }
+
+  .versus {
+    font-size: 18px;
+  }
+
+  .battle-stage .fighter h2 {
+    min-height: 24px;
+
+    font-size: 17px;
+    line-height: 24px;
+
+    margin: 6px 0;
+  }
+
+  #playerHp,
+  #enemyHp {
+    font-size: 12px;
+
+    line-height: 18px;
+
+    min-height: 18px;
+
+    margin: 6px 0;
+  }
+
+  #playerStats,
+  #enemyStats {
+    min-height: 72px;
+
+    font-size: 10px;
+
+    line-height: 18px;
+  }
+
+
+  /* ==================== 클래스 선택 ==================== */
+
+  #classList,
+  .classes,
+  .reward-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .classes button,
+  #classList button {
+    min-height: 80px;
+  }
+
+
+  /* ==================== 보상 및 상점 ==================== */
+
+  .choice-card {
+    min-height: 100px;
+  }
+
+
+  /* ==================== 초기 스탯 ==================== */
+
+  .stat-table th,
+  .stat-table td {
+    padding: 10px 4px;
+
+    font-size: 12px;
+  }
+
+
+  /* ==================== 현재 빌드 ==================== */
+
+  #build {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .panel-actions button {
+    flex: 1;
+  }
+
+
+  /* ==================== 패시브 강화 ==================== */
+
+  #passives {
+    grid-template-columns: 1fr;
+  }
+
+  #passives .choice-card {
+    min-height: 120px;
+  }
+
+  .passive-build-list {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    padding: 12px;
+  }
+
+  #conditionalEffects {
+    grid-template-columns: 1fr;
+  }
+
+  .passive-point-info {
+    font-size: 14px;
+  }
+
+
+  /* ==================== 특수 아이템 ==================== */
+
+  #specialItemInventory {
+    padding: 12px;
+  }
+
+  .special-item-list {
+    grid-template-columns: 1fr;
+  }
+
+  .special-item-card {
+    min-height: 70px;
+  }
+
+  .special-item-icon {
+    width: 40px;
+    height: 40px;
+
+    font-size: 22px;
+  }
+
+  .special-item-name {
+    font-size: 13px;
+  }
+
+  .special-item-effect {
+    font-size: 11px;
+  }
+
+
+  /* ==================== 데미지 팝업 ==================== */
+
+  .damage-popup {
+    font-size: 20px;
+  }
+
+  .damage-popup.critical {
+    font-size: 26px;
+  }
+
+  .damage-popup.lifesteal {
+    font-size: 18px;
+  }
+
+  .damage-popup.reflection {
+    font-size: 14px;
+  }
+
+  .damage-popup.revive {
+    font-size: 18px;
+  }
 
   .damage-popup.reduction {
     font-size: 14px;
@@ -1846,289 +1976,27 @@
     font-size: 15px;
   }
 
-}
-
-/* ==================== 도전 포기 버튼 ==================== */
-
-.abandon-button {
-  margin-left: auto;
-  padding: 5px 12px;
-
-  background-color: #382323;
-  color: #df9898;
-
-  border: 1px solid #754444;
-  border-radius: 4px;
-
-  font-size: 12px;
-  font-weight: bold;
-
-  cursor: pointer;
-
-  transition:
-    background-color 0.2s,
-    border-color 0.2s;
-}
-
-.abandon-button:hover {
-  background-color: #653030;
-  border-color: #bd6666;
-  color: #ffffff;
-}
-
-.abandon-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.abandon-button.hidden {
-  display: none;
-}
-
-/* ==================== 조건부 특수 아이템 ==================== */
-
-.conditional-active {
-  color: #81c784;
-  font-weight: bold;
-}
-
-.conditional-inactive {
-  color: #888888;
-}
-
-
-/* ==================== 피해 증가 로그 ==================== */
-
-.log-damage-bonus {
-  color: #e7a75b;
-  font-weight: bold;
-}
-
-/* ==================== 전사 패시브 : 응징 ==================== */
-
-.damage-popup.counter-attack {
-  color: #ffad66;
-  font-weight: bold;
-  text-shadow: 0 0 8px rgba(255, 140, 50, 0.6);
-}
-
-.log-counter-attack {
-  color: #ffad66;
-  font-weight: bold;
-}
-
-/* ==================== 패시브 강화 UI ==================== */
-
-#passives {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-}
-
-
-/* ==================== 패시브 포인트 표시 ==================== */
-
-.passive-point-info {
-  grid-column: 1 / -1;
-
-  margin: 0;
-  padding: 12px 16px;
-
-  background-color: #28251f;
-
-  border: 1px solid var(--gold-dark);
-  border-left: 3px solid var(--gold);
-
-  color: var(--gold-light);
-
-  font-size: 16px;
-  font-weight: bold;
-}
-
-
-/* ==================== 패시브 강화 카드 ==================== */
-
-#passives .choice-card {
-  min-height: 160px;
-
-  justify-content: space-between;
-
-  padding: 16px 12px;
-}
-
-#passives .choice-card strong {
-  line-height: 1.5;
-}
-
-#passives .choice-card small {
-  line-height: 1.6;
-}
-
-
-/* ==================== 습득한 패시브 ==================== */
-
-#passives .choice-card.passive-learned:not(.owned) {
-  background-color: #302d25;
-  border-color: var(--gold-dark);
-}
-
-
-/* ==================== 최대 레벨 패시브 ==================== */
-
-#passives .choice-card.owned {
-  background-color: #29332b;
-  border-color: #60856b;
-
-  opacity: 1;
-}
-
-#passives .choice-card.owned strong {
-  color: #81c784;
-}
-
-
-/* ==================== 강화 불가능 상태 ==================== */
-
-#passives .choice-card:disabled:not(.owned) {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-
-/* ==================== 현재 빌드 패시브 목록 ==================== */
-
-.passive-build-list {
-  grid-column: 1 / -1;
-
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-
-  gap: 10px;
-
-  padding: 16px;
-
-  background-color: #222222;
-
-  border: 1px solid var(--border);
-  border-top: 2px solid var(--gold-dark);
-}
-
-.passive-build-list h3 {
-  grid-column: 1 / -1;
-
-  margin: 0 0 8px;
-  padding-bottom: 10px;
-
-  color: var(--gold-light);
-
-  border-bottom: 1px solid var(--border);
-
-  font-family: "Noto Serif KR", "Batang", serif;
-  font-size: 18px;
-}
-
-#build .passive-build-list p {
-  padding: 12px 8px;
-
-  text-align: center;
-  line-height: 1.6;
-}
-
-
-/* ==================== 조건부 효과 표시 ==================== */
-
-#conditionalEffects {
-  grid-column: 1 / -1;
-
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  gap: 10px;
-}
-
-#conditionalEffects:empty {
-  display: none;
-}
-
-#build .conditional-active {
-  color: #81c784;
-
-  border-left-color: #81c784;
-
-  font-weight: bold;
-}
-
-#build .conditional-inactive {
-  color: #888888;
-  border-left-color: #555555;
-}
-
-
-/* ==================== 전투 능력치 표시 ==================== */
-
-#playerStats,
-#enemyStats {
-  line-height: 1.7;
-
-  font-variant-numeric: tabular-nums;
-}
-
-
-/* ==================== 태블릿 대응 ==================== */
-
-@media (max-width: 1200px) {
-
-  #passives,
-  .passive-build-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-}
-
-@media (max-width: 900px) {
-
-  #passives,
-  .passive-build-list,
-  #conditionalEffects {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-}
-
-
-/* ==================== 모바일 대응 ==================== */
-
-@media (max-width: 600px) {
-
-  #passives {
-    grid-template-columns: 1fr;
-  }
-
-  #passives .choice-card {
-    min-height: 120px;
-  }
-
-  .passive-build-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    padding: 12px;
-  }
-
-  #conditionalEffects {
-    grid-template-columns: 1fr;
-  }
-
-  .passive-point-info {
-    font-size: 14px;
-  }
-
-  #playerStats,
-  #enemyStats {
-    font-size: 11px;
-  }
-
   .damage-popup.counter-attack {
     font-size: 16px;
+  }
+
+}
+
+
+/* ==================== 모션 감소 대응 ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .damage-popup {
+    animation: none !important;
+
+    transform: translateX(-50%);
+  }
+
+  .special-item-card,
+  .abandon-button,
+  .hp > div {
+    transition: none;
   }
 
 }
