@@ -55,7 +55,7 @@ export const CLASSES = {
           },
           {
             type: "counterApRatio",
-            amount: 0.1
+            amount: 0.2
           }
         ]
       },
