@@ -132,7 +132,7 @@ export const CLASSES = {
 
         cost: PASSIVE_COSTS.tier1,
 
-        desc: "총 공격 속도 0.4 증가",
+        desc: "총 공격 속도 0.6 증가",
 
         effects: [
           {
