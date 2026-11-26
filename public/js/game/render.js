@@ -331,14 +331,32 @@ const CLASS_IMAGES = {
 // ==================== 몬스터 이미지 ====================
 
 const ENEMY_IMAGES = {
-  wolf: "/images/enemy00.png",
-  boar: "/images/enemy01.png",
-  bear: "/images/enemy02.png",
-  slime: "/images/enemy03.png",
-  skeleton: "/images/enemy04.png",
 
+  // 일반 몬스터
+  skeleton: "/images/enemy00.png",
+  slime: "/images/enemy01.png",
+  guardDog: "/images/enemy02.png",
+  skeletonArcher: "/images/enemy03.png",
+  skeletonGuard: "/images/enemy04.png",
+  eagle: "/images/enemy05.png",
+  ghost: "/images/enemy06.png",
+  skeletonKnight: "/images/enemy07.png",
+  golem: "/images/enemy08.png",
+  skeletonCrossbowman: "/images/enemy09.png",
+  gargoyle: "/images/enemy10.png",
+  griffin: "/images/enemy11.png",
+  wraithAssassin: "/images/enemy12.png",
+
+  // 엘리트 몬스터
+  cerberus: "/images/elite00.png",
+  kingSlime: "/images/elite01.png",
+  boneWyvern: "/images/elite02.png",
+  deathKnight: "/images/elite03.png",
+
+  // 보스 몬스터
   wyvern: "/images/boss00.png",
   dragon: "/images/boss01.png"
+
 };
 
 
