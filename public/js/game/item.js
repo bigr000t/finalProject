@@ -20,7 +20,7 @@ export const ITEM_CONFIG = {
 
 export const SPECIAL_ITEMS = [
 
-  // ==================== 기존 특수 아이템 ====================
+  // ==================== 기본 특수 아이템 ====================
 
   {
     id: "vampireRing",
@@ -33,7 +33,7 @@ export const SPECIAL_ITEMS = [
 
     values: [0, 0.06, 0.12, 0.18],
 
-    description: "가한 피해량에 비례하여 체력을 회복합니다."
+    description: "기본 공격으로 가한 실제 피해량에 비례하여 체력을 회복합니다."
   },
 
   {
@@ -162,7 +162,7 @@ export const SPECIAL_ITEMS = [
 
     values: [0, 0.12, 0.24, 0.36],
 
-    description: "현재 체력이 최대 체력의 33% 이하일 때 가하는 피해량이 증가합니다."
+    description: "현재 체력이 최대 체력의 33% 이하일 때 기본 공격 피해량이 증가합니다."
   },
 
   {
@@ -191,7 +191,7 @@ export const SPECIAL_ITEMS = [
 
     type: "floorHp",
 
-    values: [0, 0.4, 0.8, 1.2],
+    values: [0, 0.8, 1.6, 2.4],
 
     description: "현재 층수에 비례하여 최대 체력이 증가합니다."
   },
@@ -211,17 +211,17 @@ export const SPECIAL_ITEMS = [
   },
 
   {
-    id: "supremeDefBook",
+    id: "supremeApBook",
 
-    name: "최상급 방어력 비급서",
+    name: "최상급 주문력 비급서",
 
     emoji: "📘",
 
-    type: "floorDef",
+    type: "floorAp",
 
     values: [0, 0.08, 0.16, 0.24],
 
-    description: "현재 층수에 비례하여 방어력이 증가합니다."
+    description: "현재 층수에 비례하여 주문력이 증가합니다."
   },
 
 
@@ -285,7 +285,7 @@ export const SPECIAL_ITEMS = [
       }
     ],
 
-    description: "치명타 확률이 감소하는 대신 가하는 피해량이 증가합니다."
+    description: "치명타 확률이 감소하는 대신 기본 공격 피해량이 증가합니다."
   },
 
   {
@@ -301,13 +301,13 @@ export const SPECIAL_ITEMS = [
 
     subEffects: [
       {
-        type: "percentDefPenalty",
+        type: "percentHpPenalty",
 
-        values: [0, 0.24, 0.48, 0.72]
+        values: [0, 0.12, 0.24, 0.36]
       }
     ],
 
-    description: "방어력이 감소하는 대신 치명타 확률이 증가합니다."
+    description: "최대 생명력이 감소하는 대신 치명타 확률이 증가합니다."
   }
 
 ];
@@ -402,6 +402,7 @@ export function canAcquireItem(items, itemId) {
   return (
 
     getItemCount(items, itemId) <
+
     ITEM_CONFIG.maxStack
 
   );
@@ -414,9 +415,13 @@ export function canAcquireItem(items, itemId) {
 export function acquireItem(items, itemId) {
 
   if (
+
     !items ||
+
     typeof items !== "object" ||
+
     Array.isArray(items)
+
   ) {
 
     return false;
@@ -443,9 +448,13 @@ export function acquireItem(items, itemId) {
 export function consumeItem(items, itemId) {
 
   if (
+
     !items ||
+
     typeof items !== "object" ||
+
     Array.isArray(items)
+
   ) {
 
     return false;
@@ -484,8 +493,11 @@ export function consumeItem(items, itemId) {
 // ==================== 획득 가능한 아이템 목록 ====================
 
 export function getAvailableItems(
+
   items,
+
   excludedIds = []
+
 ) {
 
   return SPECIAL_ITEMS.filter(item => {
@@ -544,7 +556,9 @@ export function rollSpecialItem(
 
 ) {
 
-  // 획득 가능한 아이템 조회
+
+  // ==================== 획득 가능한 아이템 조회 ====================
+
   const pool = getAvailableItems(
 
     items,
@@ -562,8 +576,9 @@ export function rollSpecialItem(
 
   // ==================== 특수 아이템 등장 확률 ====================
 
-  // 엘리트 및 보스는 확정 등장
-  // 일반 몬스터는 행운의 주사위 효과 적용
+  // 보스 : 확정 등장
+  // 일반 및 엘리트 : 일반 등장 확률
+  // 행운의 주사위 효과는 일반 확률에 적용
 
   const dropChance = forceSpecial
 
@@ -572,7 +587,8 @@ export function rollSpecialItem(
     : getSpecialItemDropChance(items);
 
 
-  // 보상 슬롯별 확률 판정
+  // ==================== 보상 슬롯별 확률 판정 ====================
+
   if (Math.random() >= dropChance) {
 
     return null;
@@ -580,7 +596,10 @@ export function rollSpecialItem(
   }
 
 
+  // ==================== 특수 아이템 선택 ====================
+
   // 모든 특수 아이템의 등장 가중치는 동일
+
   const index = Math.floor(
 
     Math.random() * pool.length
@@ -598,7 +617,9 @@ export function getItemEffects(items) {
 
   const effects = {
 
-    // 기존 아이템 효과
+
+    // ==================== 기본 아이템 효과 ====================
+
     lifesteal: 0,
 
     reflection: 0,
@@ -616,25 +637,29 @@ export function getItemEffects(items) {
     criticalDamageReduction: 0,
 
 
-    // 조건부 피해량 증가 및 감소
+    // ==================== 조건부 피해 증가 및 감소 ====================
+
     lowHpDamageBonus: 0,
 
     fullHpDamageReduction: 0,
 
 
-    // 최상급 비급서
+    // ==================== 최상급 비급서 ====================
+
     floorHp: 0,
 
     floorAtk: 0,
 
-    floorDef: 0,
+    floorAp: 0,
 
 
-    // 특수 아이템 등장 확률 증가
+    // ==================== 특수 아이템 등장 확률 ====================
+
     dropChanceBonus: 0,
 
 
-    // 능력치 교환 효과
+    // ==================== 능력치 교환 효과 ====================
+
     damageBonus: 0,
 
     damageReduction: 0,
@@ -643,10 +668,12 @@ export function getItemEffects(items) {
 
     critPenalty: 0,
 
-    percentDefPenalty: 0
+    percentHpPenalty: 0
 
   };
 
+
+  // ==================== 보유 아이템 효과 계산 ====================
 
   for (const item of SPECIAL_ITEMS) {
 
@@ -665,7 +692,8 @@ export function getItemEffects(items) {
     }
 
 
-    // 기본 효과 합산
+    // ==================== 기본 효과 합산 ====================
+
     if (Object.hasOwn(effects, item.type)) {
 
       effects[item.type] += item.values[count];
@@ -673,16 +701,22 @@ export function getItemEffects(items) {
     }
 
 
-    // 추가 효과 합산
+    // ==================== 추가 효과 합산 ====================
+
     if (Array.isArray(item.subEffects)) {
 
       for (const subEffect of item.subEffects) {
 
         if (
+
           !Object.hasOwn(
+
             effects,
+
             subEffect.type
+
           )
+
         ) {
 
           continue;
@@ -707,8 +741,11 @@ export function getItemEffects(items) {
 // ==================== 층수 비례 능력치 계산 ====================
 
 export function getFloorItemBonuses(
+
   items,
+
   floor = 1
+
 ) {
 
   const effects = getItemEffects(items);
@@ -723,11 +760,17 @@ export function getFloorItemBonuses(
 
   return {
 
+
+    // 최상급 생명력 비급서
+
     hp: Math.floor(
 
       currentFloor * effects.floorHp
 
     ),
+
+
+    // 최상급 공격력 비급서
 
     atk: Math.floor(
 
@@ -735,9 +778,12 @@ export function getFloorItemBonuses(
 
     ),
 
-    def: Math.floor(
 
-      currentFloor * effects.floorDef
+    // 최상급 주문력 비급서
+
+    ap: Math.floor(
+
+      currentFloor * effects.floorAp
 
     )
 
@@ -770,7 +816,6 @@ export function getItemEffectText(itemId, count) {
 
     : 0;
 
-
   const value = item.values[stack];
 
   const percent = Math.round(value * 100);
@@ -779,6 +824,9 @@ export function getItemEffectText(itemId, count) {
   // ==================== 능력치 교환형 아이템 ====================
 
   switch (item.id) {
+
+
+    // ==================== 무거운 갑주 ====================
 
     case "heavyArmor":
 
@@ -790,21 +838,27 @@ export function getItemEffectText(itemId, count) {
 
       );
 
+
+    // ==================== 맹목의 검 ====================
+
     case "blindSword":
 
       return (
 
         `치명타 확률 -${Math.round(item.subEffects[0].values[stack] * 100)}%p` +
 
-        ` / 가하는 피해 +${percent}%`
+        ` / 기본 공격 피해 +${percent}%`
 
       );
+
+
+    // ==================== 광기의 가면 ====================
 
     case "madnessMask":
 
       return (
 
-        `방어력 -${Math.round(item.subEffects[0].values[stack] * 100)}%` +
+        `최대 생명력 -${Math.round(item.subEffects[0].values[stack] * 100)}%` +
 
         ` / 치명타 확률 +${percent}%p`
 
@@ -819,31 +873,38 @@ export function getItemEffectText(itemId, count) {
 
     case "lifesteal":
 
-      return `흡혈률 ${percent}%`;
+      return `기본 공격 흡혈률 ${percent}%`;
+
 
     case "reflection":
 
       return `피격 시 고정 피해 ${value}`;
 
+
     case "revive":
 
       return `최대 체력 33%로 소생 (${value}회)`;
+
 
     case "goldBonus":
 
       return `골드 획득량 +${percent}%`;
 
+
     case "flatSpd":
 
       return `공격 속도 +${value.toFixed(1)}`;
+
 
     case "percentSpd":
 
       return `공격 속도 +${percent}%`;
 
+
     case "crit":
 
       return `치명타 확률 +${percent}%p`;
+
 
     case "criticalDamageReduction":
 
@@ -854,7 +915,8 @@ export function getItemEffectText(itemId, count) {
 
     case "lowHpDamageBonus":
 
-      return `체력 33% 이하일 때 가하는 피해 +${percent}%`;
+      return `체력 33% 이하일 때 기본 공격 피해 +${percent}%`;
+
 
     case "fullHpDamageReduction":
 
@@ -867,13 +929,15 @@ export function getItemEffectText(itemId, count) {
 
       return `최대 체력 +(현재 층수 × ${value})`;
 
+
     case "floorAtk":
 
       return `공격력 +(현재 층수 × ${value})`;
 
-    case "floorDef":
 
-      return `방어력 +(현재 층수 × ${value})`;
+    case "floorAp":
+
+      return `주문력 +(현재 층수 × ${value})`;
 
 
     // ==================== 파밍 특수 아이템 ====================
@@ -944,9 +1008,13 @@ export function getOwnedItems(items) {
 export function isValidItems(items) {
 
   if (
+
     !items ||
+
     typeof items !== "object" ||
+
     Array.isArray(items)
+
   ) {
 
     return false;
@@ -962,9 +1030,13 @@ export function isValidItems(items) {
     }
 
     if (
+
       !Number.isSafeInteger(count) ||
+
       count < 1 ||
+
       count > ITEM_CONFIG.maxStack
+
     ) {
 
       return false;
