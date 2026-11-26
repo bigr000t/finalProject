@@ -395,6 +395,8 @@
 .log {
   display: flex;
   flex-direction: column;
+
+  min-height: 0;
 }
 
 .log h2 {
@@ -404,14 +406,16 @@
 }
 
 #logs {
-  flex: 1;
+  flex: none;
 
-  height: 270px;
-  min-height: 270px;
+  height: 400px;
+  min-height: 0;
+  max-height: 400px;
 
   padding: 10px;
 
   overflow-y: auto;
+  overflow-x: hidden;
 
   background-color: #242424;
 
@@ -1739,10 +1743,21 @@
   #logs {
     flex: none;
 
-    height: 180px;
-    min-height: 180px;
-  }
+    height: 400px;
+    min-height: 0;
+    max-height: 400px;
 
+    padding: 10px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    background-color: #242424;
+
+    border: 1px solid var(--border);
+
+    font-size: 13px;
+  }
   #shopItems {
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
