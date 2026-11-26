@@ -119,7 +119,7 @@ export const CLASSES = {
       hp: 85,
       atk: 20,
       def: 10,
-      spd: 1.6,
+      spd: 1.4,
       crit: 0.1
     },
 
@@ -170,12 +170,12 @@ export const CLASSES = {
 
         cost: PASSIVE_COSTS.tier3,
 
-        desc: "공격 시 20% 확률로 추가 공격",
+        desc: "공격 시 15% 확률로 추가 공격",
 
         effects: [
           {
             type: "extraAttackChance",
-            amount: 0.20
+            amount: 0.15
           }
         ]
       }
