@@ -1,22 +1,11 @@
 "use strict";
 
 
-// ==================== 초기 능력치 설정 ====================
+// ==================== 초기 설정 ====================
 
 export const INITIAL_STAT_POINTS = 12;
 
-
-// ==================== 패시브 가격 설정 ====================
-
-export const PASSIVE_COSTS = {
-
-  tier1: 1600,
-
-  tier2: 4800,
-
-  tier3: 24000
-
-};
+export const MAX_PASSIVE_LEVEL = 3;
 
 
 // ==================== 클래스 데이터 ====================
@@ -32,9 +21,9 @@ export const CLASSES = {
     image: "/images/class00.png",
 
     base: {
-      hp: 150,
+      hp: 200,
       atk: 16,
-      def: 18,
+      ap: 10,
       spd: 1.0,
       crit: 0.1
     },
@@ -43,61 +32,73 @@ export const CLASSES = {
 
       {
         id: "warrior_iron_body",
-
         name: "강철의 육체",
-
-        cost: PASSIVE_COSTS.tier1,
-
-        desc: "최대 체력 6%, 총 방어력 6% 증가",
+        desc: "레벨당 최대 생명력 4% 증가",
 
         effects: [
           {
             type: "percentHp",
-            amount: 0.06
-          },
-          {
-            type: "percentDef",
-            amount: 0.06
+            amount: 0.04
           }
         ]
       },
 
       {
         id: "warrior_retribution",
-
         name: "응징",
-
-        cost: PASSIVE_COSTS.tier2,
-
-        desc:
-          "피격 시 최대 체력의 3%와 " +
-          "최종 방어력의 15%만큼 고정 피해",
+        desc: "피격 시 최대 생명력과 주문력에 비례하는 반격 피해",
 
         effects: [
           {
             type: "counterHpRatio",
-            amount: 0.03
+            amount: 0.005
           },
           {
-            type: "counterDefRatio",
-            amount: 0.15
+            type: "counterApRatio",
+            amount: 0.1
           }
         ]
       },
 
       {
         id: "warrior_indomitable",
-
         name: "불굴의 의지",
-
-        cost: PASSIVE_COSTS.tier3,
-
-        desc: "받는 모든 공격 피해 16% 감소",
+        desc: "주문력에 비례하여 받는 피해 감소",
 
         effects: [
           {
-            type: "damageReduction",
-            amount: 0.16
+            type: "apDamageReduction",
+            amount: 0.1
+          }
+        ]
+      },
+
+      {
+        id: "warrior_berserk",
+        name: "광전사의 투지",
+        desc: "저체력 상태에서 공격력 증가 및 받는 피해 감소",
+
+        effects: [
+          {
+            type: "lowHpAtkBonus",
+            amount: 0.05
+          },
+          {
+            type: "lowHpDamageReduction",
+            amount: 0.03
+          }
+        ]
+      },
+
+      {
+        id: "warrior_last_strike",
+        name: "최후의 일격",
+        desc: "저체력 상태에서 공격력에 비례하는 추가 피해",
+
+        effects: [
+          {
+            type: "lowHpExtraDamage",
+            amount: 0.1
           }
         ]
       }
@@ -116,9 +117,9 @@ export const CLASSES = {
     image: "/images/class01.png",
 
     base: {
-      hp: 85,
+      hp: 120,
       atk: 20,
-      def: 10,
+      ap: 10,
       spd: 1.4,
       crit: 0.1
     },
@@ -126,36 +127,11 @@ export const CLASSES = {
     passives: [
 
       {
-        id: "rogue_swiftness",
-
-        name: "신속",
-
-        cost: PASSIVE_COSTS.tier1,
-
-        desc: "총 공격 속도 0.6 증가",
-
-        effects: [
-          {
-            type: "flatSpd",
-            amount: 0.6
-          }
-        ]
-      },
-
-      {
         id: "rogue_mastery",
-
         name: "전투 숙련",
-
-        cost: PASSIVE_COSTS.tier2,
-
-        desc: "최대 체력 4%, 공격력 4% 증가",
+        desc: "레벨당 공격력 4% 증가",
 
         effects: [
-          {
-            type: "percentHp",
-            amount: 0.04
-          },
           {
             type: "percentAtk",
             amount: 0.04
@@ -164,18 +140,53 @@ export const CLASSES = {
       },
 
       {
+        id: "rogue_swiftness",
+        name: "신속",
+        desc: "레벨당 공격 속도 0.1 증가",
+
+        effects: [
+          {
+            type: "flatSpd",
+            amount: 0.1
+          }
+        ]
+      },
+
+      {
         id: "rogue_double_strike",
-
         name: "연격",
-
-        cost: PASSIVE_COSTS.tier3,
-
-        desc: "공격 시 15% 확률로 추가 공격",
+        desc: "레벨당 5%p 확률로 추가 공격",
 
         effects: [
           {
             type: "extraAttackChance",
-            amount: 0.15
+            amount: 0.05
+          }
+        ]
+      },
+
+      {
+        id: "rogue_weakness",
+        name: "급소 포착",
+        desc: "주문력에 비례하여 치명타 확률 증가",
+
+        effects: [
+          {
+            type: "apCritBonus",
+            amount: 0.1
+          }
+        ]
+      },
+
+      {
+        id: "rogue_assassination",
+        name: "암살",
+        desc: "레벨당 치명타 피해 배율 0.1 증가",
+
+        effects: [
+          {
+            type: "critDamageBonus",
+            amount: 0.1
           }
         ]
       }
@@ -194,9 +205,9 @@ export const CLASSES = {
     image: "/images/class02.png",
 
     base: {
-      hp: 70,
-      atk: 27,
-      def: 10,
+      hp: 100,
+      atk: 10,
+      ap: 30,
       spd: 0.9,
       crit: 0.16
     },
@@ -204,54 +215,66 @@ export const CLASSES = {
     passives: [
 
       {
-        id: "mage_concentration",
-
-        name: "마력 집중",
-
-        cost: PASSIVE_COSTS.tier1,
-
-        desc: "치명타 확률 16%p 증가",
+        id: "mage_amplification",
+        name: "마력 증폭",
+        desc: "레벨당 주문력 4% 증가",
 
         effects: [
           {
-            type: "flatCrit",
-            amount: 0.16
+            type: "percentAp",
+            amount: 0.04
           }
         ]
       },
 
       {
-        id: "mage_amplification",
-
-        name: "마력 증폭",
-
-        cost: PASSIVE_COSTS.tier2,
-
-        desc: "총 공격력 6% 증가",
+        id: "mage_enhancement",
+        name: "마력 강화",
+        desc: "레벨당 공격력 4% 증가",
 
         effects: [
           {
             type: "percentAtk",
-            amount: 0.06
+            amount: 0.04
+          }
+        ]
+      },
+
+      {
+        id: "mage_conversion",
+        name: "마력 전환",
+        desc: "레벨당 공격력의 10%만큼 주문력 증가",
+
+        effects: [
+          {
+            type: "atkToApRatio",
+            amount: 0.1
+          }
+        ]
+      },
+
+      {
+        id: "mage_circulation",
+        name: "마력 순환",
+        desc: "주문력에 비례하여 공격 속도 증가",
+
+        effects: [
+          {
+            type: "apSpdBonus",
+            amount: 0.1
           }
         ]
       },
 
       {
         id: "mage_magic_burst",
-
         name: "마력 폭발",
-
-        cost: PASSIVE_COSTS.tier3,
-
-        desc:
-          "치명타 피해량의 24%만큼 추가 피해 " +
-          "(적 방어력 적용)",
+        desc: "공격 시 레벨당 주문력의 10%만큼 추가 피해",
 
         effects: [
           {
-            type: "criticalExtraDamage",
-            amount: 0.24
+            type: "attackApRatio",
+            amount: 0.1
           }
         ]
       }
@@ -287,31 +310,21 @@ export function randomStats() {
   const points = INITIAL_STAT_POINTS;
 
   const statTypes = [
-
     "hp",
-
     "atk",
-
-    "def"
-
+    "ap"
   ];
 
   const result = {
-
     hp: 0,
-
     atk: 0,
-
-    def: 0
-
+    ap: 0
   };
 
   for (let i = 0; i < points; i++) {
 
     const index = Math.floor(
-
       Math.random() * statTypes.length
-
     );
 
     const stat = statTypes[index];
@@ -321,13 +334,9 @@ export function randomStats() {
   }
 
   return {
-
-    hp: result.hp * 5,
-
+    hp: result.hp * 10,
     atk: result.atk,
-
-    def: result.def
-
+    ap: result.ap
   };
 
 }
@@ -349,24 +358,20 @@ export function createPlayer(classKey) {
 
     atk: classData.base.atk + roll.atk,
 
-    def: classData.base.def + roll.def
+    ap: classData.base.ap + roll.ap
 
   };
 
   return {
-
     base,
-
     hp: base.hp,
-
     roll
-
   };
 
 }
 
 
-// ==================== 클래스 패시브 목록 조회 ====================
+// ==================== 패시브 목록 조회 ====================
 
 export function getPassives(classKey) {
 
@@ -382,10 +387,31 @@ export function getPassive(classKey, passiveId) {
   const passives = getPassives(classKey);
 
   return passives.find(
-
     passive => passive.id === passiveId
-
   ) || null;
+
+}
+
+
+// ==================== 패시브 레벨 조회 ====================
+
+export function getPassiveLevel(
+  ownedPassives = {},
+  passiveId
+) {
+
+  const level = ownedPassives?.[passiveId] ?? 0;
+
+  if (!Number.isInteger(level)) {
+
+    return 0;
+
+  }
+
+  return Math.max(
+    0,
+    Math.min(MAX_PASSIVE_LEVEL, level)
+  );
 
 }
 
@@ -393,19 +419,54 @@ export function getPassive(classKey, passiveId) {
 // ==================== 초기 패시브 효과 ====================
 
 export function createPassiveEffects() {
+
   return {
+
+    // 공통 능력치
+
     percentHp: 0,
+
     percentAtk: 0,
-    percentDef: 0,
-    percentSpd: 0,
-    flatSpd: 0,
-    flatCrit: 0,
-    damageReduction: 0,
-    extraAttackChance: 0,
-    criticalExtraDamage: 0,
+
+    percentAp: 0,
+
+
+    // 전사
+
     counterHpRatio: 0,
-    counterDefRatio: 0
+
+    counterApRatio: 0,
+
+    apDamageReduction: 0,
+
+    lowHpAtkBonus: 0,
+
+    lowHpDamageReduction: 0,
+
+    lowHpExtraDamage: 0,
+
+
+    // 도적
+
+    flatSpd: 0,
+
+    extraAttackChance: 0,
+
+    apCritBonus: 0,
+
+    critDamageBonus: 0,
+
+
+    // 마법사
+
+    atkToApRatio: 0,
+
+    apSpdBonus: 0,
+
+    attackApRatio: 0
+
   };
+
 }
 
 
@@ -413,7 +474,7 @@ export function createPassiveEffects() {
 
 export function getPassiveEffects(
   classKey,
-  ownedPassives = []
+  ownedPassives = {}
 ) {
 
   const effects = createPassiveEffects();
@@ -421,38 +482,44 @@ export function getPassiveEffects(
   if (
     !classKey ||
     !Object.hasOwn(CLASSES, classKey) ||
-    !Array.isArray(ownedPassives)
+    !ownedPassives ||
+    typeof ownedPassives !== "object" ||
+    Array.isArray(ownedPassives)
   ) {
+
     return effects;
+
   }
 
   const passives = getPassives(classKey);
 
-  const ownedIds = new Set(
-    ownedPassives.map(passive => {
-      return typeof passive === "string"
-        ? passive
-        : passive?.id;
-    })
-  );
-
   for (const passive of passives) {
 
-    if (!ownedIds.has(passive.id)) {
+    const level = getPassiveLevel(
+      ownedPassives,
+      passive.id
+    );
+
+    if (level === 0) {
+
       continue;
+
     }
 
     for (const effect of passive.effects) {
 
       if (!Object.hasOwn(effects, effect.type)) {
+
         continue;
+
       }
 
-      effects[effect.type] += effect.amount;
+      effects[effect.type] += effect.amount * level;
 
     }
 
   }
 
   return effects;
+
 }
