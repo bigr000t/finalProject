@@ -2,7 +2,9 @@
 
 import {
   state,
-  getPlayerStats
+  getPlayerStats,
+  COMBAT_CONFIG,
+  grantElitePassivePoint
 } from "./state.js";
 
 import {
@@ -40,7 +42,15 @@ export const EFFECT_CONFIG = {
 
 // ==================== 피해량 계산 ====================
 
-export function calculateDamage(atk, def, critChance) {
+// 방어력 삭제
+// 일반 공격: 기본 피해량
+// 치명타: 기본 피해량 * 치명타 배율
+
+export function calculateDamage(
+  baseDamage,
+  critChance = 0,
+  critMultiplier = COMBAT_CONFIG.baseCritMultiplier
+) {
 
   const chance = Math.min(
     1,
@@ -49,20 +59,13 @@ export function calculateDamage(atk, def, critChance) {
 
   const critical = Math.random() < chance;
 
-  let damage;
-
-  // 치명타는 방어력을 무시
-  if (critical) {
-
-    damage = Math.floor(atk);
-
-  } else {
-
-    damage = Math.floor(
-      atk * (100 / (100 + def))
-    );
-
-  }
+  const damage = Math.floor(
+    baseDamage * (
+      critical
+        ? critMultiplier
+        : 1
+    )
+  );
 
   return {
     damage: Math.max(1, damage),
@@ -90,7 +93,9 @@ export function getEnemyAttackInterval() {
   const spd = state.enemy?.spd;
 
   if (!Number.isFinite(spd) || spd <= 0) {
+
     return BATTLE_CONFIG.enemyAttackInterval;
+
   }
 
   return 1000 / spd;
@@ -105,7 +110,9 @@ export function getEnemyCritChance() {
   const crit = state.enemy?.crit;
 
   if (!Number.isFinite(crit)) {
+
     return BATTLE_CONFIG.enemyCritChance;
+
   }
 
   return Math.min(
@@ -121,6 +128,7 @@ export function getEnemyCritChance() {
 export function createAttackEffect(attacker, critical) {
 
   return {
+
     attacker,
 
     target: attacker === "player"
@@ -138,6 +146,7 @@ export function createAttackEffect(attacker, critical) {
     shakeDuration: critical
       ? EFFECT_CONFIG.criticalDuration
       : 0
+
   };
 
 }
@@ -145,12 +154,27 @@ export function createAttackEffect(attacker, critical) {
 
 // ==================== 흡혈의 반지 ====================
 
+// 기본 공격의 실제 피해량에만 적용
+// 반격 및 패시브 추가 피해는 흡혈 제외
+
 export function applyLifesteal(damage) {
 
   const effects = getItemEffects(state.items);
 
-  if (effects.lifesteal <= 0 || damage <= 0) {
+  if (
+
+    effects.lifesteal <= 0 ||
+
+    damage <= 0 ||
+
+    !state.player ||
+
+    state.player.hp <= 0
+
+  ) {
+
     return 0;
+
   }
 
   const stats = getPlayerStats();
@@ -158,12 +182,17 @@ export function applyLifesteal(damage) {
   const beforeHp = state.player.hp;
 
   const healAmount = Math.floor(
+
     damage * effects.lifesteal
+
   );
 
   state.player.hp = Math.min(
+
     stats.hp,
+
     state.player.hp + healAmount
+
   );
 
   return state.player.hp - beforeHp;
@@ -179,39 +208,64 @@ export function applyReflection() {
 
   const damage = effects.reflection;
 
-  if (damage <= 0) {
+  if (
+
+    damage <= 0 ||
+
+    state.enemy.currentHp <= 0
+
+  ) {
+
     return 0;
+
   }
 
   const beforeHp = state.enemy.currentHp;
 
   state.enemy.currentHp = Math.max(
+
     0,
+
     state.enemy.currentHp - damage
+
   );
 
   return beforeHp - state.enemy.currentHp;
 
 }
 
+
 // ==================== 전사 패시브 : 응징 ====================
 
+// 최대 생명력과 주문력에 비례하는 반격 피해
+// 치명타 및 흡혈 미적용
+
 export function applyCounterDamage() {
+
+  if (state.classKey !== "warrior") {
+
+    return 0;
+
+  }
 
   const stats = getPlayerStats();
 
   const damage = stats.counterDamage;
 
   if (
+
     damage <= 0 ||
+
     state.enemy.currentHp <= 0
+
   ) {
+
     return 0;
+
   }
 
   const beforeHp = state.enemy.currentHp;
 
-  // 몬스터의 방어력을 무시하는 고정 피해
   state.enemy.currentHp = Math.max(
 
     0,
@@ -224,55 +278,83 @@ export function applyCounterDamage() {
 
 }
 
+
 // ==================== 불사의 증표 ====================
 
 export function tryRevive() {
 
   if (
+
     state.phase !== "combat" ||
+
     !state.player ||
+
     state.player.hp > 0
+
   ) {
+
     return null;
+
   }
 
   const effects = getItemEffects(state.items);
 
   if (effects.revive <= 0) {
+
     return null;
+
   }
 
   const consumed = consumeItem(
+
     state.items,
+
     "immortalMark"
+
   );
 
   if (!consumed) {
+
     return null;
+
   }
 
   const stats = getPlayerStats();
 
   const reviveHp = Math.max(
+
     1,
+
     Math.floor(
+
       stats.hp * ITEM_CONFIG.reviveHpRatio
+
     )
+
   );
 
   state.player.hp = Math.min(
+
     stats.hp,
+
     reviveHp
+
   );
 
   const remaining = getItemEffects(
+
     state.items
+
   ).revive;
 
   return {
+
     type: "revive",
+
     target: "player",
+
     hp: state.player.hp,
+
     remaining,
 
     effect: {
@@ -282,43 +364,42 @@ export function tryRevive() {
     },
 
     message:
+
       `불사의 증표 발동! ` +
+
       `HP ${state.player.hp}로 소생 ` +
+
       `(남은 증표: ${remaining}개)`
+
   };
 
 }
 
+
 // ==================== 가하는 피해 증가 ====================
+
+// 맹목의 검 및 광전사의 심장
+// 기본 공격 피해 증가 효과는 합연산
 
 export function applyDamageBonus(damage) {
 
   const stats = getPlayerStats();
 
-  // 맹목의 검 : 상시 피해 증가
+  const damageBonus = stats.damageBonus;
 
-  const damageBonus =
-    stats.damageBonus;
-
-
-  // 광전사의 심장 : 체력 33% 이하
-
-  const lowHpDamageBonus =
-    stats.lowHpDamageBonus;
-
-
-  // 서로 다른 피해 증가 효과는 합연산
+  const lowHpDamageBonus = stats.lowHpDamageBonus;
 
   const finalDamage =
 
-    damage *
+    damage * (
 
-    (
       1 +
-      damageBonus +
-      lowHpDamageBonus
-    );
 
+      damageBonus +
+
+      lowHpDamageBonus
+
+    );
 
   return Math.max(
 
@@ -330,31 +411,44 @@ export function applyDamageBonus(damage) {
 
 }
 
+
 // ==================== 받는 피해 감소 ====================
 
+// 패시브 및 특수 아이템의 피해 감소 효과
+// 서로 다른 효과는 곱연산
+// 최종 피해 감소 상한 적용
+
 export function applyDamageReduction(
+
   damage,
+
   critical = false
+
 ) {
 
   const stats = getPlayerStats();
 
   const items = getItemEffects(
+
     state.items
+
   );
 
 
-  // ==================== 상시 피해 감소 ====================
+  // ==================== 기본 피해 감소 ====================
 
-  // 불굴의 의지 + 무거운 갑주
+  // 불굴의 의지, 광전사의 투지, 무거운 갑주
 
   const reduction = Math.min(
 
     1,
 
     Math.max(
+
       0,
+
       stats.damageReduction
+
     )
 
   );
@@ -362,15 +456,16 @@ export function applyDamageReduction(
 
   // ==================== 순결의 방패 ====================
 
-  // 현재 체력이 최대 체력일 때만 적용
-
   const fullHpReduction = Math.min(
 
     1,
 
     Math.max(
+
       0,
+
       stats.fullHpDamageReduction
+
     )
 
   );
@@ -385,8 +480,11 @@ export function applyDamageReduction(
         1,
 
         Math.max(
+
           0,
+
           items.criticalDamageReduction
+
         )
 
       )
@@ -394,22 +492,34 @@ export function applyDamageReduction(
     : 0;
 
 
-  // ==================== 최종 피해 계산 ====================
+  // ==================== 최종 피해 감소율 ====================
 
-  // 서로 다른 피해 감소 효과는 곱연산
+  const totalReduction = Math.min(
+
+    COMBAT_CONFIG.maxDamageReduction,
+
+    Math.max(
+
+      0,
+
+      1 -
+
+      (1 - reduction) *
+
+      (1 - fullHpReduction) *
+
+      (1 - criticalReduction)
+
+    )
+
+  );
+
+
+  // ==================== 최종 피해량 ====================
 
   const finalDamage =
 
-    damage *
-
-    (1 - reduction) *
-
-    (1 - fullHpReduction) *
-
-    (1 - criticalReduction);
-
-
-  // 최소 피해량 1 유지
+    damage * (1 - totalReduction);
 
   return Math.max(
 
@@ -422,28 +532,32 @@ export function applyDamageReduction(
 }
 
 
-// ==================== 마법사 패시브 : 마력 폭발 ====================
+// ==================== 패시브 추가 피해 ====================
 
-export function calculateCriticalExtraDamage(
-  criticalDamage
-) {
+// 전사 : 저체력 시 공격력 비례 추가 피해
+// 마법사 : 공격 시 주문력 비례 추가 피해
+// 치명타, 흡혈 및 아이템 피해 증가 미적용
+
+export function calculatePassiveExtraDamage() {
 
   const stats = getPlayerStats();
 
-  if (stats.criticalExtraDamage <= 0) {
+  if (!stats) {
+
     return 0;
+
   }
 
-  // 치명타 피해량의 일정 비율에
-  // 몬스터 방어력을 적용
   return Math.max(
+
     0,
 
     Math.floor(
-      criticalDamage *
-      stats.criticalExtraDamage *
-      (100 / (100 + state.enemy.def))
+
+      stats.attackExtraDamage
+
     )
+
   );
 
 }
@@ -453,14 +567,30 @@ export function calculateCriticalExtraDamage(
 
 export function canExtraAttack() {
 
+  if (
+
+    state.classKey !== "rogue" ||
+
+    !state.player ||
+
+    state.player.hp <= 0 ||
+
+    !state.enemy ||
+
+    state.enemy.currentHp <= 0
+
+  ) {
+
+    return false;
+
+  }
+
   const stats = getPlayerStats();
 
   if (stats.extraAttackChance <= 0) {
-    return false;
-  }
 
-  if (state.enemy.currentHp <= 0) {
     return false;
+
   }
 
   return Math.random() < stats.extraAttackChance;
@@ -495,13 +625,19 @@ export function playerAttack(isExtraAttack = false) {
 
   const stats = getPlayerStats();
 
+
+  // ==================== 기본 공격 계산 ====================
+
+  // 전사 및 도적 : 공격력 100%
+  // 마법사 : 주문력 80% + 공격력 20%
+
   const result = calculateDamage(
 
-    stats.atk,
+    stats.basicAttackDamage,
 
-    state.enemy.def,
+    stats.crit,
 
-    stats.crit
+    stats.critMultiplier
 
   );
 
@@ -510,20 +646,18 @@ export function playerAttack(isExtraAttack = false) {
 
   const originalDamage = result.damage;
 
-
-  // 광전사의 심장 및 맹목의 검 적용
-
   result.damage = applyDamageBonus(
-    originalDamage
-  );
 
+    originalDamage
+
+  );
 
   const bonusDamage =
 
     result.damage - originalDamage;
 
 
-  // ==================== 기본 공격 피해 ====================
+  // ==================== 기본 공격 피해 적용 ====================
 
   const beforeHp = state.enemy.currentHp;
 
@@ -535,21 +669,22 @@ export function playerAttack(isExtraAttack = false) {
 
   );
 
-
   const actualDamage =
 
     beforeHp - state.enemy.currentHp;
 
 
-  // ==================== 마력 폭발 ====================
+  // ==================== 패시브 추가 피해 ====================
+
+  let passiveExtraDamage = 0;
 
   let magicBurstDamage = 0;
 
+  let lastStrikeDamage = 0;
+
   if (
 
-    result.critical &&
-
-    stats.criticalExtraDamage > 0 &&
+    stats.attackExtraDamage > 0 &&
 
     state.enemy.currentHp > 0
 
@@ -557,14 +692,11 @@ export function playerAttack(isExtraAttack = false) {
 
     const extraDamage =
 
-      calculateCriticalExtraDamage(
-        result.damage
-      );
-
+      calculatePassiveExtraDamage();
 
     const beforeExtraHp =
-      state.enemy.currentHp;
 
+      state.enemy.currentHp;
 
     state.enemy.currentHp = Math.max(
 
@@ -574,19 +706,38 @@ export function playerAttack(isExtraAttack = false) {
 
     );
 
-
-    magicBurstDamage =
+    passiveExtraDamage =
 
       beforeExtraHp - state.enemy.currentHp;
+
+
+    // 마법사 패시브 : 마력 폭발
+
+    if (state.classKey === "mage") {
+
+      magicBurstDamage = passiveExtraDamage;
+
+    }
+
+
+    // 전사 패시브 : 최후의 일격
+
+    if (state.classKey === "warrior") {
+
+      lastStrikeDamage = passiveExtraDamage;
+
+    }
 
   }
 
 
   // ==================== 흡혈 효과 ====================
 
+  // 기본 공격으로 입힌 실제 피해만 적용
+
   const healed = applyLifesteal(
 
-    actualDamage + magicBurstDamage
+    actualDamage
 
   );
 
@@ -609,7 +760,13 @@ export function playerAttack(isExtraAttack = false) {
 
     critical: result.critical,
 
+    passiveExtraDamage,
+
     magicBurstDamage,
+
+    lastStrikeDamage,
+
+    totalDamage: actualDamage + passiveExtraDamage,
 
     isExtraAttack,
 
@@ -637,34 +794,53 @@ export function playerAttack(isExtraAttack = false) {
 export function enemyAttack() {
 
   if (
+
     state.phase !== "combat" ||
+
     !state.player ||
+
     !state.enemy ||
+
     state.player.hp <= 0 ||
+
     state.enemy.currentHp <= 0
+
   ) {
+
     return null;
+
   }
 
-  const stats = getPlayerStats();
+
+  // ==================== 몬스터 공격 피해 계산 ====================
+
+  // 몬스터 역시 동일한 기본 치명타 배율 적용
 
   const result = calculateDamage(
+
     state.enemy.atk,
-    stats.def,
-    getEnemyCritChance()
+
+    getEnemyCritChance(),
+
+    COMBAT_CONFIG.baseCritMultiplier
+
   );
 
 
-  // ==================== 불굴의 의지 ====================
+  // ==================== 피해 감소 효과 ====================
 
   const originalDamage = result.damage;
 
   const finalDamage = applyDamageReduction(
-  originalDamage,
-  result.critical
-);
+
+    originalDamage,
+
+    result.critical
+
+  );
 
   const reducedDamage =
+
     originalDamage - finalDamage;
 
 
@@ -673,11 +849,15 @@ export function enemyAttack() {
   const beforeHp = state.player.hp;
 
   state.player.hp = Math.max(
+
     0,
+
     state.player.hp - finalDamage
+
   );
 
   const actualDamage =
+
     beforeHp - state.player.hp;
 
 
@@ -694,13 +874,16 @@ export function enemyAttack() {
   // ==================== 불사의 증표 ====================
 
   const reviveEvent = state.player.hp === 0
+
     ? tryRevive()
+
     : null;
 
 
   // ==================== 공격 결과 ====================
 
   return {
+
     attacker: "enemy",
 
     target: "player",
@@ -728,9 +911,13 @@ export function enemyAttack() {
     enemyDefeated: state.enemy.currentHp === 0,
 
     effect: createAttackEffect(
+
       "enemy",
+
       result.critical
+
     )
+
   };
 
 }
@@ -756,48 +943,99 @@ export function stopBattle() {
 export function winBattle() {
 
   if (
+
     state.phase !== "combat" ||
+
     !state.player ||
+
     !state.enemy ||
+
     state.enemy.currentHp !== 0 ||
+
     state.player.hp <= 0
+
   ) {
+
     return null;
+
   }
 
   stopBattle();
 
+
+  // ==================== 골드 보상 ====================
+
   const baseGold = getClearGold(
+
     state.floor,
+
     state.enemy
+
   );
 
   const gold = grantGold(
+
     state,
+
     baseGold
+
   );
 
   const bonusGold = gold - baseGold;
 
+
+  // ==================== 엘리트 패시브 포인트 ====================
+
+  const passivePointsGranted = state.enemy.isElite
+
+    ? grantElitePassivePoint(state)
+
+    : 0;
+
+
+  // ==================== 보상 선택지 ====================
+
   state.rerollCount = 0;
 
   state.rewards = drawRewards(
+
     state.floor,
+
     3,
+
     state.items,
+
     state.enemy
+
   );
 
   state.phase = "reward";
 
-  const message = bonusGold > 0
+
+  // ==================== 클리어 메시지 ====================
+
+  let message = bonusGold > 0
 
     ? `${state.floor}층 클리어! ` +
+
       `(+${gold}G, 금사의 반지 +${bonusGold}G)`
 
     : `${state.floor}층 클리어! (+${gold}G)`;
 
+
+  if (passivePointsGranted > 0) {
+
+    message +=
+
+      ` / 패시브 포인트 +${passivePointsGranted}`;
+
+  }
+
+
+  // ==================== 전투 승리 결과 ====================
+
   return {
+
     type: "win",
 
     floor: state.floor,
@@ -808,6 +1046,8 @@ export function winBattle() {
 
     bonusGold,
 
+    passivePointsGranted,
+
     rewards: state.rewards,
 
     isBoss: state.enemy.isBoss ?? false,
@@ -815,12 +1055,17 @@ export function winBattle() {
     isElite: state.enemy.isElite ?? false,
 
     effect: {
+
       target: "enemy",
+
       animation: "death",
+
       duration: EFFECT_CONFIG.deathDuration
+
     },
 
     message
+
   };
 
 }
@@ -831,11 +1076,17 @@ export function winBattle() {
 export function loseBattle() {
 
   if (
+
     state.phase !== "combat" ||
+
     !state.player ||
+
     state.player.hp !== 0
+
   ) {
+
     return null;
+
   }
 
   stopBattle();
@@ -845,6 +1096,7 @@ export function loseBattle() {
   state.rewards = [];
 
   return {
+
     type: "lose",
 
     floor: state.floor,
@@ -852,12 +1104,17 @@ export function loseBattle() {
     highestFloor: state.floor - 1,
 
     effect: {
+
       target: "player",
+
       animation: "death",
+
       duration: EFFECT_CONFIG.deathDuration
+
     },
 
     message: `${state.floor}층에서 쓰러졌습니다.`
+
   };
 
 }
@@ -867,7 +1124,9 @@ export function loseBattle() {
 
 function checkBattleEnd(events) {
 
-  // 플레이어 사망 우선 확인
+
+  // ==================== 플레이어 사망 우선 확인 ====================
+
   if (state.player.hp <= 0) {
 
     const reviveEvent = tryRevive();
@@ -881,7 +1140,9 @@ function checkBattleEnd(events) {
       const event = loseBattle();
 
       if (event) {
+
         events.push(event);
+
       }
 
       return true;
@@ -890,13 +1151,17 @@ function checkBattleEnd(events) {
 
   }
 
-  // 몬스터 사망 확인
+
+  // ==================== 몬스터 사망 확인 ====================
+
   if (state.enemy.currentHp <= 0) {
 
     const event = winBattle();
 
     if (event) {
+
       events.push(event);
+
     }
 
     return true;
@@ -913,16 +1178,24 @@ function checkBattleEnd(events) {
 function appendPlayerAttackEvents(events, result) {
 
   if (!result) {
+
     return;
+
   }
 
-  // 일반 공격 또는 연격 공격
+
+  // ==================== 기본 공격 또는 연격 ====================
+
   events.push({
+
     type: "attack",
+
     ...result
+
   });
 
-  // 특수 아이템 피해 증가
+
+  // ==================== 특수 아이템 피해 증가 ====================
 
   if (result.bonusDamage > 0) {
 
@@ -942,10 +1215,13 @@ function appendPlayerAttackEvents(events, result) {
 
   }
 
-  // 마법사 추가 피해
+
+  // ==================== 마법사 : 마력 폭발 ====================
+
   if (result.magicBurstDamage > 0) {
 
     events.push({
+
       type: "magicBurst",
 
       target: "enemy",
@@ -953,16 +1229,41 @@ function appendPlayerAttackEvents(events, result) {
       damage: result.magicBurstDamage,
 
       message:
+
         `마력 폭발: ${result.magicBurstDamage} 추가 피해`
+
     });
 
   }
 
 
-  // 흡혈 회복
+  // ==================== 전사 : 최후의 일격 ====================
+
+  if (result.lastStrikeDamage > 0) {
+
+    events.push({
+
+      type: "lastStrike",
+
+      target: "enemy",
+
+      damage: result.lastStrikeDamage,
+
+      message:
+
+        `최후의 일격: ${result.lastStrikeDamage} 추가 피해`
+
+    });
+
+  }
+
+
+  // ==================== 흡혈 회복 ====================
+
   if (result.healed > 0) {
 
     events.push({
+
       type: "lifesteal",
 
       target: "player",
@@ -970,7 +1271,9 @@ function appendPlayerAttackEvents(events, result) {
       amount: result.healed,
 
       message:
+
         `흡혈의 반지: HP +${result.healed}`
+
     });
 
   }
@@ -983,19 +1286,29 @@ function appendPlayerAttackEvents(events, result) {
 function appendEnemyAttackEvents(events, result) {
 
   if (!result) {
+
     return;
+
   }
 
+
+  // ==================== 몬스터 기본 공격 ====================
+
   events.push({
+
     type: "attack",
+
     ...result
+
   });
 
 
-  // 전사 피해 감소
+  // ==================== 피해 감소 ====================
+
   if (result.reducedDamage > 0) {
 
     events.push({
+
       type: "damageReduction",
 
       target: "player",
@@ -1003,16 +1316,20 @@ function appendEnemyAttackEvents(events, result) {
       amount: result.reducedDamage,
 
       message:
+
         `피해 감소 효과: ${result.reducedDamage} 피해 감소`
+
     });
 
   }
 
 
-  // 가시 장갑
+  // ==================== 가시 장갑 ====================
+
   if (result.reflected > 0) {
 
     events.push({
+
       type: "reflection",
 
       target: "enemy",
@@ -1020,10 +1337,13 @@ function appendEnemyAttackEvents(events, result) {
       damage: result.reflected,
 
       message:
-        `가시 장갑: ${result.reflected} 고정 피해`
+
+        `가시 장갑: ${result.reflected} 반사 피해`
+
     });
 
   }
+
 
   // ==================== 전사 패시브 : 응징 ====================
 
@@ -1038,17 +1358,22 @@ function appendEnemyAttackEvents(events, result) {
       damage: result.counterDamage,
 
       message:
-        `응징: ${result.counterDamage} 고정 피해`
+
+        `응징: ${result.counterDamage} 반격 피해`
 
     });
 
   }
 
-  // 불사의 증표
+
+  // ==================== 불사의 증표 ====================
+
   if (result.reviveEvent) {
 
     events.push(
+
       result.reviveEvent
+
     );
 
   }
@@ -1063,18 +1388,26 @@ export function battleTick(now = performance.now()) {
   const events = [];
 
   if (
+
     state.phase !== "combat" ||
+
     !state.player ||
+
     !state.enemy
+
   ) {
+
     return events;
+
   }
 
 
   // ==================== 기존 종료 조건 확인 ====================
 
   if (checkBattleEnd(events)) {
+
     return events;
+
   }
 
 
@@ -1083,7 +1416,9 @@ export function battleTick(now = performance.now()) {
   const playerInterval = getPlayerAttackInterval();
 
   if (
+
     now - state.lastPlayerAttack >= playerInterval
+
   ) {
 
     state.lastPlayerAttack = now;
@@ -1091,37 +1426,51 @@ export function battleTick(now = performance.now()) {
     const result = playerAttack();
 
     appendPlayerAttackEvents(
+
       events,
+
       result
+
     );
 
     if (checkBattleEnd(events)) {
+
       return events;
+
     }
 
 
-    // ==================== 도적 연격 ====================
+    // ==================== 도적 패시브 : 연격 ====================
 
     if (result && canExtraAttack()) {
 
       events.push({
+
         type: "extraAttack",
 
         target: "enemy",
 
         message: "연격 발동! 추가 공격!"
+
       });
 
-      // 추가 공격은 연격을 재발동시키지 않음
+
+      // 추가 공격은 연격을 다시 발동시키지 않음
+
       const extraResult = playerAttack(true);
 
       appendPlayerAttackEvents(
+
         events,
+
         extraResult
+
       );
 
       if (checkBattleEnd(events)) {
+
         return events;
+
       }
 
     }
@@ -1134,7 +1483,9 @@ export function battleTick(now = performance.now()) {
   const enemyInterval = getEnemyAttackInterval();
 
   if (
+
     now - state.lastEnemyAttack >= enemyInterval
+
   ) {
 
     state.lastEnemyAttack = now;
@@ -1142,12 +1493,17 @@ export function battleTick(now = performance.now()) {
     const result = enemyAttack();
 
     appendEnemyAttackEvents(
+
       events,
+
       result
+
     );
 
     if (checkBattleEnd(events)) {
+
       return events;
+
     }
 
   }
@@ -1162,11 +1518,17 @@ export function battleTick(now = performance.now()) {
 export function startBattle(onEvents = () => {}) {
 
   if (
+
     state.phase !== "combat" ||
+
     !state.player ||
+
     !state.enemy
+
   ) {
+
     return false;
+
   }
 
   stopBattle();
