@@ -535,8 +535,13 @@ export function getSpecialItemDropChance(items) {
 // ==================== 특수 아이템 무작위 추첨 ====================
 
 export function rollSpecialItem(
+
   items,
-  excludedIds = []
+
+  excludedIds = [],
+
+  forceSpecial = false
+
 ) {
 
   // 획득 가능한 아이템 조회
@@ -555,12 +560,16 @@ export function rollSpecialItem(
   }
 
 
-  // 행운의 주사위 효과가 적용된 등장 확률
-  const dropChance = getSpecialItemDropChance(
+  // ==================== 특수 아이템 등장 확률 ====================
 
-    items
+  // 엘리트 및 보스는 확정 등장
+  // 일반 몬스터는 행운의 주사위 효과 적용
 
-  );
+  const dropChance = forceSpecial
+
+    ? 1
+
+    : getSpecialItemDropChance(items);
 
 
   // 보상 슬롯별 확률 판정
