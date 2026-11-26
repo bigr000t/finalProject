@@ -1450,12 +1450,122 @@ export function renderShop() {
 }
 
 
-// ==================== 패시브 효과 설명 ====================
+// ==================== 패시브 효과 수치 계산 ====================
 
-function getPassiveDescription(passive) {
-  return passive.desc || "패시브 효과";
+function getPassiveEffectText(passive, level) {
+
+  if (level === 0) {
+    return "미습득";
+  }
+
+  return passive.effects.map(effect => {
+
+    const value = effect.amount * level;
+
+    const percent = Number(
+      (value * 100).toFixed(2)
+    );
+
+    const decimal = Number(
+      value.toFixed(3)
+    );
+
+    switch (effect.type) {
+
+      // ==================== 공통 ====================
+
+      case "percentHp":
+        return `최대 생명력 +${percent}%`;
+
+      case "percentAtk":
+        return `공격력 +${percent}%`;
+
+      case "percentAp":
+        return `주문력 +${percent}%`;
+
+
+      // ==================== 전사 ====================
+
+      case "counterHpRatio":
+        return `반격 피해: 최대 HP의 ${percent}%`;
+
+      case "counterApRatio":
+        return `반격 피해: AP의 ${percent}%`;
+
+      case "apDamageReduction":
+        return `피해 감소: 주문력 점감값 × ${percent}%`;
+
+      case "lowHpAtkBonus":
+        return `저체력 시 공격력 +${percent}%`;
+
+      case "lowHpDamageReduction":
+        return `저체력 시 피해 ${percent}% 감소`;
+
+      case "lowHpExtraDamage":
+        return `저체력 시 ATK의 ${percent}% 추가 피해`;
+
+
+      // ==================== 도적 ====================
+
+      case "flatSpd":
+        return `공격 속도 +${decimal}`;
+
+      case "extraAttackChance":
+        return `추가 공격 확률 +${percent}%p`;
+
+      case "apCritBonus":
+        return `치명타 확률: 주문력 점감값 × ${percent}%p`;
+
+      case "critDamageBonus":
+        return `치명타 피해량 +${percent}%p`;
+
+
+      // ==================== 마법사 ====================
+
+      case "atkToApRatio":
+        return `ATK의 ${percent}%만큼 AP 증가`;
+
+      case "apSpdBonus":
+        return `공격 속도: 주문력 점감값 × ${decimal}`;
+
+      case "attackApRatio":
+        return `공격 시 AP의 ${percent}% 추가 피해`;
+
+      default:
+        return "";
+
+    }
+
+  }).filter(Boolean).join(" / ");
+
 }
 
+
+// ==================== 패시브 효과 설명 ====================
+
+function getPassiveDescription(passive, level = 0) {
+
+  const lines = [
+    passive.desc || "패시브 효과",
+
+    `현재: ${getPassiveEffectText(passive, level)}`
+  ];
+
+  if (level < MAX_PASSIVE_LEVEL) {
+
+    lines.push(
+      `다음: ${getPassiveEffectText(passive, level + 1)}`
+    );
+
+  } else {
+
+    lines.push("최대 강화 달성");
+
+  }
+
+  return lines.join("\n");
+
+}
 
 // ==================== 패시브 강화 UI ====================
 
@@ -1499,7 +1609,7 @@ export function renderPassives() {
         `${passive.name} (${level}/${MAX_PASSIVE_LEVEL})`,
 
       desc:
-        getPassiveDescription(passive),
+        getPassiveDescription(passive, level),
 
       price:
         maxLevel
@@ -1523,6 +1633,22 @@ export function renderPassives() {
       button.classList.add("owned");
     }
 
+    const description = button.querySelector("small");
+
+      if (description) {
+
+        description.style.whiteSpace = "pre-line";
+
+        description.style.lineHeight = "1.6";
+
+        description.style.overflow = "visible";
+
+        description.style.maxHeight = "none";
+
+        description.style.display = "block";
+
+      }
+    
     DOM.passives.appendChild(button);
   }
 }
@@ -1856,7 +1982,23 @@ export function renderBuild() {
   for (const line of lines) {
     const paragraph = document.createElement("p");
 
-    paragraph.textContent = line;
+    paragraph.textContent =
+      `${passive.name}: ${level}/${MAX_PASSIVE_LEVEL}`;
+
+    const description = document.createElement("small");
+
+    description.textContent =
+      getPassiveDescription(passive, level);
+
+    description.style.display = "block";
+
+    description.style.whiteSpace = "pre-line";
+
+    description.style.lineHeight = "1.6";
+
+    description.style.marginTop = "6px";
+
+    paragraph.appendChild(description);
 
     DOM.build.appendChild(paragraph);
   }
