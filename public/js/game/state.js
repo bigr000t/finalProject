@@ -244,6 +244,10 @@ export function getMaxHp(gameState = state) {
     gameState
   );
 
+  const items = getItemEffects(
+    gameState.items
+  );
+
   const floorBonus = getFloorItemBonuses(
 
     gameState.items,
@@ -260,14 +264,15 @@ export function getMaxHp(gameState = state) {
 
       (baseHp + floorBonus.hp) *
 
-      (1 + passives.percentHp)
+      (1 + passives.percentHp) *
+
+      (1 - items.percentHpPenalty)
 
     )
 
   );
 
 }
-
 
 // ==================== 플레이어 최종 능력치 ====================
 
