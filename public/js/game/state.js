@@ -657,11 +657,17 @@ function normalizeEnemyData(enemy, floor) {
 
     ...enemy,
 
-    // 기존 이미지가 없다면 기본 이미지 사용
-    image: enemy.image ?? monster?.image,
+    // 최신 몬스터 이름 우선 적용
+    name: monster?.name ?? enemy.name,
+
+    // 최신 몬스터 이미지 우선 적용
+    image: monster?.image ?? enemy.image,
 
     // 보스 여부 복원
     isBoss: enemy.isBoss ?? monster?.isBoss ?? false,
+
+    // 엘리트 여부 복원
+    isElite: enemy.isElite ?? monster?.isElite ?? false,
 
     // 공격 속도 복원
     spd: enemy.spd ?? calculateEnemySpd(
@@ -678,7 +684,6 @@ function normalizeEnemyData(enemy, floor) {
   };
 
 }
-
 // ==================== 저장 데이터 유효성 확인 ====================
 
 export function isValidSave(data) {
