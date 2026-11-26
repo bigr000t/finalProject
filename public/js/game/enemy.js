@@ -362,27 +362,27 @@ export const ENEMY_GROWTH = {
 
   // 체력 성장 강화
 
-  hp: 0.06,
+  hp: 0.025,
 
-  atk: 0.008,
+  atk: 0.015,
 
-  spd: 0.004,
+  spd: 0.001,
 
-  crit: 0.0004,
+  crit: 0.00015,
 
 
   // 성장 지수
 
-  hpPower: 1.40,
+  hpPower: 1.25,
 
-  atkPower: 1.16,
+  atkPower: 1.25,
 
 
   // 능력치 상한
 
-  maxSpd: 3.0,
+  maxSpd: 5.0,
 
-  maxCrit: 0.5
+  maxCrit: 0.8
 
 };
 
