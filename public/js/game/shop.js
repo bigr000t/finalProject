@@ -1,15 +1,6 @@
 "use strict";
 
 import {
-  getPassives,
-  getPassive
-} from "./class.js";
-
-import {
-  getMaxHp
-} from "./state.js";
-
-import {
   healPlayer,
   increaseStat
 } from "./reward.js";
@@ -18,6 +9,8 @@ import {
 // ==================== 일반 상점 상품 데이터 ====================
 
 export const SHOP_ITEMS = [
+
+  // ==================== 회복약 ====================
 
   {
     id: "heal1",
@@ -29,16 +22,22 @@ export const SHOP_ITEMS = [
     scaling: true
   },
 
+
+  // ==================== 생명 비급서 ====================
+
   {
     id: "bookHp",
     title: "생명 비급서",
-    desc: "기본 HP +10",
+    desc: "기본 HP +20",
     type: "stat",
     stat: "hp",
-    amount: 10,
+    amount: 20,
     cost: 800,
     scaling: false
   },
+
+
+  // ==================== 공격 비급서 ====================
 
   {
     id: "bookAtk",
@@ -51,12 +50,15 @@ export const SHOP_ITEMS = [
     scaling: false
   },
 
+
+  // ==================== 주문 비급서 ====================
+
   {
-    id: "bookDef",
-    title: "방어 비급서",
-    desc: "기본 방어력 +2",
+    id: "bookAp",
+    title: "주문 비급서",
+    desc: "기본 주문력 +2",
     type: "stat",
-    stat: "def",
+    stat: "ap",
     amount: 2,
     cost: 800,
     scaling: false
@@ -105,11 +107,22 @@ export function getShopItems(floor) {
 
 export function canBuyItem(state, itemId) {
 
-  if (state.phase !== "shop") {
+  if (
+
+    state.phase !== "shop" ||
+
+    !state.player ||
+
+    state.player.hp <= 0
+
+  ) {
 
     return false;
 
   }
+
+
+  // ==================== 상품 조회 ====================
 
   const item = SHOP_ITEMS.find(item => {
 
@@ -123,6 +136,9 @@ export function canBuyItem(state, itemId) {
 
   }
 
+
+  // ==================== 상품 가격 계산 ====================
+
   const cost = getItemCost(
 
     item,
@@ -130,6 +146,9 @@ export function canBuyItem(state, itemId) {
     state.floor
 
   );
+
+
+  // ==================== 보유 골드 확인 ====================
 
   return state.gold >= cost;
 
@@ -139,6 +158,9 @@ export function canBuyItem(state, itemId) {
 // ==================== 일반 상품 구매 ====================
 
 export function buyItem(state, itemId) {
+
+
+  // ==================== 구매 가능 여부 확인 ====================
 
   if (!canBuyItem(state, itemId)) {
 
@@ -152,11 +174,17 @@ export function buyItem(state, itemId) {
 
   }
 
+
+  // ==================== 상품 조회 ====================
+
   const item = SHOP_ITEMS.find(item => {
 
     return item.id === itemId;
 
   });
+
+
+  // ==================== 상품 가격 계산 ====================
 
   const cost = getItemCost(
 
@@ -166,7 +194,13 @@ export function buyItem(state, itemId) {
 
   );
 
+
+  // ==================== 상품 효과 적용 ====================
+
   switch (item.type) {
+
+
+    // ==================== 회복약 구매 ====================
 
     case "heal": {
 
@@ -177,6 +211,9 @@ export function buyItem(state, itemId) {
         item.amount
 
       );
+
+
+      // 회복할 체력이 없다면 골드를 차감하지 않음
 
       if (healed === 0) {
 
@@ -195,6 +232,8 @@ export function buyItem(state, itemId) {
     }
 
 
+    // ==================== 비급서 구매 ====================
+
     case "stat":
 
       increaseStat(
@@ -210,6 +249,8 @@ export function buyItem(state, itemId) {
       break;
 
 
+    // ==================== 잘못된 상품 유형 ====================
+
     default:
 
       return {
@@ -222,7 +263,13 @@ export function buyItem(state, itemId) {
 
   }
 
+
+  // ==================== 골드 차감 ====================
+
   state.gold -= cost;
+
+
+  // ==================== 구매 결과 반환 ====================
 
   return {
 
@@ -233,165 +280,6 @@ export function buyItem(state, itemId) {
     item,
 
     message: `${item.title} 구매 (-${cost}G)`
-
-  };
-
-}
-
-
-// ==================== 패시브 보유 여부 ====================
-
-export function hasPassive(state, passiveId) {
-
-  if (!Array.isArray(state.passives)) {
-
-    return false;
-
-  }
-
-  return state.passives.some(passive => {
-
-    // 문자열 형태의 저장 데이터도 지원
-    if (typeof passive === "string") {
-
-      return passive === passiveId;
-
-    }
-
-    return passive?.id === passiveId;
-
-  });
-
-}
-
-
-// ==================== 패시브 구매 가능 여부 ====================
-
-export function canBuyPassive(state, passiveId) {
-
-  if (
-
-    state.phase !== "shop" ||
-
-    !state.player ||
-
-    !state.classKey
-
-  ) {
-
-    return false;
-
-  }
-
-  // 현재 클래스에 해당하는 패시브인지 확인
-  const passive = getPassive(
-
-    state.classKey,
-
-    passiveId
-
-  );
-
-  if (!passive) {
-
-    return false;
-
-  }
-
-  // 중복 구매 방지
-  if (hasPassive(state, passiveId)) {
-
-    return false;
-
-  }
-
-  // 보유 골드 확인
-  return state.gold >= passive.cost;
-
-}
-
-
-// ==================== 패시브 구매 ====================
-
-export function buyPassive(state, passiveId) {
-
-  if (!canBuyPassive(state, passiveId)) {
-
-    return {
-
-      success: false,
-
-      message: "패시브를 구매할 수 없습니다."
-
-    };
-
-  }
-
-  const passive = getPassive(
-
-    state.classKey,
-
-    passiveId
-
-  );
-
-
-  // 구매 전 최대 체력 저장
-  const beforeMaxHp = getMaxHp(state);
-
-
-  // 골드 차감
-  state.gold -= passive.cost;
-
-
-  // 패시브 보유 목록에 추가
-  // 기본 능력치는 직접 변경하지 않음
-  state.passives.push({
-
-    id: passive.id,
-
-    name: passive.name
-
-  });
-
-
-  // 패시브 효과가 적용된 최대 체력
-  const afterMaxHp = getMaxHp(state);
-
-
-  // 최대 체력 증가분 계산
-  const hpGrowth = Math.max(
-
-    0,
-
-    afterMaxHp - beforeMaxHp
-
-  );
-
-
-  // 최대 체력이 증가하면 현재 체력도 증가분만큼 회복
-  state.player.hp = Math.min(
-
-    afterMaxHp,
-
-    state.player.hp + hpGrowth
-
-  );
-
-
-  // 패시브 구매 결과 반환
-  return {
-
-    success: true,
-
-    cost: passive.cost,
-
-    passive,
-
-    hpGrowth,
-
-    message:
-      `${passive.name} 해금 (-${passive.cost}G)`
 
   };
 
