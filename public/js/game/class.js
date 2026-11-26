@@ -243,12 +243,12 @@ export const CLASSES = {
       {
         id: "mage_conversion",
         name: "마력 전환",
-        desc: "레벨당 공격력의 10%만큼 주문력 증가",
+        desc: "레벨당 공격력의 24%만큼 주문력 증가",
 
         effects: [
           {
             type: "atkToApRatio",
-            amount: 0.1
+            amount: 0.24
           }
         ]
       },
@@ -261,7 +261,7 @@ export const CLASSES = {
         effects: [
           {
             type: "apSpdBonus",
-            amount: 0.1
+            amount: 0.16
           }
         ]
       },
@@ -269,12 +269,12 @@ export const CLASSES = {
       {
         id: "mage_magic_burst",
         name: "마력 폭발",
-        desc: "공격 시 레벨당 주문력의 10%만큼 추가 피해",
+        desc: "공격 시 레벨당 주문력의 24%만큼 추가 피해",
 
         effects: [
           {
             type: "attackApRatio",
-            amount: 0.1
+            amount: 0.24
           }
         ]
       }
