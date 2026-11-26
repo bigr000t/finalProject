@@ -26,6 +26,8 @@ export const BOOK_CONFIG = Object.freeze({
 
   basePoints: 2,
 
+  shopBasePoints: 1,
+
   pointsPerTier: 1,
 
   advancedMultiplier: 2,
@@ -39,7 +41,6 @@ export const BOOK_CONFIG = Object.freeze({
   apPerPoint: 1
 
 });
-
 
 // ==================== 비급서 성장 단계 ====================
 
@@ -59,12 +60,20 @@ export function getBookTier(floor) {
 
 // ==================== 비급서 포인트 계산 ====================
 
-export function getBookPoints(floor, advanced = false) {
+export function getBookPoints(
+  floor,
+  advanced = false,
+  isShop = false
+) {
 
   const tier = getBookTier(floor);
 
+  const basePoints = isShop
+    ? BOOK_CONFIG.shopBasePoints
+    : BOOK_CONFIG.basePoints;
+
   const points =
-    BOOK_CONFIG.basePoints +
+    basePoints +
     tier * BOOK_CONFIG.pointsPerTier;
 
   return advanced
@@ -79,12 +88,14 @@ export function getBookPoints(floor, advanced = false) {
 export function getBookAmount(
   floor,
   stat,
-  advanced = false
+  advanced = false,
+  isShop = false
 ) {
 
   const points = getBookPoints(
     floor,
-    advanced
+    advanced,
+    isShop
   );
 
   switch (stat) {
@@ -92,46 +103,32 @@ export function getBookAmount(
     case "hp":
       return points * BOOK_CONFIG.hpPerPoint;
 
-    case "atk":
-      return points * BOOK_CONFIG.atkPerPoint;
-
-    case "ap":
-      return points * BOOK_CONFIG.apPerPoint;
-
-    default:
-      throw new Error(
-        "잘못된 비급서 능력치입니다."
-      );
-
-  }
-
-}
-
 
 // ==================== 비급서 가격 ====================
 
 export function getBookCost(floor) {
 
   return (
-    getBookPoints(floor) *
+    getBookPoints(floor, false, true) *
     BOOK_CONFIG.goldPerPoint
   );
 
 }
-
-
+      
 // ==================== 비급서 설명 ====================
 
 export function getBookDescription(
   floor,
   stat,
-  advanced = false
+  advanced = false,
+  isShop = false
 ) {
 
   const amount = getBookAmount(
     floor,
     stat,
-    advanced
+    advanced,
+    isShop
   );
 
   switch (stat) {
