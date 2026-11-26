@@ -1977,63 +1977,74 @@ export function renderBuild() {
     );
   }
 
-  // ==================== 빌드 정보 출력 ====================
+// ==================== 빌드 정보 출력 ====================
 
-  for (const line of lines) {
-    const paragraph = document.createElement("p");
+for (const line of lines) {
 
-    paragraph.textContent =
-      `${passive.name}: ${level}/${MAX_PASSIVE_LEVEL}`;
+  const paragraph = document.createElement("p");
 
-    const description = document.createElement("small");
+  paragraph.textContent = line;
 
-    description.textContent =
-      getPassiveDescription(passive, level);
+  DOM.build.appendChild(paragraph);
 
-    description.style.display = "block";
+}
 
-    description.style.whiteSpace = "pre-line";
+// ==================== 패시브 보유 현황 ====================
 
-    description.style.lineHeight = "1.6";
+const passiveSection = document.createElement("section");
 
-    description.style.marginTop = "6px";
+passiveSection.className = "passive-build-list";
 
-    paragraph.appendChild(description);
+const passiveHeading = document.createElement("h3");
 
-    DOM.build.appendChild(paragraph);
+passiveHeading.textContent = "클래스 패시브";
+
+passiveSection.appendChild(passiveHeading);
+
+for (const passive of classData.passives) {
+
+  const level = getPassiveLevel(
+    state.passives,
+    passive.id
+  );
+
+  const paragraph = document.createElement("p");
+
+  paragraph.textContent =
+    `${passive.name}: ${level}/${MAX_PASSIVE_LEVEL}`;
+
+
+  // ==================== 패시브 상세 설명 ====================
+
+  const description = document.createElement("small");
+
+  description.textContent =
+    getPassiveDescription(passive, level);
+
+  description.style.display = "block";
+
+  description.style.whiteSpace = "pre-line";
+
+  description.style.lineHeight = "1.6";
+
+  description.style.marginTop = "6px";
+
+  paragraph.appendChild(description);
+
+
+  // ==================== 최대 강화 표시 ====================
+
+  if (level === MAX_PASSIVE_LEVEL) {
+
+    paragraph.className = "conditional-active";
+
   }
 
-  // ==================== 패시브 보유 현황 ====================
+  passiveSection.appendChild(paragraph);
 
-  const passiveSection = document.createElement("section");
+}
 
-  passiveSection.className = "passive-build-list";
-
-  const passiveHeading = document.createElement("h3");
-
-  passiveHeading.textContent = "클래스 패시브";
-
-  passiveSection.appendChild(passiveHeading);
-
-  for (const passive of classData.passives) {
-    const level = getPassiveLevel(
-      state.passives,
-      passive.id
-    );
-
-    const paragraph = document.createElement("p");
-
-    paragraph.textContent =
-      `${passive.name}: ${level}/${MAX_PASSIVE_LEVEL}`;
-
-    if (level === MAX_PASSIVE_LEVEL) {
-      paragraph.className = "conditional-active";
-    }
-
-    passiveSection.appendChild(paragraph);
-  }
-
-  DOM.build.appendChild(passiveSection);
+DOM.build.appendChild(passiveSection);
 
   // ==================== 조건부 효과 표시 영역 ====================
 
