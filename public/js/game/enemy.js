@@ -43,9 +43,9 @@ export const MONSTERS = [
     name: "슬라임",
     image: "/images/enemy03.png",
     hp: 90,
-    atk: 52,
+    atk: 40,
     def: 24,
-    spd: 0.30,
+    spd: 0.36,
     crit: 0.02
   },
 
@@ -54,9 +54,9 @@ export const MONSTERS = [
     name: "해골 병사",
     image: "/images/enemy04.png",
     hp: 110,
-    atk: 39,
+    atk: 20,
     def: 12,
-    spd: 1.20,
+    spd: 1.25,
     crit: 0.05
   },
 
@@ -64,7 +64,7 @@ export const MONSTERS = [
     id: "wyvern",
     name: "와이번",
     image: "/images/boss00.png",
-    hp: 250,
+    hp: 160,
     atk: 30,
     def: 20,
     spd: 1.00,
@@ -76,7 +76,7 @@ export const MONSTERS = [
     id: "dragon",
     name: "드래곤",
     image: "/images/boss01.png",
-    hp: 400,
+    hp: 240,
     atk: 50,
     def: 35,
     spd: 1.00,
@@ -191,14 +191,14 @@ export const ENEMY_POOLS = [
 
 export const ENEMY_GROWTH = {
 
-  hp: 0.01,
-  atk: 0.018,
-  def: 0.03,
-  spd: 0.005,
-  crit: 0.0004,
+  hp: 0.06,
+  atk: 0.012,
+  def: 0.012,
+  spd: 0.006,
+  crit: 0.0006,
 
-  hpPower: 1.22,
-  atkPower: 1.28,
+  hpPower: 1.24,
+  atkPower: 1.24,
   defPower: 1.24,
 
   maxSpd: 3.0,
