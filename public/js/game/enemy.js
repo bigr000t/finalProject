@@ -197,8 +197,8 @@ export const ENEMY_GROWTH = {
   spd: 0.005,
   crit: 0.0004,
 
-  hpPower: 1.24,
-  atkPower: 1.20,
+  hpPower: 1.22,
+  atkPower: 1.28,
   defPower: 1.24,
 
   maxSpd: 3.0,
