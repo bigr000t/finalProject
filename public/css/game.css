@@ -1916,3 +1916,219 @@
   color: #ffad66;
   font-weight: bold;
 }
+
+/* ==================== 패시브 강화 UI ==================== */
+
+#passives {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+
+/* ==================== 패시브 포인트 표시 ==================== */
+
+.passive-point-info {
+  grid-column: 1 / -1;
+
+  margin: 0;
+  padding: 12px 16px;
+
+  background-color: #28251f;
+
+  border: 1px solid var(--gold-dark);
+  border-left: 3px solid var(--gold);
+
+  color: var(--gold-light);
+
+  font-size: 16px;
+  font-weight: bold;
+}
+
+
+/* ==================== 패시브 강화 카드 ==================== */
+
+#passives .choice-card {
+  min-height: 160px;
+
+  justify-content: space-between;
+
+  padding: 16px 12px;
+}
+
+#passives .choice-card strong {
+  line-height: 1.5;
+}
+
+#passives .choice-card small {
+  line-height: 1.6;
+}
+
+
+/* ==================== 습득한 패시브 ==================== */
+
+#passives .choice-card.passive-learned:not(.owned) {
+  background-color: #302d25;
+  border-color: var(--gold-dark);
+}
+
+
+/* ==================== 최대 레벨 패시브 ==================== */
+
+#passives .choice-card.owned {
+  background-color: #29332b;
+  border-color: #60856b;
+
+  opacity: 1;
+}
+
+#passives .choice-card.owned strong {
+  color: #81c784;
+}
+
+
+/* ==================== 강화 불가능 상태 ==================== */
+
+#passives .choice-card:disabled:not(.owned) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* ==================== 현재 빌드 패시브 목록 ==================== */
+
+.passive-build-list {
+  grid-column: 1 / -1;
+
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  gap: 10px;
+
+  padding: 16px;
+
+  background-color: #222222;
+
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold-dark);
+}
+
+.passive-build-list h3 {
+  grid-column: 1 / -1;
+
+  margin: 0 0 8px;
+  padding-bottom: 10px;
+
+  color: var(--gold-light);
+
+  border-bottom: 1px solid var(--border);
+
+  font-family: "Noto Serif KR", "Batang", serif;
+  font-size: 18px;
+}
+
+#build .passive-build-list p {
+  padding: 12px 8px;
+
+  text-align: center;
+  line-height: 1.6;
+}
+
+
+/* ==================== 조건부 효과 표시 ==================== */
+
+#conditionalEffects {
+  grid-column: 1 / -1;
+
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+#conditionalEffects:empty {
+  display: none;
+}
+
+#build .conditional-active {
+  color: #81c784;
+
+  border-left-color: #81c784;
+
+  font-weight: bold;
+}
+
+#build .conditional-inactive {
+  color: #888888;
+  border-left-color: #555555;
+}
+
+
+/* ==================== 전투 능력치 표시 ==================== */
+
+#playerStats,
+#enemyStats {
+  line-height: 1.7;
+
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ==================== 태블릿 대응 ==================== */
+
+@media (max-width: 1200px) {
+
+  #passives,
+  .passive-build-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+}
+
+@media (max-width: 900px) {
+
+  #passives,
+  .passive-build-list,
+  #conditionalEffects {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+/* ==================== 모바일 대응 ==================== */
+
+@media (max-width: 600px) {
+
+  #passives {
+    grid-template-columns: 1fr;
+  }
+
+  #passives .choice-card {
+    min-height: 120px;
+  }
+
+  .passive-build-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    padding: 12px;
+  }
+
+  #conditionalEffects {
+    grid-template-columns: 1fr;
+  }
+
+  .passive-point-info {
+    font-size: 14px;
+  }
+
+  #playerStats,
+  #enemyStats {
+    font-size: 11px;
+  }
+
+  .damage-popup.counter-attack {
+    font-size: 16px;
+  }
+
+}
