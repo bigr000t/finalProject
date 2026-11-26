@@ -28,47 +28,43 @@ export const SHOP_ITEMS = [
     costMultiplier: 3
   },
 
-
   // ==================== 생명 비급서 ====================
 
   {
     id: "bookHp",
     title: "생명 비급서",
-    desc: getBookDescription(1, "hp"),
+    desc: getBookDescription(1, "hp", false, true),
     type: "stat",
     stat: "hp",
-    amount: getBookAmount(1, "hp"),
+    amount: getBookAmount(1, "hp", false, true),
     cost: getBookCost(1)
   },
-
 
   // ==================== 공격 비급서 ====================
 
   {
     id: "bookAtk",
     title: "공격 비급서",
-    desc: getBookDescription(1, "atk"),
+    desc: getBookDescription(1, "atk", false, true),
     type: "stat",
     stat: "atk",
-    amount: getBookAmount(1, "atk"),
+    amount: getBookAmount(1, "atk", false, true),
     cost: getBookCost(1)
   },
-
 
   // ==================== 주문 비급서 ====================
 
   {
     id: "bookAp",
     title: "주문 비급서",
-    desc: getBookDescription(1, "ap"),
+    desc: getBookDescription(1, "ap", false, true),
     type: "stat",
     stat: "ap",
-    amount: getBookAmount(1, "ap"),
+    amount: getBookAmount(1, "ap", false, true),
     cost: getBookCost(1)
   }
 
 ];
-
 
 // ==================== 상점 상품 조회 ====================
 
@@ -149,8 +145,7 @@ function getScaledShopItem(item, floor) {
     floor
   );
 
-
-  // 비급서 능력치와 가격 성장
+  // 상점 비급서 성장량 및 가격 반영
 
   if (item.type === "stat") {
 
@@ -160,12 +155,16 @@ function getScaledShopItem(item, floor) {
 
       amount: getBookAmount(
         floor,
-        item.stat
+        item.stat,
+        false,
+        true
       ),
 
       desc: getBookDescription(
         floor,
-        item.stat
+        item.stat,
+        false,
+        true
       ),
 
       cost
@@ -173,7 +172,6 @@ function getScaledShopItem(item, floor) {
     };
 
   }
-
 
   // 회복약 등 기존 상품
 
@@ -186,7 +184,6 @@ function getScaledShopItem(item, floor) {
   };
 
 }
-
 
 // ==================== 전체 상점 상품 조회 ====================
 
