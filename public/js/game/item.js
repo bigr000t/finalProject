@@ -31,7 +31,7 @@ export const SPECIAL_ITEMS = [
 
     type: "lifesteal",
 
-    values: [0, 0.07, 0.14, 0.21],
+    values: [0, 0.06, 0.12, 0.18],
 
     description: "가한 피해량에 비례하여 체력을 회복합니다."
   },
