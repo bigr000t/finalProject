@@ -21,11 +21,11 @@ export const CLASSES = {
     image: "/images/class00.png",
 
     base: {
-      hp: 200,
-      atk: 16,
+      hp: 160,
+      atk: 19,
       ap: 10,
-      spd: 1.0,
-      crit: 0.1
+      spd: 0.9,
+      crit: 0.05
     },
 
     passives: [
@@ -117,11 +117,11 @@ export const CLASSES = {
     image: "/images/class01.png",
 
     base: {
-      hp: 120,
+      hp: 130,
       atk: 20,
       ap: 10,
       spd: 1.4,
-      crit: 0.1
+      crit: 0.08
     },
 
     passives: [
@@ -205,11 +205,11 @@ export const CLASSES = {
     image: "/images/class02.png",
 
     base: {
-      hp: 100,
+      hp: 110,
       atk: 10,
       ap: 30,
-      spd: 0.9,
-      crit: 0.16
+      spd: 1.0,
+      crit: 0.05
     },
 
     passives: [
