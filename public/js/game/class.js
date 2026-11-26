@@ -334,7 +334,7 @@ export function randomStats() {
   }
 
   return {
-    hp: result.hp * 10,
+    hp: result.hp * 5,
     atk: result.atk,
     ap: result.ap
   };
