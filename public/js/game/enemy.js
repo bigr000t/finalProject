@@ -5,60 +5,204 @@
 
 export const MONSTERS = [
 
+  // ==================== 일반 몬스터 ====================
+
   {
-    id: "wolf",
-    name: "늑대",
+    id: "skeleton",
+    name: "해골병사",
     image: "/images/enemy00.png",
-    hp: 65,
-    atk: 12,
-    def: 5,
-    spd: 1.20,
-    crit: 0.05
-  },
-
-  {
-    id: "boar",
-    name: "멧돼지",
-    image: "/images/enemy01.png",
-    hp: 85,
-    atk: 14,
-    def: 9,
+    hp: 80,
+    atk: 16,
+    def: 8,
     spd: 0.85,
-    crit: 0.01
-  },
-
-  {
-    id: "bear",
-    name: "곰",
-    image: "/images/enemy02.png",
-    hp: 130,
-    atk: 17,
-    def: 10,
-    spd: 0.65,
-    crit: 0.02
+    crit: 0.03
   },
 
   {
     id: "slime",
     name: "슬라임",
-    image: "/images/enemy03.png",
-    hp: 90,
-    atk: 40,
-    def: 24,
-    spd: 0.36,
-    crit: 0.02
+    image: "/images/enemy01.png",
+    hp: 100,
+    atk: 10,
+    def: 15,
+    spd: 0.65,
+    crit: 0.01
   },
 
   {
-    id: "skeleton",
-    name: "해골 병사",
+    id: "guardDog",
+    name: "경비견",
+    image: "/images/enemy02.png",
+    hp: 65,
+    atk: 12,
+    def: 5,
+    spd: 1.20,
+    crit: 0.03
+  },
+
+  {
+    id: "skeletonArcher",
+    name: "해골궁수",
+    image: "/images/enemy03.png",
+    hp: 60,
+    atk: 13,
+    def: 5,
+    spd: 0.85,
+    crit: 0.15
+  },
+
+  {
+    id: "skeletonGuard",
+    name: "해골방패병",
     image: "/images/enemy04.png",
     hp: 110,
-    atk: 20,
-    def: 12,
-    spd: 1.25,
+    atk: 10,
+    def: 20,
+    spd: 0.60,
+    crit: 0.01
+  },
+
+  {
+    id: "eagle",
+    name: "독수리",
+    image: "/images/enemy05.png",
+    hp: 65,
+    atk: 13,
+    def: 5,
+    spd: 1.40,
     crit: 0.05
   },
+
+  {
+    id: "ghost",
+    name: "유령",
+    image: "/images/enemy06.png",
+    hp: 75,
+    atk: 15,
+    def: 6,
+    spd: 0.90,
+    crit: 0.20
+  },
+
+  {
+    id: "skeletonKnight",
+    name: "해골기사",
+    image: "/images/enemy07.png",
+    hp: 110,
+    atk: 25,
+    def: 15,
+    spd: 0.85,
+    crit: 0.05
+  },
+
+  {
+    id: "golem",
+    name: "골렘",
+    image: "/images/enemy08.png",
+    hp: 140,
+    atk: 15,
+    def: 28,
+    spd: 0.45,
+    crit: 0.01
+  },
+
+  {
+    id: "skeletonCrossbowman",
+    name: "해골석궁병",
+    image: "/images/enemy09.png",
+    hp: 80,
+    atk: 22,
+    def: 10,
+    spd: 0.55,
+    crit: 0.30
+  },
+
+  {
+    id: "gargoyle",
+    name: "가고일",
+    image: "/images/enemy10.png",
+    hp: 150,
+    atk: 18,
+    def: 32,
+    spd: 0.60,
+    crit: 0.03
+  },
+
+  {
+    id: "griffin",
+    name: "그리핀",
+    image: "/images/enemy11.png",
+    hp: 90,
+    atk: 18,
+    def: 10,
+    spd: 1.50,
+    crit: 0.05
+  },
+
+  {
+    id: "wraithAssassin",
+    name: "망령 암살자",
+    image: "/images/enemy12.png",
+    hp: 80,
+    atk: 20,
+    def: 8,
+    spd: 1.25,
+    crit: 0.35
+  },
+
+
+  // ==================== 엘리트 몬스터 ====================
+
+  {
+    id: "cerberus",
+    name: "케르베로스",
+    image: "/images/elite00.png",
+    hp: 110,
+    atk: 16,
+    def: 10,
+    spd: 1.50,
+    crit: 0.05,
+    isElite: true
+  },
+
+  {
+    id: "kingSlime",
+    name: "킹슬라임",
+    image: "/images/elite01.png",
+    hp: 180,
+    atk: 18,
+    def: 35,
+    spd: 0.50,
+    crit: 0.03,
+    isElite: true
+  },
+
+  {
+    id: "boneWyvern",
+    name: "본 와이번",
+    image: "/images/elite02.png",
+    hp: 180,
+    atk: 30,
+    def: 25,
+    spd: 1.00,
+    crit: 0.30,
+    isElite: true
+  },
+
+  {
+    id: "deathKnight",
+    name: "데스나이트",
+    image: "/images/elite03.png",
+    hp: 220,
+    atk: 45,
+    def: 30,
+    spd: 0.80,
+    crit: 0.10,
+    isElite: true
+  },
+
+
+  // ==================== 보스 몬스터 ====================
 
   {
     id: "wyvern",
@@ -91,94 +235,132 @@ export const MONSTERS = [
 
 export const ENEMY_POOLS = [
 
+  // ==================== 지하 감옥 ====================
+
   {
     minFloor: 1,
     maxFloor: 9,
-
     monsters: [
-      "wolf",
-      "boar"
+      "skeleton",
+      "slime",
+      "guardDog",
+      "skeletonArcher"
     ]
   },
 
+  // 10층 엘리트
   {
     minFloor: 10,
     maxFloor: 10,
-
     monsters: [
-      "bear"
+      "cerberus"
     ]
   },
 
   {
     minFloor: 11,
     maxFloor: 49,
-
     monsters: [
-      "wolf",
-      "boar",
-      "bear"
+      "skeleton",
+      "slime",
+      "guardDog",
+      "skeletonArcher"
+    ]
+  },
+
+
+  // ==================== 버려진 성채 ====================
+
+  // 50층 엘리트
+  {
+    minFloor: 50,
+    maxFloor: 50,
+    monsters: [
+      "kingSlime"
     ]
   },
 
   {
-    minFloor: 50,
+    minFloor: 51,
     maxFloor: 99,
-
     monsters: [
-      "wolf",
-      "boar",
-      "bear",
-      "slime"
+      "skeleton",
+      "skeletonGuard",
+      "eagle",
+      "ghost"
     ]
   },
 
+  // 100층 보스
   {
     minFloor: 100,
     maxFloor: 100,
-
     monsters: [
       "wyvern"
     ]
   },
+
+
+  // ==================== 무너진 성벽 ====================
 
   {
     minFloor: 101,
     maxFloor: 149,
-
     monsters: [
-      "wolf",
-      "boar",
-      "bear",
-      "slime",
-      "skeleton"
+      "skeletonKnight",
+      "golem",
+      "eagle",
+      "skeletonCrossbowman"
     ]
   },
 
+
+  // ==================== 마법 고탑 ====================
+
+  // 150층 엘리트
   {
     minFloor: 150,
     maxFloor: 150,
-
     monsters: [
-      "wyvern"
-    ]
-  },
-
-    {
-    minFloor: 151,
-    maxFloor: 199,
-
-    monsters: [
-      "bear",
-      "slime",
-      "skeleton"
+      "boneWyvern"
     ]
   },
 
   {
+    minFloor: 151,
+    maxFloor: 189,
+    monsters: [
+      "skeletonKnight",
+      "gargoyle",
+      "griffin",
+      "wraithAssassin"
+    ]
+  },
+
+  // 190층 엘리트
+  {
+    minFloor: 190,
+    maxFloor: 190,
+    monsters: [
+      "deathKnight"
+    ]
+  },
+
+  {
+    minFloor: 191,
+    maxFloor: 199,
+    monsters: [
+      "skeletonKnight",
+      "gargoyle",
+      "griffin",
+      "wraithAssassin"
+    ]
+  },
+
+  // 200층 보스
+  {
     minFloor: 200,
     maxFloor: 200,
-
     monsters: [
       "dragon"
     ]
@@ -408,6 +590,8 @@ export function createEnemy(floor) {
     ...monster,
 
     isBoss: monster.isBoss ?? false,
+
+    isElite: monster.isElite ?? false,
 
     maxHp,
 
