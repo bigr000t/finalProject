@@ -32,7 +32,7 @@ export const CLASSES = {
     image: "/images/class00.png",
 
     base: {
-      hp: 120,
+      hp: 150,
       atk: 16,
       def: 18,
       spd: 1.0,
@@ -48,16 +48,16 @@ export const CLASSES = {
 
         cost: PASSIVE_COSTS.tier1,
 
-        desc: "최대 체력 4%, 총 방어력 4% 증가",
+        desc: "최대 체력 6%, 총 방어력 6% 증가",
 
         effects: [
           {
             type: "percentHp",
-            amount: 0.04
+            amount: 0.06
           },
           {
             type: "percentDef",
-            amount: 0.04
+            amount: 0.06
           }
         ]
       },
@@ -70,17 +70,17 @@ export const CLASSES = {
         cost: PASSIVE_COSTS.tier2,
 
         desc:
-          "피격 시 최대 체력의 2%와 " +
-          "최종 방어력의 10%만큼 고정 피해",
+          "피격 시 최대 체력의 3%와 " +
+          "최종 방어력의 15%만큼 고정 피해",
 
         effects: [
           {
             type: "counterHpRatio",
-            amount: 0.02
+            amount: 0.03
           },
           {
             type: "counterDefRatio",
-            amount: 0.10
+            amount: 0.15
           }
         ]
       },
@@ -92,12 +92,12 @@ export const CLASSES = {
 
         cost: PASSIVE_COSTS.tier3,
 
-        desc: "받는 모든 공격 피해 12% 감소",
+        desc: "받는 모든 공격 피해 16% 감소",
 
         effects: [
           {
             type: "damageReduction",
-            amount: 0.12
+            amount: 0.16
           }
         ]
       }
@@ -132,7 +132,7 @@ export const CLASSES = {
 
         cost: PASSIVE_COSTS.tier1,
 
-        desc: "총 공격 속도 0.6 증가",
+        desc: "총 공격 속도 0.4 증가",
 
         effects: [
           {
@@ -149,16 +149,16 @@ export const CLASSES = {
 
         cost: PASSIVE_COSTS.tier2,
 
-        desc: "최대 체력 3%, 공격력 3% 증가",
+        desc: "최대 체력 4%, 공격력 4% 증가",
 
         effects: [
           {
             type: "percentHp",
-            amount: 0.03
+            amount: 0.04
           },
           {
             type: "percentAtk",
-            amount: 0.03
+            amount: 0.04
           }
         ]
       },
@@ -170,12 +170,12 @@ export const CLASSES = {
 
         cost: PASSIVE_COSTS.tier3,
 
-        desc: "공격 시 10% 확률로 추가 공격",
+        desc: "공격 시 20% 확률로 추가 공격",
 
         effects: [
           {
             type: "extraAttackChance",
-            amount: 0.10
+            amount: 0.20
           }
         ]
       }
@@ -196,8 +196,8 @@ export const CLASSES = {
     base: {
       hp: 70,
       atk: 27,
-      def: 9,
-      spd: 0.8,
+      def: 10,
+      spd: 0.9,
       crit: 0.16
     },
 
@@ -210,12 +210,12 @@ export const CLASSES = {
 
         cost: PASSIVE_COSTS.tier1,
 
-        desc: "치명타 확률 12%p 증가",
+        desc: "치명타 확률 16%p 증가",
 
         effects: [
           {
             type: "flatCrit",
-            amount: 0.12
+            amount: 0.16
           }
         ]
       },
@@ -245,13 +245,13 @@ export const CLASSES = {
         cost: PASSIVE_COSTS.tier3,
 
         desc:
-          "치명타 피해량의 12%만큼 추가 피해 " +
+          "치명타 피해량의 24%만큼 추가 피해 " +
           "(적 방어력 적용)",
 
         effects: [
           {
             type: "criticalExtraDamage",
-            amount: 0.12
+            amount: 0.24
           }
         ]
       }
