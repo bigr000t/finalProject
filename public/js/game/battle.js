@@ -808,6 +808,8 @@ export function winBattle() {
 
     isBoss: state.enemy.isBoss ?? false,
 
+    isElite: state.enemy.isElite ?? false,
+
     effect: {
       target: "enemy",
       animation: "death",
