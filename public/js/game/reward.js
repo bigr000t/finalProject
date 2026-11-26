@@ -85,6 +85,8 @@ export function getBookPoints(
 
 // ==================== 비급서 능력치 증가량 ====================
 
+// ==================== 비급서 능력치 증가량 ====================
+
 export function getBookAmount(
   floor,
   stat,
@@ -102,6 +104,21 @@ export function getBookAmount(
 
     case "hp":
       return points * BOOK_CONFIG.hpPerPoint;
+
+    case "atk":
+      return points * BOOK_CONFIG.atkPerPoint;
+
+    case "ap":
+      return points * BOOK_CONFIG.apPerPoint;
+
+    default:
+      throw new Error(
+        "잘못된 비급서 능력치입니다."
+      );
+
+  }
+
+}
 
 
 // ==================== 비급서 가격 ====================
