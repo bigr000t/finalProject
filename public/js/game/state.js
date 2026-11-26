@@ -38,7 +38,7 @@ export const SAVE_VERSION = 3;
 // 임시 밸런스 설정: 테스트 후 조정
 export const COMBAT_CONFIG = Object.freeze({
   lowHpThreshold: 0.33,
-  baseCritMultiplier: 2,
+  baseCritMultiplier: 1.6,
   apScale: 100,
   maxDamageReduction: 0.8
 });
