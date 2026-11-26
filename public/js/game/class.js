@@ -68,7 +68,7 @@ export const CLASSES = {
         effects: [
           {
             type: "apDamageReduction",
-            amount: 0.1
+            amount: 0.04
           }
         ]
       },
