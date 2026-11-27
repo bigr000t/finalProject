@@ -118,7 +118,9 @@ const VISUAL_CONFIG = {
 
   attackDistance: 22,
   hitDistance: 12,
-  spawnDistance: 55
+  spawnDistance: 55,
+
+  magicBurstHitDuration: 100
 };
 
 
@@ -207,13 +209,17 @@ function playAnimation(element, frames, options) {
   activeAnimations.set(element, animation);
 
   if (options.fill !== "forwards") {
+
     animation.addEventListener("finish", () => {
+
       if (
         activeAnimations.get(element) === animation
       ) {
         activeAnimations.delete(element);
       }
+
     }, { once: true });
+
   }
 
   return animation;
@@ -241,6 +247,7 @@ function shakeArena(
   duration = VISUAL_CONFIG.shakeDuration,
   strength = 3
 ) {
+
   if (prefersReducedMotion()) {
     return;
   }
@@ -268,6 +275,7 @@ function shakeArena(
 // ==================== 체력 바 출력 ====================
 
 function renderHpBar(element, hp, maxHp) {
+
   const ratio = maxHp > 0
     ? hp / maxHp
     : 0;
@@ -284,6 +292,7 @@ function renderHpBar(element, hp, maxHp) {
 // ==================== 기본 진행 정보 출력 ====================
 
 export function renderProgress() {
+
   DOM.floor.textContent = `${state.floor}층`;
 
   DOM.status.textContent =
@@ -308,6 +317,7 @@ const CLASS_IMAGES = {
 const ENEMY_IMAGES = {
 
   // 일반 몬스터
+
   skeleton: "/images/enemy00.png",
   slime: "/images/enemy01.png",
   guardDog: "/images/enemy02.png",
@@ -323,12 +333,14 @@ const ENEMY_IMAGES = {
   wraithAssassin: "/images/enemy12.png",
 
   // 엘리트 몬스터
+
   cerberus: "/images/elite00.png",
   kingSlime: "/images/elite01.png",
   boneWyvern: "/images/elite02.png",
   deathKnight: "/images/elite03.png",
 
   // 보스 몬스터
+
   wyvern: "/images/boss00.png",
   dragon: "/images/boss01.png"
 };
@@ -337,6 +349,7 @@ const ENEMY_IMAGES = {
 // ==================== 층별 배경 조회 ====================
 
 export function getBattleBackground(floor) {
+
   const localFloor = ((floor - 1) % 200) + 1;
 
   if (localFloor === 100) {
@@ -366,6 +379,7 @@ export function getBattleBackground(floor) {
 // ==================== 전투 배경 출력 ====================
 
 export function renderBackground() {
+
   const arena = document.querySelector(".fighters");
 
   if (!arena) {
@@ -393,6 +407,7 @@ function renderAvatar(
   name,
   fallback = ""
 ) {
+
   if (!element) {
     return;
   }
@@ -407,12 +422,14 @@ function renderAvatar(
   );
 
   if (!sprite) {
+
     sprite = document.createElement("img");
 
     sprite.className = "battle-sprite";
     sprite.draggable = false;
 
     element.replaceChildren(sprite);
+
   }
 
   if (sprite.getAttribute("src") !== image) {
@@ -426,6 +443,7 @@ function renderAvatar(
 // ==================== 전투 효과 팝업 ====================
 
 function showDamagePopup(event) {
+
   const effects = DOM.battleEffects;
 
   if (!effects) {
@@ -442,77 +460,125 @@ function showDamagePopup(event) {
   switch (event.type) {
 
     // 흡혈의 반지
+
     case "lifesteal":
+
       target = DOM.playerAvatar;
       text = `+${event.amount}`;
       popupType = "lifesteal";
+
       offsetX = -30;
       offsetY = -15;
+
       break;
 
+
     // 가시 장갑
+
     case "reflection":
+
       target = DOM.enemyAvatar;
       text = `반사 ${event.damage}`;
       popupType = "reflection";
+
       offsetX = 25;
       offsetY = -20;
+
       break;
 
+
     // 전사 : 응징
+
     case "counterAttack":
+
       target = DOM.enemyAvatar;
       text = `응징 ${event.damage}`;
       popupType = "counter-attack";
+
       offsetX = -35;
       offsetY = -35;
+
       break;
 
+
     // 전사 : 최후의 일격
+
     case "lastStrike":
+
       target = DOM.enemyAvatar;
       text = `격노 ${event.damage}`;
       popupType = "counter-attack";
+
       offsetX = 30;
       offsetY = -35;
+
       break;
 
+
     // 불사의 증표
+
     case "revive":
+
       target = DOM.playerAvatar;
       text = `소생 +${event.hp}`;
       popupType = "revive";
+
       offsetY = -35;
+
       break;
 
+
     // 피해 감소
+
     case "damageReduction":
+
       target = DOM.playerAvatar;
       text = `감소 ${event.amount}`;
       popupType = "reduction";
+
       offsetX = 35;
       offsetY = -20;
+
       break;
 
+
     // 도적 : 연격
+
     case "extraAttack":
+
       target = DOM.playerAvatar;
       text = "연격!";
       popupType = "extra-attack";
+
       offsetY = -35;
+
       break;
 
+
     // 마법사 : 마력 폭발
+
     case "magicBurst":
+
       target = DOM.enemyAvatar;
       text = `마력 ${event.damage}`;
       popupType = "magic-burst";
-      offsetX = 30;
-      offsetY = -30;
+
+      // 타격별 피해 숫자를 좌우로 분산
+
+      offsetX = (event.hit ?? 1) % 2 === 1
+        ? -48
+        : 48;
+
+      offsetY = -30 -
+        Math.floor(((event.hit ?? 1) - 1) / 2) * 28;
+
       break;
 
+
     // 일반 공격
+
     default:
+
       target = event.attacker === "player"
         ? DOM.enemyAvatar
         : DOM.playerAvatar;
@@ -531,6 +597,7 @@ function showDamagePopup(event) {
       }
 
       break;
+
   }
 
   if (!target) {
@@ -588,7 +655,8 @@ function showDamagePopup(event) {
 
 // ==================== 마력 폭발 연출 ====================
 
-function playMagicBurstEffect() {
+function playMagicBurstEffect(hitCount = 1) {
+
   if (prefersReducedMotion()) {
     return;
   }
@@ -599,13 +667,27 @@ function playMagicBurstEffect() {
     return;
   }
 
-  playAnimation(
-    target,
-    [
-      {
-        filter: "none",
-        transform: "translateX(0)"
-      },
+  const count = Math.max(
+    1,
+    Math.min(6, Math.floor(hitCount))
+  );
+
+  const frames = [
+
+    {
+      filter: "none",
+      transform: "translateX(0)"
+    }
+
+  ];
+
+
+  // 타격 횟수만큼 점멸 및 넉백 연출 생성
+
+  for (let i = 0; i < count; i++) {
+
+    frames.push(
+
       {
         filter:
           "brightness(2) " +
@@ -613,14 +695,24 @@ function playMagicBurstEffect() {
 
         transform: "translateX(6px)"
       },
+
       {
         filter: "none",
         transform: "translateX(0)"
       }
-    ],
+
+    );
+
+  }
+
+  playAnimation(
+    target,
+    frames,
     {
-      duration: 220,
-      easing: "ease-out"
+      duration:
+        VISUAL_CONFIG.magicBurstHitDuration * count,
+
+      easing: "linear"
     }
   );
 }
@@ -629,6 +721,7 @@ function playMagicBurstEffect() {
 // ==================== 일반 공격 애니메이션 ====================
 
 function playAttackEffect(event) {
+
   if (prefersReducedMotion()) {
     return;
   }
@@ -656,8 +749,11 @@ function playAttackEffect(event) {
 
   const effect = event.effect || {};
 
+
   // 공격자 전진 및 복귀
+
   if (!attackerDead) {
+
     playAnimation(
       attacker,
       [
@@ -677,10 +773,14 @@ function playAttackEffect(event) {
         easing: "ease-out"
       }
     );
+
   }
 
+
   // 피격 대상 넉백 및 점멸
+
   if (!targetDead) {
+
     playAnimation(
       target,
       [
@@ -709,15 +809,20 @@ function playAttackEffect(event) {
         easing: "ease-out"
       }
     );
+
   }
 
+
   // 치명타 화면 진동
+
   if (event.critical) {
+
     shakeArena(
       effect.shakeDuration ||
       VISUAL_CONFIG.shakeDuration,
       3
     );
+
   }
 }
 
@@ -725,6 +830,7 @@ function playAttackEffect(event) {
 // ==================== 일반 몬스터 등장 ====================
 
 function playEnemySpawnEffect() {
+
   if (prefersReducedMotion()) {
     return;
   }
@@ -756,6 +862,7 @@ function playEnemySpawnEffect() {
 // ==================== 보스 몬스터 등장 ====================
 
 function playBossSpawnEffect() {
+
   if (prefersReducedMotion()) {
     return;
   }
@@ -791,6 +898,7 @@ function playBossSpawnEffect() {
 // ==================== 몬스터 사망 ====================
 
 function playEnemyDeathEffect() {
+
   if (visualState.enemyDead) {
     return;
   }
@@ -802,14 +910,18 @@ function playEnemyDeathEffect() {
   const isBoss = Boolean(state.enemy?.isBoss);
 
   if (prefersReducedMotion()) {
+
     stopAnimation(target);
     target.style.opacity = "0";
+
     return;
+
   }
 
   if (isBoss) {
 
     // 보스 사망 연출
+
     playAnimation(
       target,
       [
@@ -850,6 +962,7 @@ function playEnemyDeathEffect() {
   } else {
 
     // 일반 및 엘리트 몬스터 사망 연출
+
     playAnimation(
       target,
       [
@@ -879,6 +992,7 @@ function playEnemyDeathEffect() {
         fill: "forwards"
       }
     );
+
   }
 }
 
@@ -886,6 +1000,7 @@ function playEnemyDeathEffect() {
 // ==================== 플레이어 사망 ====================
 
 function playPlayerDeathEffect() {
+
   if (visualState.playerDead) {
     return;
   }
@@ -895,6 +1010,7 @@ function playPlayerDeathEffect() {
   const target = DOM.playerAvatar;
 
   if (prefersReducedMotion()) {
+
     stopAnimation(target);
 
     target.style.opacity = "0.65";
@@ -903,6 +1019,7 @@ function playPlayerDeathEffect() {
       "translateY(12px) rotate(-75deg)";
 
     return;
+
   }
 
   playAnimation(
@@ -943,6 +1060,7 @@ function playPlayerDeathEffect() {
 // ==================== 불사의 증표 소생 연출 ====================
 
 function playReviveEffect(event) {
+
   const target = DOM.playerAvatar;
 
   if (!target) {
@@ -991,6 +1109,7 @@ function playReviveEffect(event) {
     ],
     {
       duration: event.effect?.duration || 700,
+
       easing: "ease-out"
     }
   );
@@ -1002,6 +1121,7 @@ function playReviveEffect(event) {
 // ==================== 반격 및 반사 피해 연출 ====================
 
 function playReflectionEffect() {
+
   if (prefersReducedMotion()) {
     return;
   }
@@ -1034,6 +1154,7 @@ function playReflectionEffect() {
     ],
     {
       duration: 180,
+
       easing: "ease-out"
     }
   );
@@ -1043,11 +1164,15 @@ function playReflectionEffect() {
 // ==================== 사망 이벤트 처리 ====================
 
 function playDeathEffect(event) {
+
   if (event.type === "lose") {
+
     playPlayerDeathEffect();
 
   } else if (event.type === "win") {
+
     playEnemyDeathEffect();
+
   }
 }
 
@@ -1055,7 +1180,9 @@ function playDeathEffect(event) {
 // ==================== 플레이어 출력 ====================
 
 export function renderPlayer() {
+
   if (!state.player) {
+
     resetAvatarVisual(DOM.playerAvatar);
 
     visualState.playerDead = false;
@@ -1070,20 +1197,25 @@ export function renderPlayer() {
     renderHpBar(DOM.playerHpBar, 0, 0);
 
     return;
+
   }
 
   const classData = getClass(state.classKey);
 
   const stats = getPlayerStats();
 
+
   // 새로운 도전 시작 또는 생존 상태 복구
+
   if (
     visualState.playerDead &&
     state.player.hp > 0
   ) {
+
     resetAvatarVisual(DOM.playerAvatar);
 
     visualState.playerDead = false;
+
   }
 
   renderAvatar(
@@ -1118,7 +1250,9 @@ export function renderPlayer() {
   );
 
   if (state.player.hp <= 0) {
+
     playPlayerDeathEffect();
+
   }
 }
 
@@ -1126,7 +1260,9 @@ export function renderPlayer() {
 // ==================== 몬스터 출력 ====================
 
 export function renderEnemy() {
+
   if (!state.enemy) {
+
     resetAvatarVisual(DOM.enemyAvatar);
 
     visualState.enemyKey = null;
@@ -1147,6 +1283,7 @@ export function renderEnemy() {
     renderHpBar(DOM.enemyHpBar, 0, 0);
 
     return;
+
   }
 
   const enemy = state.enemy;
@@ -1162,12 +1299,14 @@ export function renderEnemy() {
     );
 
   if (isNewEnemy) {
+
     resetAvatarVisual(DOM.enemyAvatar);
 
     visualState.enemyKey = enemyKey;
     visualState.enemyDead = false;
 
     DOM.battleEffects?.replaceChildren();
+
   }
 
   renderAvatar(
@@ -1181,7 +1320,9 @@ export function renderEnemy() {
     enemy.emoji || "🐺"
   );
 
+
   // 보스 전용 CSS 클래스 유지
+
   DOM.enemyAvatar.classList.toggle(
     "boss-avatar",
     Boolean(enemy.isBoss)
@@ -1212,17 +1353,28 @@ export function renderEnemy() {
   );
 
   if (enemy.currentHp <= 0) {
+
     playEnemyDeathEffect();
+
     return;
+
   }
 
+
   // 엘리트는 일반 등장 연출 사용
+
   if (isNewEnemy) {
+
     if (enemy.isBoss) {
+
       playBossSpawnEffect();
+
     } else {
+
       playEnemySpawnEffect();
+
     }
+
   }
 }
 
@@ -1230,6 +1382,7 @@ export function renderEnemy() {
 // ==================== 초기 스탯 출력 ====================
 
 export function renderStatPreview() {
+
   DOM.statPreview.replaceChildren();
 
   if (
@@ -1249,39 +1402,46 @@ export function renderStatPreview() {
     classData.name;
 
   const stats = [
+
     {
       name: "최대 생명력",
       base: base.hp,
       bonus: rolled.hp - base.hp,
       total: rolled.hp
     },
+
     {
       name: "공격력",
       base: base.atk,
       bonus: rolled.atk - base.atk,
       total: rolled.atk
     },
+
     {
       name: "주문력",
       base: base.ap,
       bonus: rolled.ap - base.ap,
       total: rolled.ap
     },
+
     {
       name: "공격 속도",
       base: base.spd.toFixed(2),
       bonus: 0,
       total: rolled.spd.toFixed(2)
     },
+
     {
       name: "치명타 확률",
       base: formatPercent(base.crit),
       bonus: 0,
       total: formatPercent(rolled.crit)
     }
+
   ];
 
   for (const stat of stats) {
+
     const row = document.createElement("tr");
 
     const values = [
@@ -1292,6 +1452,7 @@ export function renderStatPreview() {
     ];
 
     values.forEach((value, index) => {
+
       const cell = document.createElement("td");
 
       cell.textContent = value;
@@ -1305,9 +1466,11 @@ export function renderStatPreview() {
       }
 
       row.appendChild(cell);
+
     });
 
     DOM.statPreview.appendChild(row);
+
   }
 
   const remaining =
@@ -1333,6 +1496,7 @@ function createChoiceButton({
   action,
   id
 }) {
+
   const button = document.createElement("button");
 
   button.type = "button";
@@ -1344,9 +1508,11 @@ function createChoiceButton({
   button.disabled = disabled;
 
   const heading = document.createElement("strong");
+
   heading.textContent = title;
 
   const description = document.createElement("small");
+
   description.textContent = desc;
 
   button.append(
@@ -1355,12 +1521,14 @@ function createChoiceButton({
   );
 
   if (price !== null) {
+
     const cost = document.createElement("span");
 
     cost.className = "item-price";
     cost.textContent = price;
 
     button.appendChild(cost);
+
   }
 
   return button;
@@ -1370,6 +1538,7 @@ function createChoiceButton({
 // ==================== 보상 출력 ====================
 
 export function renderRewards() {
+
   DOM.rewards.replaceChildren();
 
   if (state.phase !== "reward") {
@@ -1377,14 +1546,21 @@ export function renderRewards() {
   }
 
   for (const reward of state.rewards) {
+
     const button = createChoiceButton({
+
       title: reward.title,
+
       desc: reward.desc,
+
       action: "reward",
+
       id: reward.id
+
     });
 
     if (reward.type === "special") {
+
       button.classList.add("special-reward");
 
       const label = document.createElement("span");
@@ -1393,9 +1569,11 @@ export function renderRewards() {
       label.textContent = "특수 아이템";
 
       button.prepend(label);
+
     }
 
     DOM.rewards.appendChild(button);
+
   }
 
   const cost = getRerollCost(
@@ -1414,6 +1592,7 @@ export function renderRewards() {
 // ==================== 일반 상점 출력 ====================
 
 export function renderShop() {
+
   DOM.shopItems.replaceChildren();
 
   if (state.phase !== "shop") {
@@ -1425,13 +1604,16 @@ export function renderShop() {
   const stats = getPlayerStats();
 
   for (const item of items) {
+
     const fullHp = (
       item.type === "heal" &&
       state.player.hp >= stats.hp
     );
 
     const button = createChoiceButton({
+
       title: item.title,
+
       desc: item.desc,
 
       price: `${formatNumber(item.cost)}G`,
@@ -1443,9 +1625,11 @@ export function renderShop() {
       action: "buy-item",
 
       id: item.id
+
     });
 
     DOM.shopItems.appendChild(button);
+
   }
 }
 
@@ -1455,12 +1639,30 @@ export function renderShop() {
 function getPassiveEffectText(passive, level) {
 
   if (level === 0) {
+
     return "미습득";
+
   }
 
   return passive.effects.map(effect => {
 
-    const value = effect.amount * level;
+
+    // ==================== 효과 수치 계산 ====================
+
+    // 배열 효과 : 레벨별 지정 수치
+    // 마력 폭발 : 레벨과 관계없이 타격당 계수 유지
+    // 일반 효과 : 레벨에 비례하여 증가
+
+    const value = Array.isArray(effect.amounts)
+
+      ? (effect.amounts[level - 1] ?? 0)
+
+      : effect.type === "attackApRatio"
+
+        ? effect.amount
+
+        : effect.amount * level;
+
 
     const percent = Number(
       (value * 100).toFixed(2)
@@ -1475,63 +1677,85 @@ function getPassiveEffectText(passive, level) {
       // ==================== 공통 ====================
 
       case "percentHp":
+
         return `최대 생명력 +${percent}%`;
 
       case "percentAtk":
+
         return `공격력 +${percent}%`;
 
       case "percentAp":
+
         return `주문력 +${percent}%`;
 
 
       // ==================== 전사 ====================
 
       case "counterHpRatio":
+
         return `반격 피해: 최대 HP의 ${percent}%`;
 
       case "counterApRatio":
+
         return `반격 피해: AP의 ${percent}%`;
 
       case "apDamageReduction":
+
         return `피해 감소: 주문력 점감값 × ${percent}%`;
 
       case "lowHpAtkBonus":
+
         return `저체력 시 공격력 +${percent}%`;
 
       case "lowHpDamageReduction":
+
         return `저체력 시 피해 ${percent}% 감소`;
 
       case "lowHpExtraDamage":
+
         return `저체력 시 ATK의 ${percent}% 추가 피해`;
 
 
       // ==================== 도적 ====================
 
       case "flatSpd":
+
         return `공격 속도 +${decimal}`;
 
       case "extraAttackChance":
+
         return `추가 공격 확률 +${percent}%p`;
 
       case "apCritBonus":
+
         return `치명타 확률: 주문력 점감값 × ${percent}%p`;
 
       case "critDamageBonus":
+
         return `치명타 피해량 +${percent}%p`;
 
 
       // ==================== 마법사 ====================
 
       case "atkToApRatio":
+
         return `ATK의 ${percent}%만큼 AP 증가`;
 
       case "apSpdBonus":
+
         return `공격 속도: 주문력 점감값 × ${decimal}`;
 
       case "attackApRatio":
-        return `공격 시 AP의 ${percent}% 추가 피해`;
+
+        return `타격당 AP의 ${percent}% 추가 피해`;
+
+      case "attackApHits":
+
+        return `추가 타격 ${value}회`;
+
 
       default:
+
         return "";
 
     }
@@ -1546,9 +1770,11 @@ function getPassiveEffectText(passive, level) {
 function getPassiveDescription(passive, level = 0) {
 
   const lines = [
+
     passive.desc || "패시브 효과",
 
     `현재: ${getPassiveEffectText(passive, level)}`
+
   ];
 
   if (level < MAX_PASSIVE_LEVEL) {
@@ -1567,9 +1793,11 @@ function getPassiveDescription(passive, level = 0) {
 
 }
 
+
 // ==================== 패시브 강화 UI ====================
 
 export function renderPassives() {
+
   DOM.passives.replaceChildren();
 
   if (
@@ -1582,6 +1810,7 @@ export function renderPassives() {
 
   const passives = getPassives(state.classKey);
 
+
   // ==================== 보유 패시브 포인트 ====================
 
   const pointInfo = document.createElement("p");
@@ -1593,9 +1822,11 @@ export function renderPassives() {
 
   DOM.passives.appendChild(pointInfo);
 
+
   // ==================== 패시브 강화 목록 ====================
 
   for (const passive of passives) {
+
     const level = getPassiveLevel(
       state.passives,
       passive.id
@@ -1623,33 +1854,39 @@ export function renderPassives() {
       action: "upgrade-passive",
 
       id: passive.id
+
     });
 
     if (level > 0) {
+
       button.classList.add("passive-learned");
+
     }
 
     if (maxLevel) {
+
       button.classList.add("owned");
+
     }
 
     const description = button.querySelector("small");
 
-      if (description) {
+    if (description) {
 
-        description.style.whiteSpace = "pre-line";
+      description.style.whiteSpace = "pre-line";
 
-        description.style.lineHeight = "1.6";
+      description.style.lineHeight = "1.6";
 
-        description.style.overflow = "visible";
+      description.style.overflow = "visible";
 
-        description.style.maxHeight = "none";
+      description.style.maxHeight = "none";
 
-        description.style.display = "block";
+      description.style.display = "block";
 
-      }
-    
+    }
+
     DOM.passives.appendChild(button);
+
   }
 }
 
@@ -1657,11 +1894,13 @@ export function renderPassives() {
 // ==================== 특수 아이템 인벤토리 ====================
 
 export function renderItems() {
+
   let inventory = document.getElementById(
     "specialItemInventory"
   );
 
   if (!inventory) {
+
     inventory = document.createElement("section");
 
     inventory.id = "specialItemInventory";
@@ -1670,6 +1909,7 @@ export function renderItems() {
       "special-item-inventory";
 
     DOM.build.appendChild(inventory);
+
   }
 
   inventory.replaceChildren();
@@ -1694,8 +1934,11 @@ export function renderItems() {
 
   inventory.appendChild(heading);
 
+
   // 보유 아이템이 없는 경우
+
   if (items.length === 0) {
+
     const empty = document.createElement("p");
 
     empty.className = "special-item-empty";
@@ -1706,6 +1949,7 @@ export function renderItems() {
     inventory.appendChild(empty);
 
     return;
+
   }
 
   const list = document.createElement("div");
@@ -1718,21 +1962,29 @@ export function renderItems() {
   );
 
   for (const item of items) {
+
     const card = document.createElement("div");
 
     card.className = "special-item-card";
 
     if (item.count >= ITEM_CONFIG.maxStack) {
+
       card.classList.add("max-stack");
+
     }
 
+
     // 아이템 아이콘
+
     const icon = document.createElement("span");
 
     icon.className = "special-item-icon";
+
     icon.textContent = item.emoji;
 
+
     // 아이템 정보
+
     const info = document.createElement("div");
 
     info.className = "special-item-info";
@@ -1740,6 +1992,7 @@ export function renderItems() {
     const name = document.createElement("strong");
 
     name.className = "special-item-name";
+
     name.textContent = item.name;
 
     const effect = document.createElement("small");
@@ -1748,24 +2001,32 @@ export function renderItems() {
 
     let effectText = item.effectText;
 
+
     // ==================== 최상급 비급서 ====================
 
     switch (item.id) {
 
       case "supremeHpBook":
+
         effectText +=
           ` / 현재 HP +${floorBonus.hp}`;
+
         break;
 
       case "supremeAtkBook":
+
         effectText +=
           ` / 현재 ATK +${floorBonus.atk}`;
+
         break;
 
       case "supremeApBook":
+
         effectText +=
           ` / 현재 AP +${floorBonus.ap}`;
+
         break;
+
     }
 
     effect.textContent = effectText;
@@ -1775,7 +2036,9 @@ export function renderItems() {
       effect
     );
 
+
     // 보유 개수 표시
+
     const stack = document.createElement("div");
 
     stack.className = "special-item-stack";
@@ -1787,7 +2050,9 @@ export function renderItems() {
     count.textContent =
       `${item.count}/${ITEM_CONFIG.maxStack}`;
 
+
     // 보유 개수 표시용 칸
+
     const dots = document.createElement("div");
 
     dots.className = "special-item-dots";
@@ -1797,15 +2062,19 @@ export function renderItems() {
       i < ITEM_CONFIG.maxStack;
       i++
     ) {
+
       const dot = document.createElement("span");
 
       dot.className = "special-item-dot";
 
       if (i < item.count) {
+
         dot.classList.add("filled");
+
       }
 
       dots.appendChild(dot);
+
     }
 
     stack.append(
@@ -1820,6 +2089,7 @@ export function renderItems() {
     );
 
     list.appendChild(card);
+
   }
 
   inventory.appendChild(list);
@@ -1829,13 +2099,16 @@ export function renderItems() {
 // ==================== 현재 빌드 출력 ====================
 
 export function renderBuild() {
+
   DOM.build.replaceChildren();
 
   if (!state.player) {
+
     DOM.build.textContent =
       "도전을 시작하면 표시됩니다.";
 
     return;
+
   }
 
   const base = state.player.base;
@@ -1851,9 +2124,11 @@ export function renderBuild() {
 
   const classData = getClass(state.classKey);
 
+
   // ==================== 기본 능력치 ====================
 
   const lines = [
+
     `클래스: ${classData.name}`,
 
     `기본 HP: ${formatNumber(base.hp)}`,
@@ -1879,65 +2154,92 @@ export function renderBuild() {
     `보유 골드: ${formatNumber(state.gold)}G`,
 
     `패시브 포인트: ${state.passivePoints}`
+
   ];
+
 
   // ==================== 마법사 기본 공격 공식 ====================
 
   if (state.classKey === "mage") {
+
     lines.push(
-      "기본 공격 계수: AP 80% + ATK 20%"
+      "기본 공격 계수: ATK 40% + AP 50%"
     );
+
   }
+
 
   // ==================== 치명타 피해 감소 ====================
 
   if (items.criticalDamageReduction > 0) {
+
     lines.push(
+
       `받는 치명타 피해 감소: ${
         formatPercent(items.criticalDamageReduction, 0)
       }`
+
     );
+
   }
+
 
   // ==================== 도적 연격 ====================
 
   if (stats.extraAttackChance > 0) {
+
     lines.push(
+
       `추가 공격 확률: ${
         formatPercent(stats.extraAttackChance)
       }`
+
     );
+
   }
+
 
   // ==================== 흡혈 ====================
 
   if (items.lifesteal > 0) {
+
     lines.push(
+
       `기본 공격 흡혈률: ${
         formatPercent(items.lifesteal, 0)
       }`
+
     );
+
   }
+
 
   // ==================== 최상급 비급서 ====================
 
   if (items.floorHp > 0) {
+
     lines.push(
       `층수 비례 HP 보너스: +${floorBonus.hp}`
     );
+
   }
 
   if (items.floorAtk > 0) {
+
     lines.push(
       `층수 비례 공격력: +${floorBonus.atk}`
     );
+
   }
 
   if (items.floorAp > 0) {
+
     lines.push(
       `층수 비례 주문력: +${floorBonus.ap}`
     );
+
   }
+
 
   // ==================== 특수 아이템 등장 확률 ====================
 
@@ -1946,105 +2248,123 @@ export function renderBuild() {
   );
 
   lines.push(
+
     `일반 보상 슬롯별 특수 아이템 확률: ${
       formatPercent(dropChance)
     }`
+
   );
+
 
   // ==================== 능력치 교환 페널티 ====================
 
   if (items.flatSpdPenalty > 0) {
+
     lines.push(
+
       `공격 속도 페널티: -${
         items.flatSpdPenalty.toFixed(1)
       }`
+
     );
+
   }
 
   if (items.critPenalty > 0) {
+
     lines.push(
+
       `치명타 확률 페널티: -${
         Math.round(items.critPenalty * 100)
       }%p`
+
     );
+
   }
 
   if (items.percentHpPenalty > 0) {
+
     lines.push(
+
       `최대 생명력 페널티: -${
         formatPercent(items.percentHpPenalty, 0)
       }`
+
     );
-  }
-
-// ==================== 빌드 정보 출력 ====================
-
-for (const line of lines) {
-
-  const paragraph = document.createElement("p");
-
-  paragraph.textContent = line;
-
-  DOM.build.appendChild(paragraph);
-
-}
-
-// ==================== 패시브 보유 현황 ====================
-
-const passiveSection = document.createElement("section");
-
-passiveSection.className = "passive-build-list";
-
-const passiveHeading = document.createElement("h3");
-
-passiveHeading.textContent = "클래스 패시브";
-
-passiveSection.appendChild(passiveHeading);
-
-for (const passive of classData.passives) {
-
-  const level = getPassiveLevel(
-    state.passives,
-    passive.id
-  );
-
-  const paragraph = document.createElement("p");
-
-  paragraph.textContent =
-    `${passive.name}: ${level}/${MAX_PASSIVE_LEVEL}`;
-
-
-  // ==================== 패시브 상세 설명 ====================
-
-  const description = document.createElement("small");
-
-  description.textContent =
-    getPassiveDescription(passive, level);
-
-  description.style.display = "block";
-
-  description.style.whiteSpace = "pre-line";
-
-  description.style.lineHeight = "1.6";
-
-  description.style.marginTop = "6px";
-
-  paragraph.appendChild(description);
-
-
-  // ==================== 최대 강화 표시 ====================
-
-  if (level === MAX_PASSIVE_LEVEL) {
-
-    paragraph.className = "conditional-active";
 
   }
 
-  passiveSection.appendChild(paragraph);
 
-}
+  // ==================== 빌드 정보 출력 ====================
 
-DOM.build.appendChild(passiveSection);
+  for (const line of lines) {
+
+    const paragraph = document.createElement("p");
+
+    paragraph.textContent = line;
+
+    DOM.build.appendChild(paragraph);
+
+  }
+
+
+  // ==================== 패시브 보유 현황 ====================
+
+  const passiveSection = document.createElement("section");
+
+  passiveSection.className = "passive-build-list";
+
+  const passiveHeading = document.createElement("h3");
+
+  passiveHeading.textContent = "클래스 패시브";
+
+  passiveSection.appendChild(passiveHeading);
+
+  for (const passive of classData.passives) {
+
+    const level = getPassiveLevel(
+      state.passives,
+      passive.id
+    );
+
+    const paragraph = document.createElement("p");
+
+    paragraph.textContent =
+      `${passive.name}: ${level}/${MAX_PASSIVE_LEVEL}`;
+
+
+    // ==================== 패시브 상세 설명 ====================
+
+    const description = document.createElement("small");
+
+    description.textContent =
+      getPassiveDescription(passive, level);
+
+    description.style.display = "block";
+
+    description.style.whiteSpace = "pre-line";
+
+    description.style.lineHeight = "1.6";
+
+    description.style.marginTop = "6px";
+
+    paragraph.appendChild(description);
+
+
+    // ==================== 최대 강화 표시 ====================
+
+    if (level === MAX_PASSIVE_LEVEL) {
+
+      paragraph.className = "conditional-active";
+
+    }
+
+    passiveSection.appendChild(paragraph);
+
+  }
+
+  DOM.build.appendChild(passiveSection);
+
 
   // ==================== 조건부 효과 표시 영역 ====================
 
@@ -2056,6 +2376,7 @@ DOM.build.appendChild(passiveSection);
 
   renderConditionalEffects();
 
+
   // ==================== 특수 아이템 인벤토리 ====================
 
   renderItems();
@@ -2065,6 +2386,7 @@ DOM.build.appendChild(passiveSection);
 // ==================== 조건부 효과 출력 ====================
 
 export function renderConditionalEffects() {
+
   const container = document.getElementById(
     "conditionalEffects"
   );
@@ -2080,48 +2402,68 @@ export function renderConditionalEffects() {
   const stats = getPlayerStats();
 
   function appendEffect(text, active = null) {
+
     const paragraph = document.createElement("p");
 
     paragraph.textContent = text;
 
     if (active !== null) {
+
       paragraph.className = active
         ? "conditional-active"
         : "conditional-inactive";
+
     }
 
     container.appendChild(paragraph);
+
   }
+
 
   // ==================== 피해 감소 ====================
 
   if (stats.damageReduction > 0) {
+
     appendEffect(
+
       `현재 기본 피해 감소: ${
         formatPercent(stats.damageReduction)
       }`
+
     );
+
   }
+
 
   // ==================== 기본 공격 피해 증가 ====================
 
   if (stats.damageBonus > 0) {
+
     appendEffect(
+
       `상시 기본 공격 피해 증가: ${
         formatPercent(stats.damageBonus, 0)
       }`
+
     );
+
   }
+
 
   // ==================== 전사 : 응징 ====================
 
   if (stats.counterDamage > 0) {
+
     appendEffect(
+
       `응징 반격 피해: ${
         formatNumber(stats.counterDamage)
       }`
+
     );
+
   }
+
 
   // ==================== 전사 : 광전사의 투지 ====================
 
@@ -2132,15 +2474,21 @@ export function renderConditionalEffects() {
       "warrior_berserk"
     ) > 0
   ) {
+
     const active = stats.isLowHp;
 
     appendEffect(
+
       `광전사의 투지: ${
         active ? "[발동 중]" : "[대기 중]"
       }`,
+
       active
+
     );
+
   }
+
 
   // ==================== 전사 : 최후의 일격 ====================
 
@@ -2151,59 +2499,91 @@ export function renderConditionalEffects() {
       "warrior_last_strike"
     ) > 0
   ) {
+
     const active = stats.isLowHp;
 
     appendEffect(
+
       `최후의 일격: ${
         stats.attackExtraDamage
       } 추가 피해 ${
         active ? "[발동 중]" : "[대기 중]"
       }`,
+
       active
+
     );
+
   }
+
 
   // ==================== 마법사 : 마력 폭발 ====================
 
   if (
     state.classKey === "mage" &&
-    stats.attackExtraDamage > 0
+    stats.magicBurstHits > 0
   ) {
+
+    const damage = stats.magicBurstDamage;
+
+    const hits = stats.magicBurstHits;
+
+    const totalDamage = damage * hits;
+
     appendEffect(
-      `마력 폭발: 공격당 ${
-        formatNumber(stats.attackExtraDamage)
-      } 추가 피해`
+
+      `마력 폭발: ${
+        formatNumber(damage)
+      } 피해 × ${hits}회 ` +
+
+      `(총 ${
+        formatNumber(totalDamage)
+      } 피해)`
+
     );
+
   }
+
 
   // ==================== 광전사의 심장 ====================
 
   if (items.lowHpDamageBonus > 0) {
+
     const active = stats.lowHpDamageBonus > 0;
 
     appendEffect(
+
       `광전사의 심장: 기본 공격 피해 +${
         formatPercent(items.lowHpDamageBonus, 0)
       } ${
         active ? "[발동 중]" : "[대기 중]"
       }`,
+
       active
+
     );
+
   }
+
 
   // ==================== 순결의 방패 ====================
 
   if (items.fullHpDamageReduction > 0) {
+
     const active = stats.fullHpDamageReduction > 0;
 
     appendEffect(
+
       `순결의 방패: 피해 감소 ${
         formatPercent(items.fullHpDamageReduction, 0)
       } ${
         active ? "[발동 중]" : "[대기 중]"
       }`,
+
       active
+
     );
+
   }
 }
 
@@ -2211,7 +2591,9 @@ export function renderConditionalEffects() {
 // ==================== 도전 결과 출력 ====================
 
 export function renderResult() {
+
   if (state.phase === "victory") {
+
     DOM.gameOverTitle.textContent =
       "탑 정복 성공!";
 
@@ -2219,12 +2601,14 @@ export function renderResult() {
       `${state.floor}층을 모두 클리어했습니다.`;
 
   } else if (state.phase === "dead") {
+
     DOM.gameOverTitle.textContent =
       "도전 실패";
 
     DOM.result.textContent =
       `${state.floor}층에서 쓰러졌습니다. ` +
       `최종 기록: ${getHighestFloor()}층 클리어`;
+
   }
 }
 
@@ -2232,7 +2616,9 @@ export function renderResult() {
 // ==================== 저장 상태 출력 ====================
 
 export function renderSaveStatus(message) {
+
   DOM.saveStatus.textContent = message;
+
 }
 
 
@@ -2240,8 +2626,11 @@ export function renderSaveStatus(message) {
 
 export function renderPanels() {
 
+
   // 도전 포기 버튼
+
   if (DOM.abandonRun) {
+
     const canAbandon = [
       "rolling",
       "combat",
@@ -2253,6 +2642,7 @@ export function renderPanels() {
       DOM.abandonRun,
       canAbandon
     );
+
   }
 
   setVisible(
@@ -2293,6 +2683,7 @@ export function addLog(
   message,
   type = "normal"
 ) {
+
   const paragraph = document.createElement("p");
 
   paragraph.textContent = message;
@@ -2304,9 +2695,13 @@ export function addLog(
 
   DOM.logs.appendChild(paragraph);
 
+
   // 로그 최대 100개 유지
+
   while (DOM.logs.childElementCount > 100) {
+
     DOM.logs.firstElementChild.remove();
+
   }
 
   DOM.logs.scrollTop =
@@ -2317,20 +2712,25 @@ export function addLog(
 // ==================== 전투 로그 초기화 ====================
 
 export function clearLogs() {
+
   DOM.logs.replaceChildren();
+
 }
 
 
 // ==================== 전투 이벤트 처리 ====================
 
 export function renderBattleEvent(event) {
+
   if (!event) {
     return;
   }
 
+
   // ==================== 일반 공격 ====================
 
   if (event.type === "attack") {
+
     showDamagePopup(event);
 
     playAttackEffect(event);
@@ -2351,6 +2751,7 @@ export function renderBattleEvent(event) {
       : "";
 
     addLog(
+
       `${attacker}: ${event.damage} 피해` +
       critical +
       extraAttack,
@@ -2358,25 +2759,32 @@ export function renderBattleEvent(event) {
       event.critical
         ? "critical"
         : event.attacker
+
     );
 
     return;
+
   }
+
 
   // ==================== 특수 아이템 피해 증가 ====================
 
   if (event.type === "damageBonus") {
+
     addLog(
       event.message,
       "damage-bonus"
     );
 
     return;
+
   }
+
 
   // ==================== 흡혈의 반지 ====================
 
   if (event.type === "lifesteal") {
+
     showDamagePopup(event);
 
     addLog(
@@ -2385,11 +2793,14 @@ export function renderBattleEvent(event) {
     );
 
     return;
+
   }
+
 
   // ==================== 전사 : 응징 ====================
 
   if (event.type === "counterAttack") {
+
     showDamagePopup(event);
 
     playReflectionEffect();
@@ -2400,11 +2811,14 @@ export function renderBattleEvent(event) {
     );
 
     return;
+
   }
+
 
   // ==================== 전사 : 최후의 일격 ====================
 
   if (event.type === "lastStrike") {
+
     showDamagePopup(event);
 
     playReflectionEffect();
@@ -2415,11 +2829,14 @@ export function renderBattleEvent(event) {
     );
 
     return;
+
   }
+
 
   // ==================== 가시 장갑 ====================
 
   if (event.type === "reflection") {
+
     showDamagePopup(event);
 
     playReflectionEffect();
@@ -2430,11 +2847,14 @@ export function renderBattleEvent(event) {
     );
 
     return;
+
   }
+
 
   // ==================== 불사의 증표 ====================
 
   if (event.type === "revive") {
+
     playReviveEffect(event);
 
     showDamagePopup(event);
@@ -2445,11 +2865,14 @@ export function renderBattleEvent(event) {
     );
 
     return;
+
   }
+
 
   // ==================== 피해 감소 ====================
 
   if (event.type === "damageReduction") {
+
     showDamagePopup(event);
 
     addLog(
@@ -2458,11 +2881,14 @@ export function renderBattleEvent(event) {
     );
 
     return;
+
   }
+
 
   // ==================== 도적 : 연격 ====================
 
   if (event.type === "extraAttack") {
+
     showDamagePopup(event);
 
     addLog(
@@ -2471,14 +2897,33 @@ export function renderBattleEvent(event) {
     );
 
     return;
+
   }
+
 
   // ==================== 마법사 : 마력 폭발 ====================
 
   if (event.type === "magicBurst") {
+
+
+    // 개별 타격 피해 팝업 출력
+
     showDamagePopup(event);
 
-    playMagicBurstEffect();
+
+    // 첫 번째 타격에서 전체 다단히트 연출 실행
+    // 매 타격마다 애니메이션이 재시작되는 문제 방지
+
+    if ((event.hit ?? 1) === 1) {
+
+      playMagicBurstEffect(
+        event.hitCount ?? 1
+      );
+
+    }
+
+
+    // 개별 타격 전투 로그 출력
 
     addLog(
       event.message,
@@ -2486,7 +2931,9 @@ export function renderBattleEvent(event) {
     );
 
     return;
+
   }
+
 
   // ==================== 승리 및 패배 ====================
 
@@ -2494,19 +2941,26 @@ export function renderBattleEvent(event) {
     event.type === "win" ||
     event.type === "lose"
   ) {
+
     playDeathEffect(event);
+
   }
+
 
   // ==================== 결과 로그 ====================
 
   if (event.message) {
+
     addLog(
+
       event.message,
 
       event.type === "lose"
         ? "danger"
         : "success"
+
     );
+
   }
 }
 
@@ -2514,6 +2968,7 @@ export function renderBattleEvent(event) {
 // ==================== 전투 화면 갱신 ====================
 
 export function renderCombat() {
+
   renderBackground();
 
   renderEnvironment(state.floor);
@@ -2525,12 +2980,14 @@ export function renderCombat() {
   renderEnemy();
 
   renderConditionalEffects();
+
 }
 
 
 // ==================== 전체 화면 갱신 ====================
 
 export function renderAll() {
+
   renderCombat();
 
   renderPanels();
@@ -2546,4 +3003,5 @@ export function renderAll() {
   renderBuild();
 
   renderResult();
+
 }
