@@ -269,7 +269,7 @@ export const CLASSES = {
       {
         id: "mage_magic_burst",
         name: "마력 폭발",
-        desc: "공격 시 주문력의 10%만큼 추가 피해를 1 / 3 / 6회 발생시킴",
+        desc: "공격 시 주문력의 8%만큼 추가 피해를 1 / 3 / 6회 발생시킴",
 
         effects: [
 
@@ -277,7 +277,7 @@ export const CLASSES = {
 
           {
             type: "attackApRatio",
-            amount: 0.1
+            amount: 0.08
           },
 
           // 패시브 레벨별 추가 타격 횟수
