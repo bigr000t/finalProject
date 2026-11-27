@@ -181,12 +181,12 @@ export const CLASSES = {
       {
         id: "rogue_assassination",
         name: "암살",
-        desc: "레벨당 치명타 피해 배율 0.1 증가",
+        desc: "레벨당 치명타 피해 배율 0.12 증가",
 
         effects: [
           {
             type: "critDamageBonus",
-            amount: 0.1
+            amount: 0.12
           }
         ]
       }
