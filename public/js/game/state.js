@@ -35,12 +35,16 @@ export const SAVE_VERSION = 3;
 
 // ==================== 전투 설정 ====================
 
-// 임시 밸런스 설정: 테스트 후 조정
 export const COMBAT_CONFIG = Object.freeze({
+
   lowHpThreshold: 0.33,
+
   baseCritMultiplier: 1.6,
+
   apScale: 100,
+
   maxDamageReduction: 0.8
+
 });
 
 
@@ -189,11 +193,8 @@ export function rerollStats() {
 export function confirmStats() {
 
   if (
-
     state.phase !== "rolling" ||
-
     !state.player
-
   ) {
 
     return false;
@@ -273,6 +274,7 @@ export function getMaxHp(gameState = state) {
   );
 
 }
+
 
 // ==================== 플레이어 최종 능력치 ====================
 
@@ -358,7 +360,6 @@ export function getPlayerStats(gameState = state) {
   // ==================== 주문력 ====================
 
   // 공격력 비례 주문력 증가 적용
-  // item.js 개편 전에는 AP 층수 보너스를 0으로 처리
 
   const ap = Math.max(
 
@@ -550,21 +551,20 @@ export function getPlayerStats(gameState = state) {
   // ==================== 기본 공격 피해량 ====================
 
   // 전사 및 도적 : 공격력 100%
-  // 마법사 : 주문력 80% + 공격력 20%
+  // 마법사 : 공격력 40% + 주문력 50%
 
   const basicAttackDamage =
 
     gameState.classKey === "mage"
 
-      ? ap * 0.8 + atk * 0.2
+      ? atk * 0.4 + ap * 0.5
 
       : atk;
 
 
-  // ==================== 패시브 추가 피해 ====================
+  // ==================== 전사 패시브 : 최후의 일격 ====================
 
-  // 마법사 : 주문력 비례 추가 피해
-  // 전사 : 저체력 시 공격력 비례 추가 피해
+  // 저체력 상태에서 공격력에 비례하는 추가 피해
 
   const attackExtraDamage = Math.max(
 
@@ -572,21 +572,66 @@ export function getPlayerStats(gameState = state) {
 
     Math.floor(
 
-      ap * passives.attackApRatio +
+      isLowHp
 
-      (
+        ? atk * passives.lowHpExtraDamage
 
-        isLowHp
-
-          ? atk * passives.lowHpExtraDamage
-
-          : 0
-
-      )
+        : 0
 
     )
 
   );
+
+
+  // ==================== 마법사 패시브 : 마력 폭발 ====================
+
+  // 타격당 주문력 10%의 추가 피해
+  // 패시브 레벨별 추가 타격 횟수 : 1 / 3 / 6회
+
+  const magicBurstDamage =
+
+    gameState.classKey === "mage"
+
+      ? Math.max(
+
+          0,
+
+          Math.floor(
+
+            ap * (passives.attackApRatio ?? 0)
+
+          )
+
+        )
+
+      : 0;
+
+
+  // ==================== 마력 폭발 추가 타격 횟수 ====================
+
+  const magicBurstHits =
+
+    gameState.classKey === "mage"
+
+      ? Math.min(
+
+          6,
+
+          Math.max(
+
+            0,
+
+            Math.floor(
+
+              passives.attackApHits ?? 0
+
+            )
+
+          )
+
+        )
+
+      : 0;
 
 
   // ==================== 최종 능력치 반환 ====================
@@ -608,6 +653,10 @@ export function getPlayerStats(gameState = state) {
     basicAttackDamage,
 
     attackExtraDamage,
+
+    magicBurstDamage,
+
+    magicBurstHits,
 
     damageReduction,
 
@@ -638,11 +687,8 @@ export function getPlayerStats(gameState = state) {
 export function getEarnedPassivePoints(clearedFloor) {
 
   if (
-
     !Number.isSafeInteger(clearedFloor) ||
-
     clearedFloor < 0
-
   ) {
 
     return 0;
@@ -687,15 +733,10 @@ export function grantElitePassivePoint(
 ) {
 
   if (
-
     !gameState.enemy?.isElite ||
-
     gameState.enemy.currentHp !== 0 ||
-
     !gameState.player ||
-
     gameState.player.hp <= 0
-
   ) {
 
     return 0;
@@ -727,8 +768,11 @@ export function grantElitePassivePoint(
   );
 
   const granted = Math.min(
+
     1,
+
     missing
+
   );
 
   gameState.passivePoints += granted;
@@ -817,6 +861,7 @@ export function upgradePassive(
     gameState
   );
 
+
   // 최대 체력이 증가하면 현재 체력도 증가
 
   gameState.player.hp = Math.min(
@@ -854,9 +899,7 @@ export function advanceFloor() {
   // 안전한 정수 범위 초과 방지
 
   if (
-
     !Number.isSafeInteger(state.floor + 1)
-
   ) {
 
     return false;
