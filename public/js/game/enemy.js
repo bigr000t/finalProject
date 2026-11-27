@@ -364,7 +364,7 @@ export const ENEMY_GROWTH = {
 
   hp: 0.025,
 
-  atk: 0.015,
+  atk: 0.025,
 
   spd: 0.001,
 
