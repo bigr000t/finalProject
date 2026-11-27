@@ -7,6 +7,7 @@ import {
   rerollStats,
   confirmStats,
   advanceFloor,
+  getMaxHp,
   getHighestFloor,
   isLoggedIn,
   saveGame,
@@ -70,7 +71,23 @@ const pendingSaves = new Set();
 
 async function autoSave(force = false) {
 
-  if (abandoning || !isLoggedIn()) {
+  // 종료된 도전의 자동 저장 방지
+
+  if (
+    abandoning ||
+    finishing ||
+    !isLoggedIn()
+  ) {
+    return false;
+  }
+
+  const allowedPhases = [
+    "combat",
+    "reward",
+    "shop"
+  ];
+
+  if (!allowedPhases.includes(state.phase)) {
     return false;
   }
 
@@ -218,16 +235,31 @@ function handleBattleEvents(events) {
 
     switch (event.type) {
 
-      // ==================== 흡혈 ====================
+      // ==================== 일반 전투 효과 ====================
 
       case "lifesteal":
 
-        break;
-
-
-      // ==================== 반사 피해 ====================
-
       case "reflection":
+
+      case "counterAttack":
+
+      case "lastStrike":
+
+      case "magicBurst":
+
+      case "extraAttack":
+
+      case "damageBonus":
+
+      case "damagePenalty":
+
+      case "damageReduction":
+
+      case "guard":
+
+      case "damageNullified":
+
+        // 화면 출력은 renderBattleEvent()에서 처리
 
         break;
 
@@ -237,6 +269,7 @@ function handleBattleEvents(events) {
       case "revive":
 
         // 증표 소모 상태 즉시 저장
+
         forceSave = true;
 
         break;
@@ -328,6 +361,7 @@ function handleBattleEvents(events) {
     if (forceSave) {
 
       // 증표 소모 후 빌드 및 아이템 정보 갱신
+
       renderAll();
 
       autoSave(true);
@@ -335,6 +369,7 @@ function handleBattleEvents(events) {
     } else {
 
       // 일반 전투 화면 갱신
+
       renderCombat();
 
       autoSave();
@@ -346,11 +381,83 @@ function handleBattleEvents(events) {
 }
 
 
+// ==================== 최대 생명력 소진 처리 ====================
+
+// 특수 아이템의 최대 생명력 감소로 사망하는 경우
+// 일반 전투 패배와 별도로 처리
+// 불사의 증표는 발동하지 않음
+
+function handleFatalHpLoss() {
+
+  if (!state.player) {
+    return false;
+  }
+
+
+  // ==================== 최대 생명력 확인 ====================
+
+  if (
+    state.phase !== "dead" &&
+    getMaxHp(state) > 0
+  ) {
+
+    return false;
+
+  }
+
+
+  // ==================== 사망 상태 적용 ====================
+
+  stopBattle();
+
+  state.player.hp = 0;
+
+  state.phase = "dead";
+
+  state.rewards = [];
+
+
+  // ==================== 사망 로그 ====================
+
+  addLog(
+
+    "최대 생명력이 소진되어 사망했습니다.",
+
+    "danger"
+
+  );
+
+  addLog(
+
+    "불사의 증표로 소생할 수 없습니다.",
+
+    "danger"
+
+  );
+
+
+  // ==================== 도전 종료 ====================
+
+  // state.js의 getHighestFloor()에서
+  // 이미 클리어한 현재 층을 기록에 포함
+
+  finishRun();
+
+  return true;
+
+}
+
+
 // ==================== 보상 선택 ====================
 
 function selectReward(rewardId) {
 
-  if (state.phase !== "reward") {
+  if (
+    initializing ||
+    abandoning ||
+    finishing ||
+    state.phase !== "reward"
+  ) {
     return;
   }
 
@@ -408,16 +515,107 @@ function selectReward(rewardId) {
 
     addLog(
       `적용 효과: ${reward.effectText}`,
-      "success"
+      reward.fatal ? "danger" : "success"
     );
+
+
+    // ==================== 오만의 왕관 최초 획득 ====================
+
+    if (reward.crownAcquired) {
+
+      addLog(
+
+        "오만의 왕관이 즉시 최대 중첩에 도달했습니다.",
+
+        "success"
+
+      );
+
+      addLog(
+
+        "다른 모든 특수 아이템의 효과가 무효화됩니다.",
+
+        "normal"
+
+      );
+
+      addLog(
+
+        "클래스 패시브는 정상적으로 유지됩니다.",
+
+        "normal"
+
+      );
+
+    }
+
+
+    // ==================== 왕관 보유 중 아이템 획득 ====================
+
+    if (reward.disabled) {
+
+      addLog(
+
+        "획득한 아이템은 오만의 왕관 성장에 기여합니다.",
+
+        "success"
+
+      );
+
+    }
+
+
+    // ==================== 최대 생명력 변경 로그 ====================
+
+    if (
+      Number.isFinite(reward.beforeMaxHp) &&
+      Number.isFinite(reward.afterMaxHp) &&
+      reward.beforeMaxHp !== reward.afterMaxHp
+    ) {
+
+      const increased =
+        reward.afterMaxHp > reward.beforeMaxHp;
+
+      addLog(
+
+        `최대 생명력: ${reward.beforeMaxHp}` +
+
+        ` → ${reward.afterMaxHp}`,
+
+        increased ? "success" : "danger"
+
+      );
+
+    }
 
   } else {
 
-    // 일반 보상 획득
+    // ==================== 일반 보상 획득 ====================
+
     addLog(
       `${reward.title} 획득!`,
       "success"
     );
+
+  }
+
+
+  // ==================== 최대 생명력 감소 즉사 ====================
+
+  // reward.js의 syncPlayerHp()에서
+  // 사망 상태가 이미 적용됨
+
+  // 사망한 경우 상점 단계로 넘어가지 않음
+
+  if (
+    reward.fatal ||
+    state.phase === "dead" ||
+    getMaxHp(state) <= 0
+  ) {
+
+    handleFatalHpLoss();
+
+    return;
 
   }
 
@@ -438,6 +636,14 @@ function selectReward(rewardId) {
 // ==================== 보상 리롤 ====================
 
 function handleRewardReroll() {
+
+  if (
+    initializing ||
+    abandoning ||
+    finishing
+  ) {
+    return;
+  }
 
   const result = rerollRewards(state);
 
@@ -478,6 +684,24 @@ function handleItemPurchase(itemId) {
     result.message,
     "success"
   );
+
+
+  // ==================== 최대 생명력 소진 확인 ====================
+
+  if (
+    state.phase === "dead" ||
+    getMaxHp(state) <= 0
+  ) {
+
+    handleFatalHpLoss();
+
+    return;
+
+  }
+
+
+  // 축복받은 성배의 추가 회복량은
+  // shop.js의 구매 메시지에 포함됨
 
   renderAll();
 
@@ -610,6 +834,20 @@ function handlePassiveUpgrade(passiveId) {
   }
 
 
+  // ==================== 최대 생명력 소진 확인 ====================
+
+  if (
+    state.phase === "dead" ||
+    getMaxHp(state) <= 0
+  ) {
+
+    handleFatalHpLoss();
+
+    return;
+
+  }
+
+
   // ==================== 화면 갱신 및 저장 ====================
 
   renderAll();
@@ -622,6 +860,34 @@ function handlePassiveUpgrade(passiveId) {
 // ==================== 다음 층 진입 ====================
 
 function handleNextFloor() {
+
+  if (
+    initializing ||
+    abandoning ||
+    finishing ||
+    state.phase !== "shop"
+  ) {
+
+    return;
+
+  }
+
+
+  // ==================== 생존 여부 확인 ====================
+
+  if (
+    state.player &&
+    getMaxHp(state) <= 0
+  ) {
+
+    handleFatalHpLoss();
+
+    return;
+
+  }
+
+
+  // ==================== 다음 층 적용 ====================
 
   if (!advanceFloor()) {
     return;
@@ -653,15 +919,21 @@ async function finishRun() {
 
   stopBattle();
 
-  renderAll();
-
   DOM.restart.disabled = true;
 
-  const highestFloor = getHighestFloor();
-
-  const classKey = state.classKey;
-
   try {
+
+    renderAll();
+
+
+    // ==================== 최고 클리어 기록 ====================
+
+    // 일반 전투 사망 : 현재 층 - 1
+    // 보상 획득에 의한 사망 : 현재 층
+
+    const highestFloor = getHighestFloor();
+
+    const classKey = state.classKey;
 
 
     // ==================== 비로그인 사용자 ====================
@@ -677,6 +949,16 @@ async function finishRun() {
     }
 
 
+    // ==================== 기존 자동 저장 완료 대기 ====================
+
+    // 종료된 도전의 진행 데이터가
+    // 뒤늦게 다시 저장되는 문제 방지
+
+    await Promise.allSettled(
+      [...pendingSaves]
+    );
+
+
     // ==================== 도전 기록 저장 ====================
 
     renderSaveStatus(
@@ -687,6 +969,7 @@ async function finishRun() {
 
 
     // 1층에서 패배한 경우 기록하지 않음
+
     if (highestFloor > 0) {
 
       const result = await saveRun(
@@ -951,7 +1234,7 @@ async function abandonRun() {
 
 function restartGame() {
 
-  if (finishing) {
+  if (finishing || abandoning) {
     return;
   }
 
@@ -1009,7 +1292,7 @@ function handleChoiceClick(event) {
   switch (action) {
 
 
-    // 보상 선택
+    // ==================== 보상 선택 ====================
 
     case "reward":
 
@@ -1018,7 +1301,7 @@ function handleChoiceClick(event) {
       break;
 
 
-    // 일반 상점 상품 구매
+    // ==================== 일반 상점 상품 구매 ====================
 
     case "buy-item":
 
@@ -1027,7 +1310,7 @@ function handleChoiceClick(event) {
       break;
 
 
-    // 패시브 강화
+    // ==================== 패시브 강화 ====================
 
     case "upgrade-passive":
 
