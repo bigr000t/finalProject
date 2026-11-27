@@ -269,13 +269,24 @@ export const CLASSES = {
       {
         id: "mage_magic_burst",
         name: "마력 폭발",
-        desc: "공격 시 레벨당 주문력의 24%만큼 추가 피해",
+        desc: "공격 시 주문력의 10%만큼 추가 피해를 1 / 3 / 6회 발생시킴",
 
         effects: [
+
+          // 타격당 주문력 계수
+
           {
             type: "attackApRatio",
-            amount: 0.24
+            amount: 0.1
+          },
+
+          // 패시브 레벨별 추가 타격 횟수
+
+          {
+            type: "attackApHits",
+            amounts: [1, 3, 6]
           }
+
         ]
       }
 
@@ -422,7 +433,7 @@ export function createPassiveEffects() {
 
   return {
 
-    // 공통 능력치
+    // ==================== 공통 능력치 ====================
 
     percentHp: 0,
 
@@ -431,7 +442,7 @@ export function createPassiveEffects() {
     percentAp: 0,
 
 
-    // 전사
+    // ==================== 전사 ====================
 
     counterHpRatio: 0,
 
@@ -446,7 +457,7 @@ export function createPassiveEffects() {
     lowHpExtraDamage: 0,
 
 
-    // 도적
+    // ==================== 도적 ====================
 
     flatSpd: 0,
 
@@ -457,13 +468,19 @@ export function createPassiveEffects() {
     critDamageBonus: 0,
 
 
-    // 마법사
+    // ==================== 마법사 ====================
 
     atkToApRatio: 0,
 
     apSpdBonus: 0,
 
-    attackApRatio: 0
+    // 마력 폭발 타격당 주문력 계수
+
+    attackApRatio: 0,
+
+    // 마력 폭발 추가 타격 횟수
+
+    attackApHits: 0
 
   };
 
@@ -513,6 +530,38 @@ export function getPassiveEffects(
         continue;
 
       }
+
+
+      // ==================== 레벨별 고정 수치 효과 ====================
+
+      // 마력 폭발 타격 횟수 등
+      // 배열을 통해 레벨별 수치를 지정하는 효과
+
+      if (Array.isArray(effect.amounts)) {
+
+        effects[effect.type] +=
+          effect.amounts[level - 1] ?? 0;
+
+        continue;
+
+      }
+
+
+      // ==================== 마력 폭발 타격당 계수 ====================
+
+      // 패시브 레벨과 관계없이 타격당 계수 유지
+      // 패시브 레벨에 따라 타격 횟수만 증가
+
+      if (effect.type === "attackApRatio") {
+
+        effects[effect.type] += effect.amount;
+
+        continue;
+
+      }
+
+
+      // ==================== 일반 패시브 효과 ====================
 
       effects[effect.type] += effect.amount * level;
 
