@@ -362,9 +362,9 @@ export const ENEMY_GROWTH = {
 
   // 체력 성장 강화
 
-  hp: 0.025,
+  hp: 0.02,
 
-  atk: 0.025,
+  atk: 0.02,
 
   spd: 0.001,
 
