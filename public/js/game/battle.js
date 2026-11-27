@@ -16,6 +16,7 @@ import {
 import {
   ITEM_CONFIG,
   getItemEffects,
+  getReflectionDamage,
   consumeItem
 } from "./item.js";
 
@@ -155,6 +156,7 @@ export function createAttackEffect(attacker, critical) {
 
 // 기본 공격의 실제 피해량에만 적용
 // 반격 및 패시브 추가 피해는 흡혈 제외
+// 오만의 왕관 보유 시 효과 무효화
 
 export function applyLifesteal(damage) {
 
@@ -173,10 +175,16 @@ export function applyLifesteal(damage) {
 
   const stats = getPlayerStats();
 
+  if (!stats || stats.hp <= 0) {
+
+    return 0;
+
+  }
+
   const beforeHp = state.player.hp;
 
   const healAmount = Math.floor(
-    damage * effects.lifesteal
+    damage * effects.lifesteal + 1e-9
   );
 
   state.player.hp = Math.min(
@@ -191,11 +199,22 @@ export function applyLifesteal(damage) {
 
 // ==================== 가시 장갑 ====================
 
+// 고정 반사 피해 + 현재 층수 비례 피해
+// 치명타, 흡혈 및 기본 공격 피해 증감 미적용
+// 오만의 왕관 보유 시 효과 무효화
+
 export function applyReflection() {
 
-  const effects = getItemEffects(state.items);
+  if (!state.enemy) {
 
-  const damage = effects.reflection;
+    return 0;
+
+  }
+
+  const damage = getReflectionDamage(
+    state.items,
+    state.floor
+  );
 
   if (
     damage <= 0 ||
@@ -225,7 +244,11 @@ export function applyReflection() {
 
 export function applyCounterDamage() {
 
-  if (state.classKey !== "warrior") {
+  if (
+    state.classKey !== "warrior" ||
+    !state.player ||
+    !state.enemy
+  ) {
 
     return 0;
 
@@ -258,6 +281,10 @@ export function applyCounterDamage() {
 
 // ==================== 불사의 증표 ====================
 
+// 전투 중 사망 시에만 소생
+// 최대 생명력이 0 이하이면 소생 불가
+// 오만의 왕관 보유 시 효과 무효화
+
 export function tryRevive() {
 
   if (
@@ -270,6 +297,20 @@ export function tryRevive() {
 
   }
 
+
+  // ==================== 최대 생명력 확인 ====================
+
+  const stats = getPlayerStats();
+
+  if (!stats || stats.hp <= 0) {
+
+    return null;
+
+  }
+
+
+  // ==================== 증표 효과 확인 ====================
+
   const effects = getItemEffects(state.items);
 
   if (effects.revive <= 0) {
@@ -277,6 +318,9 @@ export function tryRevive() {
     return null;
 
   }
+
+
+  // ==================== 증표 소모 ====================
 
   const consumed = consumeItem(
     state.items,
@@ -289,7 +333,8 @@ export function tryRevive() {
 
   }
 
-  const stats = getPlayerStats();
+
+  // ==================== 생명력 회복 ====================
 
   const reviveHp = Math.max(
     1,
@@ -306,6 +351,9 @@ export function tryRevive() {
   const remaining = getItemEffects(
     state.items
   ).revive;
+
+
+  // ==================== 소생 이벤트 ====================
 
   return {
 
@@ -333,29 +381,143 @@ export function tryRevive() {
 }
 
 
-// ==================== 가하는 피해 증가 ====================
+// ==================== 가하는 기본 공격 피해 증감 ====================
 
-// 맹목의 검 및 광전사의 심장
-// 기본 공격 피해 증가 효과는 합연산
+// 맹목의 검 : 기본 공격 피해 증가
+// 광전사의 심장 : 저체력 기본 공격 피해 증가
+// 경솔한 칼날 : 기본 공격 피해 감소
+// 모든 기본 공격 피해 증감 효과는 합연산
 
-export function applyDamageBonus(damage) {
+export function applyDamageBonus(
+  damage,
+  stats = getPlayerStats()
+) {
 
-  const stats = getPlayerStats();
+  if (!stats) {
 
-  const damageBonus = stats.damageBonus;
+    return 0;
 
-  const lowHpDamageBonus = stats.lowHpDamageBonus;
+  }
+
+  const damageMultiplier = Math.max(
+
+    0,
+
+    1 +
+
+    stats.damageBonus +
+
+    stats.lowHpDamageBonus -
+
+    stats.damagePenalty
+
+  );
 
   const finalDamage =
-    damage * (
-      1 +
-      damageBonus +
-      lowHpDamageBonus
-    );
+    damage * damageMultiplier;
 
   return Math.max(
     1,
-    Math.floor(finalDamage)
+    Math.floor(finalDamage + 1e-9)
+  );
+
+}
+
+
+// ==================== 수호자의 망토 ====================
+
+// 적의 공격마다 독립적인 확률 판정
+// 발동 시 해당 공격의 피해 감소율 +32%p
+
+export function rollGuard(
+  stats = getPlayerStats()
+) {
+
+  if (!stats || stats.guardChance <= 0) {
+
+    return false;
+
+  }
+
+  return Math.random() < stats.guardChance;
+
+}
+
+
+// ==================== 받는 피해 감소율 계산 ====================
+
+// 클래스 패시브
+// 순결의 방패
+// 수호의 부적
+// 수호자의 망토
+// 모든 피해 감소 효과는 합연산
+// 피해 감소율 상한 없음
+
+export function getTotalDamageReduction(
+  critical = false,
+  guarded = false,
+  stats = getPlayerStats()
+) {
+
+  if (!stats) {
+
+    return 0;
+
+  }
+
+
+  // ==================== 기본 피해 감소 ====================
+
+  const reduction = Math.max(
+    0,
+    stats.damageReduction
+  );
+
+
+  // ==================== 순결의 방패 ====================
+
+  const fullHpReduction = Math.max(
+    0,
+    stats.fullHpDamageReduction
+  );
+
+
+  // ==================== 수호의 부적 ====================
+
+  const criticalReduction = critical
+
+    ? Math.max(
+        0,
+        stats.criticalDamageReduction
+      )
+
+    : 0;
+
+
+  // ==================== 수호자의 망토 ====================
+
+  const guardReduction = guarded
+
+    ? Math.max(
+        0,
+        stats.guardDamageReduction
+      )
+
+    : 0;
+
+
+  // ==================== 최종 피해 감소율 ====================
+
+  return (
+
+    reduction +
+
+    fullHpReduction +
+
+    criticalReduction +
+
+    guardReduction
+
   );
 
 }
@@ -363,81 +525,28 @@ export function applyDamageBonus(damage) {
 
 // ==================== 받는 피해 감소 ====================
 
-// 패시브 및 특수 아이템의 피해 감소 효과
-// 서로 다른 효과는 곱연산
-// 최종 피해 감소 상한 적용
+// 피해 감소율이 100% 이상이면 피해 무효화
+// 최종 피해량은 음수가 될 수 없음
 
 export function applyDamageReduction(
   damage,
-  critical = false
+  critical = false,
+  guarded = false,
+  stats = getPlayerStats()
 ) {
 
-  const stats = getPlayerStats();
-
-  const items = getItemEffects(
-    state.items
+  const totalReduction = getTotalDamageReduction(
+    critical,
+    guarded,
+    stats
   );
-
-
-  // ==================== 기본 피해 감소 ====================
-
-  // 불굴의 의지, 광전사의 투지, 무거운 갑주
-
-  const reduction = Math.min(
-    1,
-    Math.max(
-      0,
-      stats.damageReduction
-    )
-  );
-
-
-  // ==================== 순결의 방패 ====================
-
-  const fullHpReduction = Math.min(
-    1,
-    Math.max(
-      0,
-      stats.fullHpDamageReduction
-    )
-  );
-
-
-  // ==================== 수호의 부적 ====================
-
-  const criticalReduction = critical
-    ? Math.min(
-        1,
-        Math.max(
-          0,
-          items.criticalDamageReduction
-        )
-      )
-    : 0;
-
-
-  // ==================== 최종 피해 감소율 ====================
-
-  const totalReduction = Math.min(
-    COMBAT_CONFIG.maxDamageReduction,
-    Math.max(
-      0,
-      1 -
-      (1 - reduction) *
-      (1 - fullHpReduction) *
-      (1 - criticalReduction)
-    )
-  );
-
-
-  // ==================== 최종 피해량 ====================
 
   const finalDamage =
     damage * (1 - totalReduction);
 
   return Math.max(
-    1,
-    Math.floor(finalDamage)
+    0,
+    Math.floor(finalDamage + 1e-9)
   );
 
 }
@@ -446,11 +555,11 @@ export function applyDamageReduction(
 // ==================== 전사 패시브 : 최후의 일격 ====================
 
 // 저체력 시 공격력 비례 추가 피해
-// 치명타, 흡혈 및 아이템 피해 증가 미적용
+// 치명타, 흡혈 및 아이템 피해 증감 미적용
 
-export function calculatePassiveExtraDamage() {
-
-  const stats = getPlayerStats();
+export function calculatePassiveExtraDamage(
+  stats = getPlayerStats()
+) {
 
   if (!stats) {
 
@@ -472,7 +581,7 @@ export function calculatePassiveExtraDamage() {
 
 // 타격당 주문력 10%의 추가 피해
 // 레벨별 추가 타격 횟수 : 1 / 3 / 6회
-// 치명타, 흡혈 및 아이템 피해 증가 미적용
+// 치명타, 흡혈 및 아이템 피해 증감 미적용
 
 export function applyMagicBurst(stats = getPlayerStats()) {
 
@@ -610,6 +719,11 @@ export function playerAttack(isExtraAttack = false) {
 
   // ==================== 최종 능력치 조회 ====================
 
+  // 사냥하는 말벌의 조건부 치명타 확률
+  // 정밀한 말벌의 치명타 피해량
+  // 오만의 왕관 배율
+  // 모두 현재 능력치 계산에 반영
+
   const stats = getPlayerStats();
 
 
@@ -625,12 +739,13 @@ export function playerAttack(isExtraAttack = false) {
   );
 
 
-  // ==================== 특수 아이템 피해 증가 ====================
+  // ==================== 특수 아이템 피해 증감 ====================
 
   const originalDamage = result.damage;
 
   result.damage = applyDamageBonus(
-    originalDamage
+    originalDamage,
+    stats
   );
 
   const bonusDamage =
@@ -670,7 +785,7 @@ export function playerAttack(isExtraAttack = false) {
   ) {
 
     const extraDamage =
-      calculatePassiveExtraDamage();
+      calculatePassiveExtraDamage(stats);
 
     const beforeExtraHp =
       state.enemy.currentHp;
@@ -713,6 +828,7 @@ export function playerAttack(isExtraAttack = false) {
   // ==================== 흡혈 효과 ====================
 
   // 기본 공격으로 입힌 실제 피해만 적용
+  // 최후의 일격과 마력 폭발 피해는 제외
 
   const healed = applyLifesteal(
     actualDamage
@@ -736,6 +852,11 @@ export function playerAttack(isExtraAttack = false) {
     actualDamage,
 
     critical: result.critical,
+
+    // 사냥하는 말벌 적용 여부
+
+    huntingBonusActive:
+      stats.lowEnemyHpCritBonus > 0,
 
     passiveExtraDamage,
 
@@ -782,6 +903,14 @@ export function enemyAttack() {
   }
 
 
+  // ==================== 피격 전 능력치 조회 ====================
+
+  // 순결의 방패와 저체력 피해 감소는
+  // 해당 공격을 받기 직전 상태를 기준으로 판정
+
+  const stats = getPlayerStats();
+
+
   // ==================== 몬스터 공격 피해 계산 ====================
 
   const result = calculateDamage(
@@ -791,17 +920,55 @@ export function enemyAttack() {
   );
 
 
+  // ==================== 수호자의 망토 판정 ====================
+
+  const guarded = rollGuard(stats);
+
+
   // ==================== 피해 감소 효과 ====================
 
   const originalDamage = result.damage;
 
+  const totalReduction = getTotalDamageReduction(
+    result.critical,
+    guarded,
+    stats
+  );
+
   const finalDamage = applyDamageReduction(
     originalDamage,
-    result.critical
+    result.critical,
+    guarded,
+    stats
   );
 
   const reducedDamage =
     originalDamage - finalDamage;
+
+
+  // ==================== 수호자의 망토 실제 기여량 ====================
+
+  // 망토가 없었을 경우의 피해량과 비교
+  // 이미 피해를 완전히 무효화했다면 기여량은 0
+
+  const damageWithoutGuard = guarded
+
+    ? applyDamageReduction(
+        originalDamage,
+        result.critical,
+        false,
+        stats
+      )
+
+    : finalDamage;
+
+  const guardReducedDamage = Math.max(
+
+    0,
+
+    damageWithoutGuard - finalDamage
+
+  );
 
 
   // ==================== 플레이어 피격 ====================
@@ -818,6 +985,8 @@ export function enemyAttack() {
 
 
   // ==================== 가시 장갑 ====================
+
+  // 피해량이 0이어도 피격으로 판정
 
   const reflected = applyReflection();
 
@@ -851,6 +1020,28 @@ export function enemyAttack() {
     actualDamage,
 
     critical: result.critical,
+
+    // 수호자의 망토
+
+    guarded,
+
+    guardReducedDamage,
+
+    guardDamageReduction:
+      guarded
+        ? stats.guardDamageReduction
+        : 0,
+
+    // 최종 피해 감소율
+
+    totalReduction,
+
+    // 피해 완전 무효화 여부
+
+    damageNullified:
+      finalDamage === 0,
+
+    // 반사 및 반격
 
     reflected,
 
@@ -1130,6 +1321,30 @@ function appendPlayerAttackEvents(events, result) {
   }
 
 
+  // ==================== 특수 아이템 피해 감소 ====================
+
+  if (result.bonusDamage < 0) {
+
+    const amount = Math.abs(
+      result.bonusDamage
+    );
+
+    events.push({
+
+      type: "damagePenalty",
+
+      target: "enemy",
+
+      amount,
+
+      message:
+        `기본 공격 피해 감소: ${amount} 피해 감소`
+
+    });
+
+  }
+
+
   // ==================== 마법사 : 마력 폭발 ====================
 
   // 타격마다 별도의 이벤트 생성
@@ -1225,6 +1440,40 @@ function appendEnemyAttackEvents(events, result) {
   });
 
 
+  // ==================== 수호자의 망토 ====================
+
+  if (result.guarded) {
+
+    events.push({
+
+      type: "guard",
+
+      target: "player",
+
+      amount: result.guardReducedDamage,
+
+      reduction: result.guardDamageReduction,
+
+      effect: {
+
+        target: "player",
+
+        animation: "guard",
+
+        duration: 250
+
+      },
+
+      message:
+        `수호자의 망토 발동! ` +
+        `피해 감소율 +32%p ` +
+        `(${result.guardReducedDamage} 피해 감소)`
+
+    });
+
+  }
+
+
   // ==================== 피해 감소 ====================
 
   if (result.reducedDamage > 0) {
@@ -1239,6 +1488,24 @@ function appendEnemyAttackEvents(events, result) {
 
       message:
         `피해 감소 효과: ${result.reducedDamage} 피해 감소`
+
+    });
+
+  }
+
+
+  // ==================== 피해 무효화 ====================
+
+  if (result.damageNullified) {
+
+    events.push({
+
+      type: "damageNullified",
+
+      target: "player",
+
+      message:
+        "받는 피해를 완전히 무효화했습니다!"
 
     });
 
@@ -1364,6 +1631,8 @@ export function battleTick(now = performance.now()) {
 
 
       // 추가 공격은 연격을 다시 발동시키지 않음
+      // 적의 현재 생명력을 기준으로 능력치 재계산
+      // 사냥하는 말벌 조건 재판정
 
       const extraResult = playerAttack(true);
 
