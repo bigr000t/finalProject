@@ -42,7 +42,6 @@ export const EFFECT_CONFIG = {
 
 // ==================== 피해량 계산 ====================
 
-// 방어력 삭제
 // 일반 공격: 기본 피해량
 // 치명타: 기본 피해량 * 치명타 배율
 
@@ -162,15 +161,10 @@ export function applyLifesteal(damage) {
   const effects = getItemEffects(state.items);
 
   if (
-
     effects.lifesteal <= 0 ||
-
     damage <= 0 ||
-
     !state.player ||
-
     state.player.hp <= 0
-
   ) {
 
     return 0;
@@ -182,17 +176,12 @@ export function applyLifesteal(damage) {
   const beforeHp = state.player.hp;
 
   const healAmount = Math.floor(
-
     damage * effects.lifesteal
-
   );
 
   state.player.hp = Math.min(
-
     stats.hp,
-
     state.player.hp + healAmount
-
   );
 
   return state.player.hp - beforeHp;
@@ -209,11 +198,8 @@ export function applyReflection() {
   const damage = effects.reflection;
 
   if (
-
     damage <= 0 ||
-
     state.enemy.currentHp <= 0
-
   ) {
 
     return 0;
@@ -223,11 +209,8 @@ export function applyReflection() {
   const beforeHp = state.enemy.currentHp;
 
   state.enemy.currentHp = Math.max(
-
     0,
-
     state.enemy.currentHp - damage
-
   );
 
   return beforeHp - state.enemy.currentHp;
@@ -253,11 +236,8 @@ export function applyCounterDamage() {
   const damage = stats.counterDamage;
 
   if (
-
     damage <= 0 ||
-
     state.enemy.currentHp <= 0
-
   ) {
 
     return 0;
@@ -267,11 +247,8 @@ export function applyCounterDamage() {
   const beforeHp = state.enemy.currentHp;
 
   state.enemy.currentHp = Math.max(
-
     0,
-
     state.enemy.currentHp - damage
-
   );
 
   return beforeHp - state.enemy.currentHp;
@@ -284,13 +261,9 @@ export function applyCounterDamage() {
 export function tryRevive() {
 
   if (
-
     state.phase !== "combat" ||
-
     !state.player ||
-
     state.player.hp > 0
-
   ) {
 
     return null;
@@ -306,11 +279,8 @@ export function tryRevive() {
   }
 
   const consumed = consumeItem(
-
     state.items,
-
     "immortalMark"
-
   );
 
   if (!consumed) {
@@ -322,29 +292,19 @@ export function tryRevive() {
   const stats = getPlayerStats();
 
   const reviveHp = Math.max(
-
     1,
-
     Math.floor(
-
       stats.hp * ITEM_CONFIG.reviveHpRatio
-
     )
-
   );
 
   state.player.hp = Math.min(
-
     stats.hp,
-
     reviveHp
-
   );
 
   const remaining = getItemEffects(
-
     state.items
-
   ).revive;
 
   return {
@@ -364,11 +324,8 @@ export function tryRevive() {
     },
 
     message:
-
       `불사의 증표 발동! ` +
-
       `HP ${state.player.hp}로 소생 ` +
-
       `(남은 증표: ${remaining}개)`
 
   };
@@ -390,23 +347,15 @@ export function applyDamageBonus(damage) {
   const lowHpDamageBonus = stats.lowHpDamageBonus;
 
   const finalDamage =
-
     damage * (
-
       1 +
-
       damageBonus +
-
       lowHpDamageBonus
-
     );
 
   return Math.max(
-
     1,
-
     Math.floor(finalDamage)
-
   );
 
 }
@@ -419,19 +368,14 @@ export function applyDamageBonus(damage) {
 // 최종 피해 감소 상한 적용
 
 export function applyDamageReduction(
-
   damage,
-
   critical = false
-
 ) {
 
   const stats = getPlayerStats();
 
   const items = getItemEffects(
-
     state.items
-
   );
 
 
@@ -440,102 +384,68 @@ export function applyDamageReduction(
   // 불굴의 의지, 광전사의 투지, 무거운 갑주
 
   const reduction = Math.min(
-
     1,
-
     Math.max(
-
       0,
-
       stats.damageReduction
-
     )
-
   );
 
 
   // ==================== 순결의 방패 ====================
 
   const fullHpReduction = Math.min(
-
     1,
-
     Math.max(
-
       0,
-
       stats.fullHpDamageReduction
-
     )
-
   );
 
 
   // ==================== 수호의 부적 ====================
 
   const criticalReduction = critical
-
     ? Math.min(
-
         1,
-
         Math.max(
-
           0,
-
           items.criticalDamageReduction
-
         )
-
       )
-
     : 0;
 
 
   // ==================== 최종 피해 감소율 ====================
 
   const totalReduction = Math.min(
-
     COMBAT_CONFIG.maxDamageReduction,
-
     Math.max(
-
       0,
-
       1 -
-
       (1 - reduction) *
-
       (1 - fullHpReduction) *
-
       (1 - criticalReduction)
-
     )
-
   );
 
 
   // ==================== 최종 피해량 ====================
 
   const finalDamage =
-
     damage * (1 - totalReduction);
 
   return Math.max(
-
     1,
-
     Math.floor(finalDamage)
-
   );
 
 }
 
 
-// ==================== 패시브 추가 피해 ====================
+// ==================== 전사 패시브 : 최후의 일격 ====================
 
-// 전사 : 저체력 시 공격력 비례 추가 피해
-// 마법사 : 공격 시 주문력 비례 추가 피해
+// 저체력 시 공격력 비례 추가 피해
 // 치명타, 흡혈 및 아이템 피해 증가 미적용
 
 export function calculatePassiveExtraDamage() {
@@ -549,16 +459,105 @@ export function calculatePassiveExtraDamage() {
   }
 
   return Math.max(
-
     0,
-
     Math.floor(
-
       stats.attackExtraDamage
-
     )
-
   );
+
+}
+
+
+// ==================== 마법사 패시브 : 마력 폭발 ====================
+
+// 타격당 주문력 10%의 추가 피해
+// 레벨별 추가 타격 횟수 : 1 / 3 / 6회
+// 치명타, 흡혈 및 아이템 피해 증가 미적용
+
+export function applyMagicBurst(stats = getPlayerStats()) {
+
+  const hits = [];
+
+  if (
+    state.classKey !== "mage" ||
+    state.phase !== "combat" ||
+    !state.player ||
+    state.player.hp <= 0 ||
+    !state.enemy ||
+    state.enemy.currentHp <= 0 ||
+    !stats
+  ) {
+
+    return hits;
+
+  }
+
+
+  // ==================== 타격당 피해량 ====================
+
+  const damage = Math.max(
+    0,
+    Math.floor(stats.magicBurstDamage ?? 0)
+  );
+
+
+  // ==================== 최대 추가 타격 횟수 ====================
+
+  const hitCount = Math.min(
+    6,
+    Math.max(
+      0,
+      Math.floor(stats.magicBurstHits ?? 0)
+    )
+  );
+
+  if (damage <= 0 || hitCount <= 0) {
+
+    return hits;
+
+  }
+
+
+  // ==================== 다단히트 처리 ====================
+
+  for (let i = 0; i < hitCount; i++) {
+
+    // 몬스터 사망 시 남은 공격 중단
+
+    if (state.enemy.currentHp <= 0) {
+
+      break;
+
+    }
+
+    const beforeHp = state.enemy.currentHp;
+
+    state.enemy.currentHp = Math.max(
+      0,
+      state.enemy.currentHp - damage
+    );
+
+    const actualDamage =
+      beforeHp - state.enemy.currentHp;
+
+
+    // ==================== 개별 타격 결과 기록 ====================
+
+    hits.push({
+
+      hit: i + 1,
+
+      damage: actualDamage,
+
+      remainingHp: state.enemy.currentHp,
+
+      defeated: state.enemy.currentHp === 0
+
+    });
+
+  }
+
+  return hits;
 
 }
 
@@ -568,17 +567,11 @@ export function calculatePassiveExtraDamage() {
 export function canExtraAttack() {
 
   if (
-
     state.classKey !== "rogue" ||
-
     !state.player ||
-
     state.player.hp <= 0 ||
-
     !state.enemy ||
-
     state.enemy.currentHp <= 0
-
   ) {
 
     return false;
@@ -603,17 +596,11 @@ export function canExtraAttack() {
 export function playerAttack(isExtraAttack = false) {
 
   if (
-
     state.phase !== "combat" ||
-
     !state.player ||
-
     !state.enemy ||
-
     state.player.hp <= 0 ||
-
     state.enemy.currentHp <= 0
-
   ) {
 
     return null;
@@ -629,16 +616,12 @@ export function playerAttack(isExtraAttack = false) {
   // ==================== 기본 공격 계산 ====================
 
   // 전사 및 도적 : 공격력 100%
-  // 마법사 : 주문력 80% + 공격력 20%
+  // 마법사 : 공격력 40% + 주문력 50%
 
   const result = calculateDamage(
-
     stats.basicAttackDamage,
-
     stats.crit,
-
     stats.critMultiplier
-
   );
 
 
@@ -647,13 +630,10 @@ export function playerAttack(isExtraAttack = false) {
   const originalDamage = result.damage;
 
   result.damage = applyDamageBonus(
-
     originalDamage
-
   );
 
   const bonusDamage =
-
     result.damage - originalDamage;
 
 
@@ -662,15 +642,11 @@ export function playerAttack(isExtraAttack = false) {
   const beforeHp = state.enemy.currentHp;
 
   state.enemy.currentHp = Math.max(
-
     0,
-
     state.enemy.currentHp - result.damage
-
   );
 
   const actualDamage =
-
     beforeHp - state.enemy.currentHp;
 
 
@@ -680,53 +656,56 @@ export function playerAttack(isExtraAttack = false) {
 
   let magicBurstDamage = 0;
 
+  let magicBurstHits = [];
+
   let lastStrikeDamage = 0;
 
+
+  // ==================== 전사 : 최후의 일격 ====================
+
   if (
-
+    state.classKey === "warrior" &&
     stats.attackExtraDamage > 0 &&
-
     state.enemy.currentHp > 0
-
   ) {
 
     const extraDamage =
-
       calculatePassiveExtraDamage();
 
     const beforeExtraHp =
-
       state.enemy.currentHp;
 
     state.enemy.currentHp = Math.max(
-
       0,
-
       state.enemy.currentHp - extraDamage
+    );
+
+    lastStrikeDamage =
+      beforeExtraHp - state.enemy.currentHp;
+
+    passiveExtraDamage += lastStrikeDamage;
+
+  }
+
+
+  // ==================== 마법사 : 마력 폭발 ====================
+
+  if (
+    state.classKey === "mage" &&
+    state.enemy.currentHp > 0
+  ) {
+
+    magicBurstHits = applyMagicBurst(stats);
+
+    magicBurstDamage = magicBurstHits.reduce(
+
+      (sum, hit) => sum + hit.damage,
+
+      0
 
     );
 
-    passiveExtraDamage =
-
-      beforeExtraHp - state.enemy.currentHp;
-
-
-    // 마법사 패시브 : 마력 폭발
-
-    if (state.classKey === "mage") {
-
-      magicBurstDamage = passiveExtraDamage;
-
-    }
-
-
-    // 전사 패시브 : 최후의 일격
-
-    if (state.classKey === "warrior") {
-
-      lastStrikeDamage = passiveExtraDamage;
-
-    }
+    passiveExtraDamage += magicBurstDamage;
 
   }
 
@@ -736,9 +715,7 @@ export function playerAttack(isExtraAttack = false) {
   // 기본 공격으로 입힌 실제 피해만 적용
 
   const healed = applyLifesteal(
-
     actualDamage
-
   );
 
 
@@ -764,6 +741,8 @@ export function playerAttack(isExtraAttack = false) {
 
     magicBurstDamage,
 
+    magicBurstHits,
+
     lastStrikeDamage,
 
     totalDamage: actualDamage + passiveExtraDamage,
@@ -777,11 +756,8 @@ export function playerAttack(isExtraAttack = false) {
     defeated: state.enemy.currentHp === 0,
 
     effect: createAttackEffect(
-
       "player",
-
       result.critical
-
     )
 
   };
@@ -794,17 +770,11 @@ export function playerAttack(isExtraAttack = false) {
 export function enemyAttack() {
 
   if (
-
     state.phase !== "combat" ||
-
     !state.player ||
-
     !state.enemy ||
-
     state.player.hp <= 0 ||
-
     state.enemy.currentHp <= 0
-
   ) {
 
     return null;
@@ -814,16 +784,10 @@ export function enemyAttack() {
 
   // ==================== 몬스터 공격 피해 계산 ====================
 
-  // 몬스터 역시 동일한 기본 치명타 배율 적용
-
   const result = calculateDamage(
-
     state.enemy.atk,
-
     getEnemyCritChance(),
-
     COMBAT_CONFIG.baseCritMultiplier
-
   );
 
 
@@ -832,15 +796,11 @@ export function enemyAttack() {
   const originalDamage = result.damage;
 
   const finalDamage = applyDamageReduction(
-
     originalDamage,
-
     result.critical
-
   );
 
   const reducedDamage =
-
     originalDamage - finalDamage;
 
 
@@ -849,15 +809,11 @@ export function enemyAttack() {
   const beforeHp = state.player.hp;
 
   state.player.hp = Math.max(
-
     0,
-
     state.player.hp - finalDamage
-
   );
 
   const actualDamage =
-
     beforeHp - state.player.hp;
 
 
@@ -874,9 +830,7 @@ export function enemyAttack() {
   // ==================== 불사의 증표 ====================
 
   const reviveEvent = state.player.hp === 0
-
     ? tryRevive()
-
     : null;
 
 
@@ -911,11 +865,8 @@ export function enemyAttack() {
     enemyDefeated: state.enemy.currentHp === 0,
 
     effect: createAttackEffect(
-
       "enemy",
-
       result.critical
-
     )
 
   };
@@ -943,17 +894,11 @@ export function stopBattle() {
 export function winBattle() {
 
   if (
-
     state.phase !== "combat" ||
-
     !state.player ||
-
     !state.enemy ||
-
     state.enemy.currentHp !== 0 ||
-
     state.player.hp <= 0
-
   ) {
 
     return null;
@@ -966,19 +911,13 @@ export function winBattle() {
   // ==================== 골드 보상 ====================
 
   const baseGold = getClearGold(
-
     state.floor,
-
     state.enemy
-
   );
 
   const gold = grantGold(
-
     state,
-
     baseGold
-
   );
 
   const bonusGold = gold - baseGold;
@@ -987,9 +926,7 @@ export function winBattle() {
   // ==================== 엘리트 패시브 포인트 ====================
 
   const passivePointsGranted = state.enemy.isElite
-
     ? grantElitePassivePoint(state)
-
     : 0;
 
 
@@ -998,15 +935,10 @@ export function winBattle() {
   state.rerollCount = 0;
 
   state.rewards = drawRewards(
-
     state.floor,
-
     3,
-
     state.items,
-
     state.enemy
-
   );
 
   state.phase = "reward";
@@ -1015,18 +947,13 @@ export function winBattle() {
   // ==================== 클리어 메시지 ====================
 
   let message = bonusGold > 0
-
     ? `${state.floor}층 클리어! ` +
-
       `(+${gold}G, 금사의 반지 +${bonusGold}G)`
-
     : `${state.floor}층 클리어! (+${gold}G)`;
-
 
   if (passivePointsGranted > 0) {
 
     message +=
-
       ` / 패시브 포인트 +${passivePointsGranted}`;
 
   }
@@ -1055,13 +982,9 @@ export function winBattle() {
     isElite: state.enemy.isElite ?? false,
 
     effect: {
-
       target: "enemy",
-
       animation: "death",
-
       duration: EFFECT_CONFIG.deathDuration
-
     },
 
     message
@@ -1076,13 +999,9 @@ export function winBattle() {
 export function loseBattle() {
 
   if (
-
     state.phase !== "combat" ||
-
     !state.player ||
-
     state.player.hp !== 0
-
   ) {
 
     return null;
@@ -1104,13 +1023,9 @@ export function loseBattle() {
     highestFloor: state.floor - 1,
 
     effect: {
-
       target: "player",
-
       animation: "death",
-
       duration: EFFECT_CONFIG.deathDuration
-
     },
 
     message: `${state.floor}층에서 쓰러졌습니다.`
@@ -1208,7 +1123,6 @@ function appendPlayerAttackEvents(events, result) {
       amount: result.bonusDamage,
 
       message:
-
         `피해 증가 효과: ${result.bonusDamage} 추가 피해`
 
     });
@@ -1218,7 +1132,9 @@ function appendPlayerAttackEvents(events, result) {
 
   // ==================== 마법사 : 마력 폭발 ====================
 
-  if (result.magicBurstDamage > 0) {
+  // 타격마다 별도의 이벤트 생성
+
+  for (const hit of result.magicBurstHits ?? []) {
 
     events.push({
 
@@ -1226,11 +1142,19 @@ function appendPlayerAttackEvents(events, result) {
 
       target: "enemy",
 
-      damage: result.magicBurstDamage,
+      damage: hit.damage,
+
+      hit: hit.hit,
+
+      hitCount: result.magicBurstHits.length,
+
+      remainingHp: hit.remainingHp,
+
+      defeated: hit.defeated,
 
       message:
-
-        `마력 폭발: ${result.magicBurstDamage} 추가 피해`
+        `마력 폭발 (${hit.hit}타): ` +
+        `${hit.damage} 추가 피해`
 
     });
 
@@ -1250,7 +1174,6 @@ function appendPlayerAttackEvents(events, result) {
       damage: result.lastStrikeDamage,
 
       message:
-
         `최후의 일격: ${result.lastStrikeDamage} 추가 피해`
 
     });
@@ -1271,7 +1194,6 @@ function appendPlayerAttackEvents(events, result) {
       amount: result.healed,
 
       message:
-
         `흡혈의 반지: HP +${result.healed}`
 
     });
@@ -1316,7 +1238,6 @@ function appendEnemyAttackEvents(events, result) {
       amount: result.reducedDamage,
 
       message:
-
         `피해 감소 효과: ${result.reducedDamage} 피해 감소`
 
     });
@@ -1337,7 +1258,6 @@ function appendEnemyAttackEvents(events, result) {
       damage: result.reflected,
 
       message:
-
         `가시 장갑: ${result.reflected} 반사 피해`
 
     });
@@ -1358,7 +1278,6 @@ function appendEnemyAttackEvents(events, result) {
       damage: result.counterDamage,
 
       message:
-
         `응징: ${result.counterDamage} 반격 피해`
 
     });
@@ -1371,9 +1290,7 @@ function appendEnemyAttackEvents(events, result) {
   if (result.reviveEvent) {
 
     events.push(
-
       result.reviveEvent
-
     );
 
   }
@@ -1388,13 +1305,9 @@ export function battleTick(now = performance.now()) {
   const events = [];
 
   if (
-
     state.phase !== "combat" ||
-
     !state.player ||
-
     !state.enemy
-
   ) {
 
     return events;
@@ -1416,9 +1329,7 @@ export function battleTick(now = performance.now()) {
   const playerInterval = getPlayerAttackInterval();
 
   if (
-
     now - state.lastPlayerAttack >= playerInterval
-
   ) {
 
     state.lastPlayerAttack = now;
@@ -1426,11 +1337,8 @@ export function battleTick(now = performance.now()) {
     const result = playerAttack();
 
     appendPlayerAttackEvents(
-
       events,
-
       result
-
     );
 
     if (checkBattleEnd(events)) {
@@ -1460,11 +1368,8 @@ export function battleTick(now = performance.now()) {
       const extraResult = playerAttack(true);
 
       appendPlayerAttackEvents(
-
         events,
-
         extraResult
-
       );
 
       if (checkBattleEnd(events)) {
@@ -1483,9 +1388,7 @@ export function battleTick(now = performance.now()) {
   const enemyInterval = getEnemyAttackInterval();
 
   if (
-
     now - state.lastEnemyAttack >= enemyInterval
-
   ) {
 
     state.lastEnemyAttack = now;
@@ -1493,11 +1396,8 @@ export function battleTick(now = performance.now()) {
     const result = enemyAttack();
 
     appendEnemyAttackEvents(
-
       events,
-
       result
-
     );
 
     if (checkBattleEnd(events)) {
@@ -1518,13 +1418,9 @@ export function battleTick(now = performance.now()) {
 export function startBattle(onEvents = () => {}) {
 
   if (
-
     state.phase !== "combat" ||
-
     !state.player ||
-
     !state.enemy
-
   ) {
 
     return false;
