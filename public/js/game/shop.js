@@ -1,6 +1,7 @@
 "use strict";
 
 import {
+  state as currentState,
   getMaxHp
 } from "./state.js";
 
@@ -9,7 +10,8 @@ import {
   increaseStat,
   getBookAmount,
   getBookCost,
-  getBookDescription
+  getBookDescription,
+  getShopHealRatio
 } from "./reward.js";
 
 
@@ -65,6 +67,7 @@ export const SHOP_ITEMS = [
   }
 
 ];
+
 
 // ==================== 상점 상품 조회 ====================
 
@@ -136,16 +139,36 @@ export function getItemCost(item, floor) {
 }
 
 
+// ==================== 표시용 숫자 변환 ====================
+
+function formatShopNumber(value, digits = 2) {
+
+  return Number(
+
+    Number(value).toFixed(digits)
+
+  ).toString();
+
+}
+
+
 // ==================== 층별 상품 데이터 생성 ====================
 
-function getScaledShopItem(item, floor) {
+function getScaledShopItem(
+  item,
+  floor,
+  gameState = currentState
+) {
 
   const cost = getItemCost(
     item,
     floor
   );
 
-  // 상점 비급서 성장량 및 가격 반영
+
+  // ==================== 상점 비급서 ====================
+
+  // 기존 비급서 성장량 및 가격 유지
 
   if (item.type === "stat") {
 
@@ -173,7 +196,92 @@ function getScaledShopItem(item, floor) {
 
   }
 
-  // 회복약 등 기존 상품
+
+  // ==================== 상점 회복약 ====================
+
+  // 축복받은 성배의 회복 효율 반영
+  // 오만의 왕관 보유 시 성배 효과 무효화
+
+  if (item.type === "heal") {
+
+    const baseRatio = item.amount;
+
+    const effectiveRatio = getShopHealRatio(
+
+      gameState,
+
+      baseRatio
+
+    );
+
+
+    // ==================== 회복률 계산 ====================
+
+    const basePercent = baseRatio * 100;
+
+    const effectivePercent = effectiveRatio * 100;
+
+    const bonusPercent =
+
+      (effectiveRatio - baseRatio) * 100;
+
+    const bonusActive =
+
+      effectiveRatio > baseRatio + 1e-9;
+
+
+    // ==================== 상품 설명 ====================
+
+    let desc =
+
+      `최대 HP의 ${formatShopNumber(effectivePercent)}% 회복`;
+
+
+    // 축복받은 성배 적용 여부 표시
+
+    if (bonusActive) {
+
+      desc +=
+
+        ` (축복받은 성배 +${formatShopNumber(bonusPercent)}%p)`;
+
+    }
+
+
+    // ==================== 회복약 데이터 반환 ====================
+
+    return {
+
+      ...item,
+
+      // 기본 회복률 유지
+      // 실제 구매 시 healPlayer()에서 성배 적용
+      // 중복 적용 방지
+
+      amount: baseRatio,
+
+      baseRatio,
+
+      effectiveRatio,
+
+      basePercent,
+
+      effectivePercent,
+
+      bonusPercent,
+
+      bonusActive,
+
+      desc,
+
+      cost
+
+    };
+
+  }
+
+
+  // ==================== 기타 상품 ====================
 
   return {
 
@@ -185,15 +293,20 @@ function getScaledShopItem(item, floor) {
 
 }
 
+
 // ==================== 전체 상점 상품 조회 ====================
 
-export function getShopItems(floor) {
+export function getShopItems(
+  floor,
+  gameState = currentState
+) {
 
   return SHOP_ITEMS.map(
 
     item => getScaledShopItem(
       item,
-      floor
+      floor,
+      gameState
     )
 
   );
@@ -247,9 +360,20 @@ export function canBuyItem(state, itemId) {
 
   // ==================== 최대 체력 확인 ====================
 
+  const maxHp = getMaxHp(state);
+
+  if (maxHp <= 0) {
+
+    return false;
+
+  }
+
+
+  // ==================== 회복약 구매 가능 여부 ====================
+
   if (
     item.type === "heal" &&
-    state.player.hp >= getMaxHp(state)
+    state.player.hp >= maxHp
   ) {
 
     return false;
@@ -308,7 +432,9 @@ export function buyItem(state, itemId) {
 
     baseItem,
 
-    state.floor
+    state.floor,
+
+    state
 
   );
 
@@ -333,9 +459,24 @@ export function buyItem(state, itemId) {
 
   // ==================== 최대 체력 확인 ====================
 
+  const maxHp = getMaxHp(state);
+
+  if (maxHp <= 0) {
+
+    return {
+
+      success: false,
+
+      message: "최대 생명력이 소진되었습니다."
+
+    };
+
+  }
+
+
   if (
     item.type === "heal" &&
-    state.player.hp >= getMaxHp(state)
+    state.player.hp >= maxHp
   ) {
 
     return {
@@ -352,6 +493,13 @@ export function buyItem(state, itemId) {
   let message = "";
 
 
+  // ==================== 회복약 구매 결과 ====================
+
+  let healed = 0;
+
+  let bonusHealed = 0;
+
+
   // ==================== 상품 효과 적용 ====================
 
   switch (item.type) {
@@ -361,11 +509,47 @@ export function buyItem(state, itemId) {
 
     case "heal": {
 
-      const healed = healPlayer(
+
+      // ==================== 구매 전 현재 체력 ====================
+
+      const beforeHp = state.player.hp;
+
+
+      // ==================== 성배 미적용 회복량 ====================
+
+      const normalHealAmount = Math.floor(
+
+        maxHp * item.amount + 1e-9
+
+      );
+
+
+      // 최대 생명력을 초과하는 회복량 제외
+
+      const normalHealed = Math.min(
+
+        maxHp - beforeHp,
+
+        normalHealAmount
+
+      );
+
+
+      // ==================== 실제 회복 효과 적용 ====================
+
+      // 세 번째 매개변수 true:
+      // 상점 회복약으로 판정하여 축복받은 성배 적용
+
+      // item.amount는 기본 회복률 0.2 유지
+      // item.effectiveRatio를 전달하면 중복 적용되므로 주의
+
+      healed = healPlayer(
 
         state,
 
-        item.amount
+        item.amount,
+
+        true
 
       );
 
@@ -383,8 +567,33 @@ export function buyItem(state, itemId) {
       }
 
 
+      // ==================== 성배 추가 회복량 ====================
+
+      bonusHealed = Math.max(
+
+        0,
+
+        healed - normalHealed
+
+      );
+
+
+      // ==================== 구매 메시지 ====================
+
       message =
+
         `${item.title} 구매: HP +${healed}`;
+
+
+      // 실제 추가 회복이 발생한 경우에만 표시
+
+      if (bonusHealed > 0) {
+
+        message +=
+
+          ` (축복받은 성배 +${bonusHealed})`;
+
+      }
 
       break;
 
@@ -418,6 +627,7 @@ export function buyItem(state, itemId) {
 
 
       const statName =
+
         statNames[item.stat] || item.stat;
 
 
@@ -449,6 +659,9 @@ export function buyItem(state, itemId) {
 
   // ==================== 골드 차감 ====================
 
+  // 축복받은 성배는 회복 효율에만 영향
+  // 상품 가격에는 영향 없음
+
   state.gold -= cost;
 
 
@@ -461,6 +674,10 @@ export function buyItem(state, itemId) {
     item,
 
     cost,
+
+    healed,
+
+    bonusHealed,
 
     message: `${message} (-${cost}G)`
 
