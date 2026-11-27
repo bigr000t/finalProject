@@ -146,7 +146,7 @@ export const MONSTERS = [
     image: "/images/elite00.png",
     hp: 120,
     atk: 15,
-    spd: 1.40,
+    spd: 1.36,
     crit: 0.05,
     isElite: true
   },
