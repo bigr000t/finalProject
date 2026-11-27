@@ -144,9 +144,9 @@ export const MONSTERS = [
     id: "cerberus",
     name: "케르베로스",
     image: "/images/elite00.png",
-    hp: 130,
-    atk: 16,
-    spd: 1.44,
+    hp: 120,
+    atk: 15,
+    spd: 1.40,
     crit: 0.05,
     isElite: true
   },
