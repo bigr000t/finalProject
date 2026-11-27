@@ -62,7 +62,7 @@ export const MONSTERS = [
     name: "독수리",
     image: "/images/enemy05.png",
     hp: 100,
-    atk: 18,
+    atk: 17,
     spd: 1.60,
     crit: 0.05
   },
