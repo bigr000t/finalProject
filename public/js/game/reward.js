@@ -24,13 +24,13 @@ export const BOOK_CONFIG = Object.freeze({
 
   floorInterval: 25,
 
-  basePoints: 2,
+  basePoints: 1,
 
   shopBasePoints: 1,
 
   pointsPerTier: 1,
 
-  advancedMultiplier: 2,
+  advancedMultiplier: 1.6,
 
   goldPerPoint: 400,
 
@@ -41,6 +41,7 @@ export const BOOK_CONFIG = Object.freeze({
   apPerPoint: 1
 
 });
+
 
 // ==================== 비급서 성장 단계 ====================
 
@@ -77,13 +78,11 @@ export function getBookPoints(
     tier * BOOK_CONFIG.pointsPerTier;
 
   return advanced
-    ? points * BOOK_CONFIG.advancedMultiplier
+    ? Math.round(points * BOOK_CONFIG.advancedMultiplier)
     : points;
 
 }
 
-
-// ==================== 비급서 능력치 증가량 ====================
 
 // ==================== 비급서 능력치 증가량 ====================
 
@@ -131,7 +130,8 @@ export function getBookCost(floor) {
   );
 
 }
-      
+
+
 // ==================== 비급서 설명 ====================
 
 export function getBookDescription(
@@ -279,9 +279,9 @@ export const REWARDS = [
   {
     id: "gold2",
     title: "골드 상자",
-    desc: "기본 지급 골드의 2배",
+    desc: "기본 지급 골드의 1.6배",
     type: "gold",
-    amount: 2
+    amount: 1.6
   }
 
 ];
