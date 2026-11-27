@@ -269,7 +269,7 @@ export const CLASSES = {
       {
         id: "mage_magic_burst",
         name: "마력 폭발",
-        desc: "공격 시 주문력의 8%만큼 추가 피해를 1 / 3 / 6회 발생시킴",
+        desc: "공격 시 주문력의 8%만큼 추가 피해를 2 / 4 / 6회 발생시킴",
 
         effects: [
 
@@ -284,7 +284,7 @@ export const CLASSES = {
 
           {
             type: "attackApHits",
-            amounts: [1, 3, 6]
+            amounts: [2, 4, 6]
           }
 
         ]
