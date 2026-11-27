@@ -17,6 +17,7 @@ import {
 } from "./enemy.js";
 
 import {
+  ITEM_CONFIG,
   createInitialItems,
   getItemEffects,
   getFloorItemBonuses,
@@ -43,7 +44,8 @@ export const COMBAT_CONFIG = Object.freeze({
 
   apScale: 100,
 
-  maxDamageReduction: 0.8
+  // 피해 감소율 상한 제거
+  maxDamageReduction: Infinity
 
 });
 
@@ -257,21 +259,115 @@ export function getMaxHp(gameState = state) {
 
   );
 
+
+  // ==================== 최대 생명력 증감 ====================
+
+  // 클래스 패시브 및 특수 아이템의
+  // 최대 생명력 증가와 감소를 합연산
+
+  const hpMultiplier =
+
+    1 +
+
+    passives.percentHp +
+
+    items.percentHp -
+
+    items.percentHpPenalty;
+
+
+  // ==================== 최대 생명력 소진 ====================
+
+  // 증가 및 감소 합산 결과가 0 이하이면
+  // 최대 생명력은 0으로 처리
+
+  if (hpMultiplier <= 0) {
+
+    return 0;
+
+  }
+
+
+  // ==================== 최종 최대 생명력 ====================
+
+  // 왕관 미보유 시 crownPrimary는 1
+
   return Math.max(
 
-    1,
+    0,
 
     Math.floor(
 
       (baseHp + floorBonus.hp) *
 
-      (1 + passives.percentHp) *
+      hpMultiplier *
 
-      (1 - items.percentHpPenalty)
+      items.crownPrimary +
+
+      1e-9
 
     )
 
   );
+
+}
+
+
+// ==================== 최대 생명력 변경 처리 ====================
+
+export function syncPlayerHp(
+  beforeMaxHp,
+  gameState = state
+) {
+
+  if (!gameState.player) {
+
+    return false;
+
+  }
+
+  const afterMaxHp = getMaxHp(
+    gameState
+  );
+
+
+  // ==================== 최대 생명력 감소 사망 ====================
+
+  // 불사의 증표를 발동하지 않음
+
+  if (afterMaxHp <= 0) {
+
+    gameState.player.hp = 0;
+
+    gameState.phase = "dead";
+
+    return false;
+
+  }
+
+
+  // ==================== 최대 생명력 증가 ====================
+
+  const hpGrowth = Math.max(
+
+    0,
+
+    afterMaxHp - beforeMaxHp
+
+  );
+
+
+  // ==================== 현재 생명력 갱신 ====================
+
+  gameState.player.hp = Math.min(
+
+    afterMaxHp,
+
+    gameState.player.hp + hpGrowth
+
+  );
+
+  return true;
 
 }
 
@@ -298,6 +394,9 @@ export function getPlayerStats(gameState = state) {
 
   // ==================== 클래스 패시브 효과 ====================
 
+  // 오만의 왕관 보유 여부와 관계없이
+  // 클래스 패시브는 정상 적용
+
   const passives = getPlayerPassiveEffects(
     gameState
   );
@@ -314,6 +413,15 @@ export function getPlayerStats(gameState = state) {
   );
 
 
+  // ==================== 오만의 왕관 배율 ====================
+
+  // 미보유 시 각각 1
+
+  const crownPrimary = items.crownPrimary;
+
+  const crownSecondary = items.crownSecondary;
+
+
   // ==================== 최대 체력 ====================
 
   const hp = getMaxHp(gameState);
@@ -323,6 +431,8 @@ export function getPlayerStats(gameState = state) {
 
   const isLowHp =
 
+    hp > 0 &&
+
     gameState.player.hp / hp <=
 
     COMBAT_CONFIG.lowHpThreshold;
@@ -330,19 +440,30 @@ export function getPlayerStats(gameState = state) {
 
   // ==================== 공격력 ====================
 
-  // 공격력 증가 패시브 및 저체력 공격력 증가 적용
+  // 기존 패시브 증가율과 저체력 증가율 유지
+  // 특수 아이템 공격력 증가율 추가
 
-  const atk = Math.max(
+  const rawAtk = Math.max(
 
     0,
 
-    Math.floor(
+    (base.atk + floorBonus.atk) *
 
-      (base.atk + floorBonus.atk) *
+    (
 
-      (1 + passives.percentAtk) *
+      1 +
 
-      (1 + (
+      passives.percentAtk +
+
+      items.percentAtk
+
+    ) *
+
+    (
+
+      1 +
+
+      (
 
         isLowHp
 
@@ -350,7 +471,51 @@ export function getPlayerStats(gameState = state) {
 
           : 0
 
-      ))
+      )
+
+    )
+
+  );
+
+
+  // ==================== 부러진 마검 ====================
+
+  // 공격력의 일정 비율을 감소시키고
+  // 감소한 공격력의 150%를 주문력으로 전환
+
+  const convertedAtk =
+
+    rawAtk * items.atkToApConversion;
+
+  const convertedAp =
+
+    convertedAtk * 1.5;
+
+
+  // ==================== 왕관 적용 전 공격력 ====================
+
+  const atkBeforeCrown = Math.max(
+
+    0,
+
+    rawAtk - convertedAtk
+
+  );
+
+
+  // ==================== 최종 공격력 ====================
+
+  const atk = Math.max(
+
+    0,
+
+    Math.floor(
+
+      atkBeforeCrown *
+
+      crownPrimary +
+
+      1e-9
 
     )
 
@@ -359,7 +524,12 @@ export function getPlayerStats(gameState = state) {
 
   // ==================== 주문력 ====================
 
-  // 공격력 비례 주문력 증가 적용
+  // 기본 주문력 + 층수 비례 주문력
+  // + 공격력 비례 패시브 주문력
+  // + 부러진 마검 전환 주문력
+
+  // 왕관 적용 전 공격력을 사용하여
+  // 왕관 배율이 주문력에 중복 적용되는 것을 방지
 
   const ap = Math.max(
 
@@ -373,11 +543,26 @@ export function getPlayerStats(gameState = state) {
 
         (floorBonus.ap ?? 0) +
 
-        atk * passives.atkToApRatio
+        Math.floor(atkBeforeCrown + 1e-9) *
+          passives.atkToApRatio +
+
+        convertedAp
 
       ) *
 
-      (1 + passives.percentAp)
+      (
+
+        1 +
+
+        passives.percentAp +
+
+        items.percentAp
+
+      ) *
+
+      crownPrimary +
+
+      1e-9
 
     )
 
@@ -390,6 +575,9 @@ export function getPlayerStats(gameState = state) {
 
 
   // ==================== 공격 속도 ====================
+
+  // 고정 공격속도 증가 효과를 먼저 합산
+  // 비율 증가 및 감소 효과는 합연산
 
   const spd = Math.max(
 
@@ -409,12 +597,49 @@ export function getPlayerStats(gameState = state) {
 
     ) *
 
-    (1 + items.percentSpd)
+    (
+
+      1 +
+
+      items.percentSpd -
+
+      items.percentSpdPenalty
+
+    ) *
+
+    crownSecondary
 
   );
 
 
+  // ==================== 사냥하는 말벌 ====================
+
+  // 적의 현재 체력이 최대 체력의 33% 이하인지 확인
+
+  const isEnemyLowHp =
+
+    !!gameState.enemy &&
+
+    gameState.enemy.maxHp > 0 &&
+
+    gameState.enemy.currentHp > 0 &&
+
+    gameState.enemy.currentHp /
+      gameState.enemy.maxHp <=
+
+    ITEM_CONFIG.huntingHpRatio;
+
+
   // ==================== 치명타 확률 ====================
+
+  const lowEnemyHpCritBonus =
+
+    isEnemyLowHp
+
+      ? items.lowEnemyHpCritBonus
+
+      : 0;
+
 
   const crit = Math.min(
 
@@ -424,13 +649,21 @@ export function getPlayerStats(gameState = state) {
 
       0,
 
-      base.crit +
+      (
 
-      items.crit +
+        base.crit +
 
-      scaling * passives.apCritBonus -
+        items.crit +
 
-      items.critPenalty
+        scaling * passives.apCritBonus +
+
+        lowEnemyHpCritBonus -
+
+        items.critPenalty
+
+      ) *
+
+      crownSecondary
 
     )
 
@@ -439,58 +672,66 @@ export function getPlayerStats(gameState = state) {
 
   // ==================== 치명타 피해 배율 ====================
 
+  // 기본 치명타 피해 160%
+  // 클래스 패시브 및 정밀한 말벌은 합연산
+
   const critMultiplier =
 
-    COMBAT_CONFIG.baseCritMultiplier +
+    (
 
-    passives.critDamageBonus;
+      COMBAT_CONFIG.baseCritMultiplier +
+
+      passives.critDamageBonus +
+
+      items.critDamageBonus
+
+    ) *
+
+    crownSecondary;
 
 
   // ==================== 받는 피해 감소 ====================
 
-  // 서로 다른 피해 감소 효과는 곱연산
+  // 피해 감소 효과는 모두 합연산
+  // 피해 감소율 상한 없음
+  // 실제 피해량의 최솟값은 battle.js에서 0으로 처리
 
-  const damageReduction = Math.min(
-
-    COMBAT_CONFIG.maxDamageReduction,
-
-    Math.max(
-
-      0,
-
-      1 -
-
-      (1 - scaling * passives.apDamageReduction) *
-
-      (1 - (
-
-        isLowHp
-
-          ? passives.lowHpDamageReduction
-
-          : 0
-
-      )) *
-
-      (1 - items.damageReduction)
-
-    )
-
-  );
-
-
-  // ==================== 가하는 피해 증가 ====================
-
-  const damageBonus = Math.max(
+  const damageReduction = Math.max(
 
     0,
 
-    items.damageBonus
+    scaling * passives.apDamageReduction +
+
+    (
+
+      isLowHp
+
+        ? passives.lowHpDamageReduction
+
+        : 0
+
+    ) +
+
+    items.damageReduction
 
   );
 
 
+  // ==================== 가하는 기본 공격 피해 증가 ====================
+
+  const damageBonus = items.damageBonus;
+
+
+  // ==================== 가하는 기본 공격 피해 감소 ====================
+
+  // 경솔한 칼날 효과
+
+  const damagePenalty = items.damagePenalty;
+
+
   // ==================== 저체력 피해 증가 ====================
+
+  // 광전사의 심장 효과
 
   const lowHpDamageBonus =
 
@@ -503,13 +744,50 @@ export function getPlayerStats(gameState = state) {
 
   // ==================== 최대 체력 피해 감소 ====================
 
+  // 순결의 방패 효과
+
   const fullHpDamageReduction =
+
+    hp > 0 &&
 
     gameState.player.hp >= hp
 
       ? items.fullHpDamageReduction
 
       : 0;
+
+
+  // ==================== 치명타 피해 감소 ====================
+
+  // 수호의 부적 효과
+
+  const criticalDamageReduction =
+
+    items.criticalDamageReduction;
+
+
+  // ==================== 확률형 피해 감소 ====================
+
+  // 수호자의 망토
+  // 실제 발동 여부는 피격 시 battle.js에서 판정
+
+  const guardChance = Math.min(
+
+    1,
+
+    Math.max(
+
+      0,
+
+      items.guardChance
+
+    )
+
+  );
+
+  const guardDamageReduction =
+
+    ITEM_CONFIG.guardDamageReduction;
 
 
   // ==================== 추가 공격 확률 ====================
@@ -638,6 +916,8 @@ export function getPlayerStats(gameState = state) {
 
   return {
 
+    // 기본 능력치
+
     hp,
 
     atk,
@@ -650,6 +930,9 @@ export function getPlayerStats(gameState = state) {
 
     critMultiplier,
 
+
+    // 기본 공격 및 패시브 피해
+
     basicAttackDamage,
 
     attackExtraDamage,
@@ -658,21 +941,66 @@ export function getPlayerStats(gameState = state) {
 
     magicBurstHits,
 
+    extraAttackChance,
+
+    counterDamage,
+
+
+    // 피해 증감
+
     damageReduction,
 
     damageBonus,
+
+    damagePenalty,
 
     lowHpDamageBonus,
 
     fullHpDamageReduction,
 
-    extraAttackChance,
+    criticalDamageReduction,
 
-    counterDamage,
+
+    // 조건부 치명타 증가
+
+    lowEnemyHpCritBonus,
+
+
+    // 확률형 피해 감소
+
+    guardChance,
+
+    guardDamageReduction,
+
+
+    // 부러진 마검
+
+    convertedAtk,
+
+    convertedAp,
+
+
+    // 층수 비례 능력치
 
     floorBonus,
 
-    isLowHp
+
+    // 오만의 왕관
+
+    crownActive: items.crown > 0,
+
+    crownCount: items.crownCount,
+
+    crownPrimary,
+
+    crownSecondary,
+
+
+    // 조건부 효과 판정
+
+    isLowHp,
+
+    isEnemyLowHp
 
   };
 
@@ -733,10 +1061,12 @@ export function grantElitePassivePoint(
 ) {
 
   if (
+
     !gameState.enemy?.isElite ||
     gameState.enemy.currentHp !== 0 ||
     !gameState.player ||
     gameState.player.hp <= 0
+
   ) {
 
     return 0;
@@ -857,26 +1187,14 @@ export function upgradePassive(
 
   gameState.passivePoints--;
 
-  const afterMaxHp = getMaxHp(
+
+  // ==================== 최대 체력 변경 처리 ====================
+
+  syncPlayerHp(
+
+    beforeMaxHp,
+
     gameState
-  );
-
-
-  // 최대 체력이 증가하면 현재 체력도 증가
-
-  gameState.player.hp = Math.min(
-
-    afterMaxHp,
-
-    gameState.player.hp +
-
-    Math.max(
-
-      0,
-
-      afterMaxHp - beforeMaxHp
-
-    )
 
   );
 
@@ -890,6 +1208,23 @@ export function upgradePassive(
 export function advanceFloor() {
 
   if (state.phase !== "shop") {
+
+    return false;
+
+  }
+
+
+  // ==================== 생존 여부 확인 ====================
+
+  if (
+
+    !state.player ||
+
+    state.player.hp <= 0 ||
+
+    getMaxHp() <= 0
+
+  ) {
 
     return false;
 
@@ -930,24 +1265,13 @@ export function advanceFloor() {
 
   // ==================== 최대 체력 증가 처리 ====================
 
-  const afterMaxHp = getMaxHp();
+  // 층수 비례 생명력 비급서 적용
 
-  const hpGrowth = Math.max(
+  syncPlayerHp(
 
-    0,
+    beforeMaxHp,
 
-    afterMaxHp - beforeMaxHp
-
-  );
-
-
-  // 증가한 최대 체력만큼 현재 체력도 증가
-
-  state.player.hp = Math.min(
-
-    afterMaxHp,
-
-    state.player.hp + hpGrowth
+    state
 
   );
 
@@ -984,6 +1308,28 @@ export function getHighestFloor() {
     return state.floor;
 
   }
+
+
+  // ==================== 보상 획득으로 사망 ====================
+
+  // 이미 몬스터를 처치한 상태에서
+  // 최대 생명력 감소로 사망한 경우
+  // 해당 층의 클리어 기록은 유지
+
+  if (
+
+    state.phase === "dead" &&
+
+    state.enemy?.currentHp === 0
+
+  ) {
+
+    return state.floor;
+
+  }
+
+
+  // ==================== 일반 전투 사망 ====================
 
   return Math.max(
 
@@ -1391,9 +1737,21 @@ export function isValidSave(data) {
   }
 
 
-  // 패시브 효과가 적용된 최대 체력
+  // ==================== 최대 생명력 검증 ====================
 
   const maxHp = getMaxHp(data);
+
+  if (
+
+    !Number.isFinite(maxHp) ||
+
+    maxHp <= 0
+
+  ) {
+
+    return false;
+
+  }
 
 
   // 플레이어 현재 체력 검증
