@@ -125,6 +125,16 @@ function changeLeaderboardTab(className) {
 function renderLeaderboard(records) {
   leaderboardBody.replaceChildren();
 
+  const isArchive = currentClass === "archive";
+
+  const detailHeader = document.getElementById(
+    "leaderboardDetailHeader"
+  );
+
+  if (detailHeader) {
+    detailHeader.textContent = isArchive ? "" : "상세 보기";
+  }
+
   if (records.length === 0) {
     renderMessage("아직 등록된 도전 기록이 없습니다.");
     return;
@@ -133,29 +143,48 @@ function renderLeaderboard(records) {
   records.forEach((record, index) => {
     const row = document.createElement("tr");
 
+    // 순위
     const rank = createElement("td", "", index + 1);
-    const username = document.createElement("td");
-    const floor = createElement("td", "", `${record.highest_floor}층`);
 
-    // 명예의 전당은 상세 보기 미지원
-    if (currentClass === "archive") {
-      username.textContent = record.username;
+    // 도전자 및 최고 층수
+    const playerCell = document.createElement("td");
 
-    } else {
+    const playerInfo = createElement(
+      "div", "leaderboard-player-info"
+    );
+
+    playerInfo.append(
+      createElement(
+        "span",
+        "leaderboard-player-name",
+        record.username
+      ),
+      createElement(
+        "span",
+        "leaderboard-player-floor",
+        `${record.highest_floor}층`
+      )
+    );
+
+    playerCell.appendChild(playerInfo);
+
+    // 상세 보기
+    const detailCell = document.createElement("td");
+
+    if (!isArchive) {
       const button = createElement(
         "button",
-        "leaderboard-name-button",
-        record.username
+        "leaderboard-detail-button",
+        "상세 보기"
       );
 
       button.type = "button";
-      button.title = "빌드 상세 보기";
 
       button.addEventListener("click", () => {
         openDetail(Number(record.id));
       });
 
-      username.appendChild(button);
+      detailCell.appendChild(button);
     }
 
     // 상위 3명 강조
@@ -169,7 +198,7 @@ function renderLeaderboard(records) {
       row.classList.add(rankClasses[index]);
     }
 
-    row.append(rank, username, floor);
+    row.append(rank, playerCell, detailCell);
     leaderboardBody.appendChild(row);
   });
 }
