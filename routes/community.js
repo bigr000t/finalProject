@@ -393,7 +393,7 @@ router.post(
         SELECT id, admin_only
         FROM boards
         WHERE id = ?
-        FOR SHARE
+        LOCK IN SHARE MODE
       `, [boardId]);
 
       if (boards.length === 0) {
