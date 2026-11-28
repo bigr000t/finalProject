@@ -13,6 +13,7 @@ const authRouter = require("./routes/auth");
 const communityRouter = require("./routes/community");
 const leaderboardRouter = require("./routes/leaderboard");
 const saveRouter = require("./routes/save");
+const adminRouter = require("./routes/admin");
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -55,6 +56,7 @@ app.use("/", authRouter);
 app.use("/", communityRouter);
 app.use("/", leaderboardRouter);
 app.use("/", saveRouter);
+app.use("/api/admin", adminRouter);
 
 
 // ==================== 메인 페이지 ====================
