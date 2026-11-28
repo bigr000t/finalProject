@@ -1,154 +1,352 @@
 /* ==================== 리더보드 ==================== */
 
 #leaderboard {
-
   border-top: 3px double var(--gold-dark);
-
 }
 
 #leaderboard .panel-head {
-
   margin-bottom: 20px;
+}
 
+
+/* ==================== 리더보드 탭 ==================== */
+
+.leaderboard-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.leaderboard-tab {
+  flex: 1;
+  padding: 12px 6px;
+  background: var(--input);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.leaderboard-tab:hover {
+  color: var(--gold);
+  border-color: var(--gold-dark);
+}
+
+.leaderboard-tab.active {
+  background: #38332a;
+  color: var(--gold);
+  border-color: var(--gold);
+  font-weight: bold;
 }
 
 
 /* ==================== 순위 테이블 ==================== */
 
 .leaderboard-table {
-
   width: 100%;
-
   border-collapse: collapse;
-
   background-color: var(--input);
-
   border: 1px solid var(--border);
-
   font-variant-numeric: tabular-nums;
-
 }
 
 .leaderboard-table th {
-
   padding: 14px 16px;
-
   background-color: #383838;
-
   color: var(--gold);
-
   border-bottom: 1px solid var(--gold-dark);
-
   text-align: left;
-
   font-size: 13px;
-
   font-weight: normal;
-
 }
 
 .leaderboard-table td {
-
   padding: 14px 16px;
-
   border-bottom: 1px solid var(--border);
-
 }
 
 .leaderboard-table tbody tr:hover {
-
   background-color: #35332e;
-
 }
 
 .leaderboard-table th:first-child,
 .leaderboard-table td:first-child {
-
   width: 80px;
-
   text-align: center;
-
 }
 
 .leaderboard-table th:last-child,
 .leaderboard-table td:last-child {
-
   width: 140px;
-
   text-align: right;
-
 }
 
-.leaderboard-table td:last-child {
-
-  font-weight: bold;
-
+.leaderboard-table td[colspan="3"] {
+  width: auto;
+  text-align: center;
+  color: var(--muted);
 }
 
 
 /* ==================== 상위 랭커 ==================== */
 
 .rank-first {
-
   color: #d4b477;
-
   font-weight: bold;
-
 }
 
 .rank-second {
-
   color: #bfc3c7;
-
   font-weight: bold;
-
 }
 
 .rank-third {
-
   color: #bd8b64;
-
   font-weight: bold;
-
 }
 
 .leaderboard-table tr.rank-first {
-
   background-color: #38332a;
-
 }
 
 .leaderboard-table tr.rank-second {
-
   background-color: #303234;
-
 }
 
 .leaderboard-table tr.rank-third {
-
   background-color: #38302a;
+}
 
+
+/* ==================== 도전자 정보 ==================== */
+
+.leaderboard-player-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.leaderboard-player-name {
+  min-width: 0;
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.leaderboard-player-floor {
+  color: var(--gold);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+
+/* ==================== 상세 보기 버튼 ==================== */
+
+.leaderboard-detail-button {
+  padding: 7px 12px;
+  background: #35312a;
+  border: 1px solid var(--gold-dark);
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: normal;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s,
+              border-color 0.15s;
+}
+
+.leaderboard-detail-button:hover {
+  background: #45392a;
+  border-color: var(--gold);
 }
 
 
 /* ==================== 리더보드 상태 ==================== */
 
 #leaderboardStatus {
-
   margin-top: 12px;
-
   color: var(--muted);
-
   font-size: 12px;
-
 }
 
 #refreshLeaderboard {
-
   color: var(--gold);
-
   border-color: var(--gold-dark);
+}
 
+
+/* ==================== 상세 보기 팝업 ==================== */
+
+.leaderboard-detail-modal {
+  box-sizing: border-box;
+  width: min(560px, calc(100% - 32px));
+  max-height: 85vh;
+  margin: auto;
+  padding: 24px;
+  overflow-y: auto;
+  background: var(--input);
+  color: #ddd;
+  border: 1px solid var(--gold-dark);
+  border-radius: 6px;
+}
+
+.leaderboard-detail-modal::backdrop {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.leaderboard-detail-head,
+.leaderboard-detail-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.leaderboard-detail-head h2 {
+  margin: 0;
+  color: var(--gold);
+  overflow-wrap: anywhere;
+}
+
+#closeLeaderboardDetail {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.leaderboard-detail-summary {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.leaderboard-detail-floor {
+  color: var(--gold);
+  font-size: 22px;
+}
+
+
+/* ==================== 상세 보기 공통 ==================== */
+
+.leaderboard-detail-section {
+  margin-top: 20px;
+}
+
+.leaderboard-detail-heading {
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  color: var(--gold);
+  border-bottom: 1px solid var(--border);
+  font-size: 16px;
+}
+
+.leaderboard-detail-empty {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+
+/* ==================== 최종 능력치 ==================== */
+
+.leaderboard-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.leaderboard-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: #303030;
+  border: 1px solid var(--border);
+}
+
+.leaderboard-stat-name {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.leaderboard-stat-value {
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+
+/* ==================== 특수 아이템 및 패시브 ==================== */
+
+.leaderboard-item-list,
+.leaderboard-passive-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leaderboard-item,
+.leaderboard-passive {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  background: #303030;
+  border: 1px solid var(--border);
+}
+
+.leaderboard-item-name,
+.leaderboard-passive-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.leaderboard-item-count,
+.leaderboard-passive-level {
+  color: var(--gold);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+
+/* ==================== 오만의 왕관 ==================== */
+
+.leaderboard-item-pride-crown {
+  background: linear-gradient(
+    90deg, #45371c, #2b2418
+  );
+  border-color: #d4b477;
+  color: #f0ce82;
+  font-weight: bold;
+  box-shadow: inset 0 0 12px rgba(212, 180, 119, 0.1);
+}
+
+.leaderboard-item-pride-crown .leaderboard-item-count {
+  color: #f0ce82;
+}
+
+
+/* ==================== 기록 삭제 ==================== */
+
+.leaderboard-detail-footer {
+  margin-top: 20px;
+}
+
+.leaderboard-delete-button {
+  width: 100%;
+  padding: 12px;
+  background: #3a2424;
+  border: 1px solid #804444;
+  color: #df9999;
+  cursor: pointer;
+}
+
+.leaderboard-delete-button:hover {
+  background: #502b2b;
+}
+
+.leaderboard-delete-button[hidden] {
+  display: none !important;
 }
 
 
@@ -156,27 +354,56 @@
 
 @media (max-width: 600px) {
 
+  /* 리더보드 탭 */
+
+  .leaderboard-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 순위 테이블 */
+
   .leaderboard-table th,
   .leaderboard-table td {
-
     padding: 12px 8px;
-
     font-size: 13px;
-
   }
 
   .leaderboard-table th:first-child,
   .leaderboard-table td:first-child {
-
     width: 50px;
-
   }
 
   .leaderboard-table th:last-child,
   .leaderboard-table td:last-child {
-
     width: 90px;
+  }
 
+  .leaderboard-table td[colspan="3"] {
+    width: auto;
+  }
+
+  /* 도전자 정보 */
+
+  .leaderboard-player-info {
+    gap: 4px 8px;
+  }
+
+  /* 상세 보기 버튼 */
+
+  .leaderboard-detail-button {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  /* 상세 보기 팝업 */
+
+  .leaderboard-detail-modal {
+    padding: 16px;
+  }
+
+  .leaderboard-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
 }
