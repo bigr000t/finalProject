@@ -1,422 +1,8 @@
 "use strict";
 
-
-// ==================== DOM 요소 ====================
-
-const leaderboardBody = document.getElementById(
-  "leaderboardBody"
-);
-
-const leaderboardStatus = document.getElementById(
-  "leaderboardStatus"
-);
-
-const refreshButton = document.getElementById(
-  "refreshLeaderboard"
-);
-
-let latestRequestId = 0;
-
-
-// ==================== 로그인 여부 확인 ====================
-
-function isLoggedIn() {
-
-  const userId = Number(
-    document.body.dataset.userId
-  );
-
-  return (
-    Number.isSafeInteger(userId) &&
-    userId > 0
-  );
-
-}
-
-
-// ==================== 공통 API 요청 ====================
-
-async function request(url, options = {}) {
-
-  const response = await fetch(url, {
-
-    cache: "no-store",
-
-    ...options
-
-  });
-
-  let data;
-
-  try {
-
-    data = await response.json();
-
-  } catch {
-
-    throw new Error(
-      `서버 응답 오류 (HTTP ${response.status})`
-    );
-
-  }
-
-  if (!response.ok) {
-
-    throw new Error(
-
-      data?.message ||
-      `요청 처리 실패 (HTTP ${response.status})`
-
-    );
-
-  }
-
-  return data;
-
-}
-
-
-// ==================== 상태 메시지 출력 ====================
-
-function renderMessage(message) {
-
-  const row = document.createElement("tr");
-
-  const cell = document.createElement("td");
-
-  cell.colSpan = 3;
-
-  cell.textContent = message;
-
-  row.appendChild(cell);
-
-  leaderboardBody.replaceChildren(row);
-
-}
-
-
-// ==================== 리더보드 출력 ====================
-
-function renderLeaderboard(records) {
-
-  leaderboardBody.replaceChildren();
-
-  if (records.length === 0) {
-
-    renderMessage(
-      "아직 등록된 도전 기록이 없습니다."
-    );
-
-    return;
-
-  }
-
-  records.forEach((record, index) => {
-
-    const row = document.createElement("tr");
-
-    const rank = document.createElement("td");
-
-    const username = document.createElement("td");
-
-    const floor = document.createElement("td");
-
-
-    // 순위 및 사용자 정보
-    rank.textContent = index + 1;
-
-    username.textContent = record.username;
-
-    floor.textContent =
-      `${record.highest_floor}층`;
-
-
-    // 상위 3명 강조
-    if (index === 0) {
-
-      row.classList.add("rank-first");
-
-    } else if (index === 1) {
-
-      row.classList.add("rank-second");
-
-    } else if (index === 2) {
-
-      row.classList.add("rank-third");
-
-    }
-
-
-    row.append(
-
-      rank,
-
-      username,
-
-      floor
-
-    );
-
-    leaderboardBody.appendChild(row);
-
-  });
-
-}
-
-
-// ==================== 리더보드 조회 ====================
-
-export async function loadLeaderboard() {
-
-  if (
-    !leaderboardBody ||
-    !leaderboardStatus ||
-    !refreshButton
-  ) {
-
-    console.error(
-      "[리더보드 오류] DOM 요소를 찾을 수 없습니다."
-    );
-
-    return false;
-
-  }
-
-  const requestId = ++latestRequestId;
-
-  refreshButton.disabled = true;
-
-  leaderboardStatus.textContent =
-    "기록을 불러오는 중입니다.";
-
-
-  try {
-
-    console.log("[리더보드 조회 요청]");
-
-    const records = await request(
-      "/api/leaderboard",
-      {
-        method: "GET",
-        cache: "no-store"
-      }
-    );
-
-
-    // 이전 요청의 응답 무시
-    if (requestId !== latestRequestId) {
-
-      return false;
-
-    }
-
-
-    // 서버 응답 데이터 검증
-    if (!Array.isArray(records)) {
-
-      throw new Error(
-        "잘못된 리더보드 데이터입니다."
-      );
-
-    }
-
-
-    // 리더보드 갱신
-    renderLeaderboard(records);
-
-    leaderboardStatus.textContent =
-      "리더보드가 갱신되었습니다.";
-
-    console.log(
-      "[리더보드 갱신 성공]",
-      records
-    );
-
-    return true;
-
-
-  } catch (err) {
-
-    if (requestId !== latestRequestId) {
-
-      return false;
-
-    }
-
-    console.error(
-
-      "[리더보드 조회 실패]",
-
-      err
-
-    );
-
-    leaderboardStatus.textContent =
-      err.message;
-
-    return false;
-
-
-  } finally {
-
-    if (requestId === latestRequestId) {
-
-      refreshButton.disabled = false;
-
-    }
-
-  }
-
-}
-
-
-// ==================== 도전 기록 저장 ====================
-
-// ==================== 도전 기록 갱신 ====================
-
-export async function saveRun(
-  highestFloor,
-  className
-) {
-
-  // 로그인 여부 확인
-  if (!isLoggedIn()) {
-
-    return {
-
-      success: false,
-
-      message: "로그인이 필요합니다."
-
-    };
-
-  }
-
-
-  // 층수 검증
-  if (
-    !Number.isSafeInteger(highestFloor) ||
-    highestFloor < 1
-  ) {
-
-    return {
-
-      success: false,
-
-      message: "잘못된 클리어 층수입니다."
-
-    };
-
-  }
-
-
-  // 클래스 검증
-  if (
-    !["warrior", "rogue", "mage"]
-      .includes(className)
-  ) {
-
-    return {
-
-      success: false,
-
-      message: "잘못된 클래스 정보입니다."
-
-    };
-
-  }
-
-
-  let data;
-
-  try {
-
-    data = await request(
-
-      "/api/runs",
-
-      {
-
-        method: "POST",
-
-        headers: {
-
-          "Content-Type": "application/json"
-
-        },
-
-        body: JSON.stringify({
-
-          highest_floor: highestFloor,
-
-          class_name: className
-
-        })
-
-      }
-
-    );
-
-
-    if (data?.success !== true) {
-
-      throw new Error(
-        data?.message || "기록 저장 실패"
-      );
-
-    }
-
-
-  } catch (error) {
-
-    console.error(
-      "도전 기록 갱신 실패:",
-      error
-    );
-
-    return {
-
-      success: false,
-
-      message: error.message
-
-    };
-
-  }
-
-
-  // 최고 기록을 경신한 경우 리더보드 갱신
-  if (data.updated) {
-
-    console.log(
-      `[최고 기록 경신] ${data.highest_floor}층`
-    );
-
-    const refreshed = await loadLeaderboard();
-
-    return {
-
-      success: true,
-
-      updated: true,
-
-      refreshed,
-
-      message: refreshed
-
-        ? data.message
-
-        : "기록은 저장되었으나 순위 갱신에 실패했습니다."
-"use strict";
-
-
 // ==================== 설정 ====================
 
-const ALLOWED_CLASSES = [
-  "warrior",
-  "rogue",
-  "mage"
-];
+const ALLOWED_CLASSES = ["warrior", "rogue", "mage"];
 
 const CLASS_NAMES = {
   warrior: "전사",
@@ -437,76 +23,44 @@ const STAT_LABELS = {
 
 // ==================== DOM 요소 ====================
 
-const leaderboardBody = document.getElementById(
-  "leaderboardBody"
-);
+const leaderboardBody = document.getElementById("leaderboardBody");
+const leaderboardStatus = document.getElementById("leaderboardStatus");
+const refreshButton = document.getElementById("refreshLeaderboard");
+const leaderboardTabs = document.querySelectorAll("[data-leaderboard-class]");
 
-const leaderboardStatus = document.getElementById(
-  "leaderboardStatus"
-);
-
-const refreshButton = document.getElementById(
-  "refreshLeaderboard"
-);
-
-const leaderboardTabs = document.querySelectorAll(
-  "[data-leaderboard-class]"
-);
-
-const detailModal = document.getElementById(
-  "leaderboardDetailModal"
-);
-
-const detailTitle = document.getElementById(
-  "leaderboardDetailTitle"
-);
-
-const detailBody = document.getElementById(
-  "leaderboardDetailBody"
-);
-
-const detailCloseButton = document.getElementById(
-  "closeLeaderboardDetail"
-);
-
-const deleteButton = document.getElementById(
-  "deleteLeaderboardRecord"
-);
+const detailModal = document.getElementById("leaderboardDetailModal");
+const detailTitle = document.getElementById("leaderboardDetailTitle");
+const detailBody = document.getElementById("leaderboardDetailBody");
+const detailCloseButton = document.getElementById("closeLeaderboardDetail");
+const deleteButton = document.getElementById("deleteLeaderboardRecord");
 
 
 // ==================== 상태 관리 ====================
 
 let currentClass = "warrior";
-
 let latestRequestId = 0;
-
 let latestDetailRequestId = 0;
-
 let selectedRecordId = null;
-
 let deletingRecord = false;
 
 
-// ==================== 로그인 여부 확인 ====================
+// ==================== 공통 함수 ====================
 
 function isLoggedIn() {
-
-  const userId = Number(
-    document.body.dataset.userId
-  );
-
-  return (
-    Number.isSafeInteger(userId) &&
-    userId > 0
-  );
-
+  const userId = Number(document.body.dataset.userId);
+  return Number.isSafeInteger(userId) && userId > 0;
 }
 
+function createElement(tag, className, text) {
+  const element = document.createElement(tag);
 
-// ==================== 공통 API 요청 ====================
+  if (className) element.className = className;
+  if (text != null) element.textContent = String(text);
+
+  return element;
+}
 
 async function request(url, options = {}) {
-
   const response = await fetch(url, {
     cache: "no-store",
     ...options
@@ -515,1021 +69,533 @@ async function request(url, options = {}) {
   let data;
 
   try {
-
     data = await response.json();
-
   } catch {
-
-    throw new Error(
-      `서버 응답 오류 (HTTP ${response.status})`
-    );
-
+    throw new Error(`서버 응답 오류 (HTTP ${response.status})`);
   }
 
   if (!response.ok) {
-
     throw new Error(
-      data?.message ||
-      `요청 처리 실패 (HTTP ${response.status})`
+      data?.message || `요청 처리 실패 (HTTP ${response.status})`
     );
-
   }
 
   return data;
-
 }
-
-
-// ==================== DOM 생성 함수 ====================
-
-function createElement(tag, className, text) {
-
-  const element = document.createElement(tag);
-
-  if (className) {
-    element.className = className;
-  }
-
-  if (text !== undefined && text !== null) {
-    element.textContent = String(text);
-  }
-
-  return element;
-
-}
-
-
-// ==================== 상태 메시지 출력 ====================
 
 function renderMessage(message) {
-
   const row = document.createElement("tr");
-
-  const cell = document.createElement("td");
+  const cell = createElement("td", "", message);
 
   cell.colSpan = 3;
-
-  cell.textContent = message;
-
   row.appendChild(cell);
-
   leaderboardBody.replaceChildren(row);
-
 }
 
 
-// ==================== 탭 상태 갱신 ====================
+// ==================== 리더보드 탭 ====================
 
 function updateTabs() {
+  leaderboardTabs.forEach(tab => {
+    const active = tab.dataset.leaderboardClass === currentClass;
 
-  leaderboardTabs.forEach((tab) => {
-
-    const active =
-      tab.dataset.leaderboardClass === currentClass;
-
-    tab.classList.toggle(
-      "active",
-      active
-    );
-
-    tab.setAttribute(
-      "aria-selected",
-      String(active)
-    );
-
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-pressed", String(active));
   });
-
 }
 
-
-// ==================== 리더보드 탭 전환 ====================
-
 function changeLeaderboardTab(className) {
-
   if (
     !ALLOWED_CLASSES.includes(className) &&
     className !== "archive"
-  ) {
-    return;
-  }
+  ) return;
 
-  if (currentClass === className) {
-    return;
-  }
+  if (currentClass === className) return;
 
   closeDetail();
-
   currentClass = className;
 
   updateTabs();
-
   loadLeaderboard();
-
 }
 
 
 // ==================== 리더보드 출력 ====================
 
 function renderLeaderboard(records) {
-
   leaderboardBody.replaceChildren();
 
   if (records.length === 0) {
-
-    renderMessage(
-      "아직 등록된 도전 기록이 없습니다."
-    );
-
+    renderMessage("아직 등록된 도전 기록이 없습니다.");
     return;
-
   }
 
   records.forEach((record, index) => {
-
     const row = document.createElement("tr");
 
-    const rank = document.createElement("td");
-
+    const rank = createElement("td", "", index + 1);
     const username = document.createElement("td");
+    const floor = createElement("td", "", `${record.highest_floor}층`);
 
-    const floor = document.createElement("td");
-
-
-    // ==================== 순위 및 층수 ====================
-
-    rank.textContent = index + 1;
-
-    floor.textContent =
-      `${record.highest_floor}층`;
-
-
-    // ==================== 명예의 전당 ====================
-
+    // 명예의 전당은 상세 보기 미지원
     if (currentClass === "archive") {
-
       username.textContent = record.username;
 
-    }
-
-
-    // ==================== 일반 리더보드 ====================
-
-    else {
-
-      const nameButton = createElement(
+    } else {
+      const button = createElement(
         "button",
         "leaderboard-name-button",
         record.username
       );
 
-      nameButton.type = "button";
+      button.type = "button";
+      button.title = "빌드 상세 보기";
 
-      nameButton.title = "빌드 상세 보기";
+      button.addEventListener("click", () => {
+        openDetail(Number(record.id));
+      });
 
-      nameButton.addEventListener(
-        "click",
-        () => {
-
-          openDetail(Number(record.id));
-
-        }
-      );
-
-      username.appendChild(nameButton);
-
+      username.appendChild(button);
     }
 
+    // 상위 3명 강조
+    const rankClasses = [
+      "rank-first",
+      "rank-second",
+      "rank-third"
+    ];
 
-    // ==================== 상위 3명 강조 ====================
-
-    if (index === 0) {
-
-      row.classList.add("rank-first");
-
-    } else if (index === 1) {
-
-      row.classList.add("rank-second");
-
-    } else if (index === 2) {
-
-      row.classList.add("rank-third");
-
+    if (index < 3) {
+      row.classList.add(rankClasses[index]);
     }
 
-
-    row.append(
-      rank,
-      username,
-      floor
-    );
-
+    row.append(rank, username, floor);
     leaderboardBody.appendChild(row);
-
   });
-
 }
 
 
 // ==================== 리더보드 조회 ====================
 
 export async function loadLeaderboard() {
-
-  if (
-    !leaderboardBody ||
-    !leaderboardStatus ||
-    !refreshButton
-  ) {
-
-    console.error(
-      "[리더보드 오류] DOM 요소를 찾을 수 없습니다."
-    );
-
+  if (!leaderboardBody || !leaderboardStatus || !refreshButton) {
+    console.error("리더보드 DOM 요소를 찾을 수 없습니다.");
     return false;
-
   }
 
   const requestId = ++latestRequestId;
-
   const requestedClass = currentClass;
 
   refreshButton.disabled = true;
+  leaderboardStatus.textContent = "기록을 불러오는 중입니다.";
 
-  leaderboardStatus.textContent =
-    "기록을 불러오는 중입니다.";
-
-  renderMessage(
-    "기록을 불러오는 중입니다."
-  );
-
+  renderMessage("기록을 불러오는 중입니다.");
 
   try {
-
     const records = await request(
       `/api/leaderboard?class=${encodeURIComponent(requestedClass)}`
     );
 
-
-    // 이전 요청 응답 무시
-
+    // 이전 요청의 응답 무시
     if (
       requestId !== latestRequestId ||
       requestedClass !== currentClass
-    ) {
-      return false;
-    }
-
-
-    // 응답 검증
+    ) return false;
 
     if (!Array.isArray(records)) {
-
-      throw new Error(
-        "잘못된 리더보드 데이터입니다."
-      );
-
+      throw new Error("잘못된 리더보드 데이터입니다.");
     }
-
-
-    // 리더보드 출력
 
     renderLeaderboard(records);
 
     leaderboardStatus.textContent =
-      `${CLASS_NAMES[currentClass]} 리더보드가 갱신되었습니다.`;
+      `${CLASS_NAMES[currentClass]} 기록이 갱신되었습니다.`;
 
     return true;
 
-
   } catch (error) {
+    if (requestId !== latestRequestId) return false;
 
-    if (requestId !== latestRequestId) {
-      return false;
-    }
-
-    console.error(
-      "[리더보드 조회 실패]",
-      error
-    );
+    console.error("리더보드 조회 실패:", error);
 
     renderMessage(error.message);
-
-    leaderboardStatus.textContent =
-      error.message;
+    leaderboardStatus.textContent = error.message;
 
     return false;
 
-
   } finally {
-
     if (requestId === latestRequestId) {
-
       refreshButton.disabled = false;
-
     }
-
   }
-
 }
 
 
-// ==================== 상세 보기 섹션 생성 ====================
+// ==================== 상세 보기 공통 ====================
 
 function createDetailSection(title) {
-
   const section = createElement(
     "section",
     "leaderboard-detail-section"
   );
 
-  const heading = createElement(
-    "h3",
-    "leaderboard-detail-heading",
-    title
+  section.appendChild(
+    createElement("h3", "leaderboard-detail-heading", title)
   );
-
-  section.appendChild(heading);
 
   return section;
+}
 
+function appendEmpty(section, message) {
+  section.appendChild(
+    createElement("p", "leaderboard-detail-empty", message)
+  );
+
+  return section;
 }
 
 
-// ==================== 능력치 출력 형식 ====================
+// ==================== 최종 능력치 ====================
 
 function formatStatValue(key, value) {
-
-  if (value === null || value === undefined) {
+  if (value == null || !Number.isFinite(value)) {
     return "-";
   }
 
-  const number = Number(value);
+  const formatted = value.toLocaleString("ko-KR", {
+    maximumFractionDigits: 2
+  });
 
-  if (!Number.isFinite(number)) {
-    return "-";
-  }
-
-  const formatted = number.toLocaleString(
-    "ko-KR",
-    {
-      maximumFractionDigits: 2
-    }
-  );
-
-  if (
-    key === "crit" ||
-    key === "critDamage"
-  ) {
-
-    return `${formatted}%`;
-
-  }
-
-  return formatted;
-
+  return ["crit", "critDamage"].includes(key)
+    ? `${formatted}%`
+    : formatted;
 }
 
-
-// ==================== 최종 능력치 출력 ====================
-
 function renderFinalStats(stats) {
+  const section = createDetailSection("최종 능력치");
 
-  const section = createDetailSection(
-    "최종 능력치"
-  );
+  if (!stats || typeof stats !== "object" || Array.isArray(stats)) {
+    return appendEmpty(section, "저장된 능력치 정보가 없습니다.");
+  }
 
-  if (
-    !stats ||
-    typeof stats !== "object" ||
-    Array.isArray(stats)
-  ) {
+  const grid = createElement("div", "leaderboard-stat-grid");
 
-    section.appendChild(
+  for (const [key, label] of Object.entries(STAT_LABELS)) {
+    const stat = createElement("div", "leaderboard-stat");
+
+    stat.append(
+      createElement("span", "leaderboard-stat-name", label),
       createElement(
-        "p",
-        "leaderboard-detail-empty",
-        "저장된 능력치 정보가 없습니다."
+        "strong",
+        "leaderboard-stat-value",
+        formatStatValue(key, stats[key])
       )
     );
 
-    return section;
-
+    grid.appendChild(stat);
   }
-
-  const grid = createElement(
-    "div",
-    "leaderboard-stat-grid"
-  );
-
-  Object.entries(STAT_LABELS).forEach(
-    ([key, label]) => {
-
-      const stat = createElement(
-        "div",
-        "leaderboard-stat"
-      );
-
-      const statName = createElement(
-        "span",
-        "leaderboard-stat-name",
-        label
-      );
-
-      const statValue = createElement(
-        "strong",
-        "leaderboard-stat-value",
-        formatStatValue(
-          key,
-          stats[key]
-        )
-      );
-
-      stat.append(
-        statName,
-        statValue
-      );
-
-      grid.appendChild(stat);
-
-    }
-  );
 
   section.appendChild(grid);
 
   return section;
-
 }
 
 
 // ==================== 오만의 왕관 판별 ====================
 
 function isPrideCrown(item) {
-
-  return item?.name === "오만의 왕관";
-
+  return (
+    item?.id === "arroganceCrown" ||
+    item?.name === "오만의 왕관"
+  );
 }
 
 
-// ==================== 특수 아이템 정렬 ====================
-
-function sortSpecialItems(items) {
-
-  return [...items].sort((a, b) => {
-
-    const priorityA =
-      isPrideCrown(a) ? 0 : 1;
-
-    const priorityB =
-      isPrideCrown(b) ? 0 : 1;
-
-    return priorityA - priorityB;
-
-  });
-
-}
-
-
-// ==================== 특수 아이템 출력 ====================
+// ==================== 특수 아이템 ====================
 
 function renderSpecialItems(items) {
-
-  const section = createDetailSection(
-    "획득 특수 아이템"
-  );
+  const section = createDetailSection("획득 특수 아이템");
 
   if (!Array.isArray(items)) {
-
-    section.appendChild(
-      createElement(
-        "p",
-        "leaderboard-detail-empty",
-        "저장된 특수 아이템 정보가 없습니다."
-      )
-    );
-
-    return section;
-
+    return appendEmpty(section, "저장된 특수 아이템 정보가 없습니다.");
   }
 
-  const validItems = items.filter((item) => {
-
-    return (
-      item &&
-      typeof item.name === "string" &&
-      Number(item.count) > 0
-    );
-
-  });
-
-  if (validItems.length === 0) {
-
-    section.appendChild(
-      createElement(
-        "p",
-        "leaderboard-detail-empty",
-        "획득한 특수 아이템이 없습니다."
-      )
-    );
-
-    return section;
-
-  }
-
-  const list = createElement(
-    "ul",
-    "leaderboard-item-list"
+  const ownedItems = items.filter(item =>
+    item &&
+    typeof item.name === "string" &&
+    Number(item.count) > 0
   );
 
-  const sortedItems =
-    sortSpecialItems(validItems);
+  if (ownedItems.length === 0) {
+    return appendEmpty(section, "획득한 특수 아이템이 없습니다.");
+  }
 
-  sortedItems.forEach((item) => {
+  // 오만의 왕관을 항상 첫 번째로 표시
+  ownedItems.sort((a, b) =>
+    Number(isPrideCrown(b)) - Number(isPrideCrown(a))
+  );
 
-    const row = createElement(
-      "li",
-      "leaderboard-item"
-    );
+  const list = createElement("ul", "leaderboard-item-list");
 
-
-    // 오만의 왕관 강조
+  for (const item of ownedItems) {
+    const row = createElement("li", "leaderboard-item");
 
     if (isPrideCrown(item)) {
-
-      row.classList.add(
-        "leaderboard-item-pride-crown"
-      );
-
+      row.classList.add("leaderboard-item-pride-crown");
     }
 
-
-    // 아이템 이름
-
-    const name = createElement(
-      "span",
-      "leaderboard-item-name",
-      item.name
-    );
-
-
-    // 아이템 보유 스택
-
-    const count = createElement(
-      "span",
-      "leaderboard-item-count",
-      `×${item.count}`
-    );
-
     row.append(
-      name,
-      count
+      createElement("span", "leaderboard-item-name", item.name),
+      createElement("span", "leaderboard-item-count", `×${item.count}`)
     );
 
     list.appendChild(row);
-
-  });
+  }
 
   section.appendChild(list);
 
   return section;
-
 }
 
 
-// ==================== 패시브 출력 ====================
+// ==================== 해금한 패시브 ====================
 
 function renderPassives(passives) {
-
-  const section = createDetailSection(
-    "해금한 패시브"
-  );
+  const section = createDetailSection("해금한 패시브");
 
   if (!Array.isArray(passives)) {
-
-    section.appendChild(
-      createElement(
-        "p",
-        "leaderboard-detail-empty",
-        "저장된 패시브 정보가 없습니다."
-      )
-    );
-
-    return section;
-
+    return appendEmpty(section, "저장된 패시브 정보가 없습니다.");
   }
 
-  const unlockedPassives = passives.filter(
-    (passive) => {
-
-      return (
-        passive &&
-        typeof passive.name === "string" &&
-        Number(passive.level) > 0
-      );
-
-    }
+  const unlocked = passives.filter(passive =>
+    passive &&
+    typeof passive.name === "string" &&
+    Number(passive.level) > 0
   );
 
-  if (unlockedPassives.length === 0) {
-
-    section.appendChild(
-      createElement(
-        "p",
-        "leaderboard-detail-empty",
-        "해금한 패시브가 없습니다."
-      )
-    );
-
-    return section;
-
+  if (unlocked.length === 0) {
+    return appendEmpty(section, "해금한 패시브가 없습니다.");
   }
 
-  const list = createElement(
-    "ul",
-    "leaderboard-passive-list"
-  );
+  const list = createElement("ul", "leaderboard-passive-list");
 
-  unlockedPassives.forEach((passive) => {
-
-    const row = createElement(
-      "li",
-      "leaderboard-passive"
-    );
-
-    const name = createElement(
-      "span",
-      "leaderboard-passive-name",
-      passive.name
-    );
-
-    const level = createElement(
-      "span",
-      "leaderboard-passive-level",
-      `Lv.${passive.level}`
-    );
+  for (const passive of unlocked) {
+    const row = createElement("li", "leaderboard-passive");
 
     row.append(
-      name,
-      level
+      createElement("span", "leaderboard-passive-name", passive.name),
+      createElement("span", "leaderboard-passive-level", `Lv.${passive.level}`)
     );
 
     list.appendChild(row);
-
-  });
+  }
 
   section.appendChild(list);
 
   return section;
-
 }
 
 
 // ==================== 상세 보기 출력 ====================
 
 function renderDetail(record) {
+  detailTitle.textContent = record.username;
 
-  detailBody.replaceChildren();
-
-  detailTitle.textContent =
-    record.username;
-
-
-  // ==================== 기록 요약 ====================
-
-  const summary = createElement(
-    "div",
-    "leaderboard-detail-summary"
-  );
-
-  const className = createElement(
-    "span",
-    "leaderboard-detail-class",
-    CLASS_NAMES[record.class_name] ||
-    record.class_name
-  );
-
-  const floor = createElement(
-    "strong",
-    "leaderboard-detail-floor",
-    `${record.highest_floor}층`
-  );
+  const summary = createElement("div", "leaderboard-detail-summary");
 
   summary.append(
-    className,
-    floor
-  );
-
-
-  // ==================== 빌드 상세 정보 ====================
-
-  detailBody.append(
-
-    summary,
-
-    renderFinalStats(
-      record.final_stats
+    createElement(
+      "span",
+      "leaderboard-detail-class",
+      CLASS_NAMES[record.class_name] || record.class_name
     ),
-
-    renderSpecialItems(
-      record.special_items
-    ),
-
-    renderPassives(
-      record.passives
+    createElement(
+      "strong",
+      "leaderboard-detail-floor",
+      `${record.highest_floor}층`
     )
-
   );
 
+  detailBody.replaceChildren(
+    summary,
+    renderFinalStats(record.final_stats),
+    renderSpecialItems(record.special_items),
+    renderPassives(record.passives)
+  );
 
-  // ==================== 삭제 권한 확인 ====================
-
+  // 본인 또는 관리자에게만 삭제 버튼 표시
   if (deleteButton) {
-
-    deleteButton.hidden =
-      record.can_delete !== true;
-
-    deleteButton.disabled =
-      deletingRecord;
-
+    deleteButton.hidden = record.can_delete !== true;
+    deleteButton.disabled = deletingRecord;
   }
-
 }
 
 
 // ==================== 상세 보기 열기 ====================
 
 async function openDetail(recordId) {
+  if (currentClass === "archive") return;
 
-  if (currentClass === "archive") {
+  if (!Number.isSafeInteger(recordId) || recordId < 1) {
     return;
   }
 
-  if (
-    !Number.isSafeInteger(recordId) ||
-    recordId < 1
-  ) {
+  if (!detailModal || !detailTitle || !detailBody) {
+    console.error("상세 보기 DOM 요소를 찾을 수 없습니다.");
     return;
   }
 
-  if (
-    !detailModal ||
-    !detailTitle ||
-    !detailBody
-  ) {
-
-    console.error(
-      "[상세 보기 오류] DOM 요소를 찾을 수 없습니다."
-    );
-
-    return;
-
-  }
-
-  const requestId =
-    ++latestDetailRequestId;
+  const requestId = ++latestDetailRequestId;
 
   selectedRecordId = null;
 
-  detailTitle.textContent =
-    "도전 기록 상세 보기";
+  detailTitle.textContent = "도전 기록 상세 보기";
+  detailBody.textContent = "빌드 정보를 불러오는 중입니다.";
 
-  detailBody.textContent =
-    "빌드 정보를 불러오는 중입니다.";
-
-  if (deleteButton) {
-
-    deleteButton.hidden = true;
-
-  }
+  if (deleteButton) deleteButton.hidden = true;
 
   if (!detailModal.open) {
-
     detailModal.showModal();
-
   }
 
-
   try {
-
-    const data = await request(
-      `/api/runs/${recordId}`
-    );
-
-
-    // 이전 상세 보기 요청 응답 무시
+    const data = await request(`/api/runs/${recordId}`);
 
     if (
       requestId !== latestDetailRequestId ||
       !detailModal.open ||
       currentClass === "archive"
-    ) {
-      return;
-    }
+    ) return;
 
-
-    // 데이터 검증
-
-    if (
-      data?.success !== true ||
-      !data.record
-    ) {
-
-      throw new Error(
-        "빌드 정보를 불러오지 못했습니다."
-      );
-
+    if (data?.success !== true || !data.record) {
+      throw new Error("빌드 정보를 불러오지 못했습니다.");
     }
 
     selectedRecordId = recordId;
 
     renderDetail(data.record);
 
-
   } catch (error) {
+    if (requestId !== latestDetailRequestId) return;
 
-    if (
-      requestId !== latestDetailRequestId
-    ) {
-      return;
-    }
+    console.error("상세 보기 조회 실패:", error);
 
-    console.error(
-      "[상세 보기 조회 실패]",
-      error
-    );
-
-    detailBody.textContent =
-      error.message;
-
+    detailBody.textContent = error.message;
   }
-
 }
 
 
 // ==================== 상세 보기 닫기 ====================
 
 function closeDetail() {
-
   ++latestDetailRequestId;
 
   selectedRecordId = null;
 
-  if (deleteButton) {
-
-    deleteButton.hidden = true;
-
-  }
+  if (deleteButton) deleteButton.hidden = true;
 
   if (detailModal?.open) {
-
     detailModal.close();
-
   }
-
 }
 
 
 // ==================== 기록 삭제 ====================
 
 async function deleteRecord() {
-
   if (
     deletingRecord ||
     currentClass === "archive" ||
     !selectedRecordId ||
     !deleteButton ||
     deleteButton.hidden
-  ) {
-    return;
-  }
+  ) return;
 
   if (!isLoggedIn()) {
-
     alert("로그인이 필요합니다.");
-
     return;
-
   }
 
   const confirmed = window.confirm(
-
     "도전 기록을 삭제하시겠습니까?\n" +
     "삭제된 기록은 복구할 수 없습니다."
-
   );
 
-  if (!confirmed) {
-    return;
-  }
+  if (!confirmed) return;
 
   const recordId = selectedRecordId;
 
   deletingRecord = true;
-
   deleteButton.disabled = true;
 
-
   try {
-
-    const data = await request(
-      `/api/runs/${recordId}`,
-      {
-        method: "DELETE"
-      }
-    );
+    const data = await request(`/api/runs/${recordId}`, {
+      method: "DELETE"
+    });
 
     if (data?.success !== true) {
-
-      throw new Error(
-        data?.message ||
-        "기록 삭제에 실패했습니다."
-      );
-
+      throw new Error(data?.message || "기록 삭제에 실패했습니다.");
     }
 
     if (selectedRecordId === recordId) {
-
       closeDetail();
-
     }
 
     await loadLeaderboard();
 
-    alert(
-      data.message ||
-      "기록이 삭제되었습니다."
-    );
-
+    alert(data.message || "기록이 삭제되었습니다.");
 
   } catch (error) {
-
-    console.error(
-      "[리더보드 삭제 실패]",
-      error
-    );
+    console.error("리더보드 삭제 실패:", error);
 
     alert(error.message);
 
-
   } finally {
-
     deletingRecord = false;
-
     deleteButton.disabled = false;
-
   }
-
 }
 
 
 // ==================== 도전 기록 저장 ====================
 
-export async function saveRun(
-  highestFloor,
-  className,
-  build
-) {
-
-  // ==================== 로그인 확인 ====================
-
+export async function saveRun(highestFloor, className, build) {
   if (!isLoggedIn()) {
-
     return {
       success: false,
       message: "로그인이 필요합니다."
     };
-
   }
 
+  // 관리자 기록 등록 방지
+  if (document.body.dataset.userRole === "admin") {
+    return {
+      success: false,
+      message: "관리자 기록은 저장되지 않습니다."
+    };
+  }
 
-  // ==================== 층수 검증 ====================
-
+  // 층수 검증
   if (
     !Number.isSafeInteger(highestFloor) ||
     highestFloor < 1 ||
     highestFloor > 2147483647
   ) {
-
     return {
       success: false,
       message: "잘못된 클리어 층수입니다."
     };
-
   }
 
-
-  // ==================== 클래스 검증 ====================
-
+  // 클래스 검증
   if (!ALLOWED_CLASSES.includes(className)) {
-
     return {
       success: false,
       message: "잘못된 클래스 정보입니다."
     };
-
   }
 
-
-  // ==================== 빌드 데이터 검증 ====================
-
+  // 빌드 데이터 검증
   if (
     !build ||
     !build.final_stats ||
@@ -1538,246 +604,107 @@ export async function saveRun(
     !Array.isArray(build.special_items) ||
     !Array.isArray(build.passives)
   ) {
-
     return {
       success: false,
       message: "잘못된 빌드 정보입니다."
     };
-
   }
-
-
-  // ==================== 서버 기록 저장 ====================
-
-  let data;
 
   try {
+    const data = await request("/api/runs", {
+      method: "POST",
 
-    data = await request(
-      "/api/runs",
-      {
-        method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
 
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-
-          highest_floor: highestFloor,
-
-          class_name: className,
-
-          final_stats: build.final_stats,
-
-          special_items: build.special_items,
-
-          passives: build.passives
-
-        })
-
-      }
-    );
+      body: JSON.stringify({
+        highest_floor: highestFloor,
+        class_name: className,
+        final_stats: build.final_stats,
+        special_items: build.special_items,
+        passives: build.passives
+      })
+    });
 
     if (data?.success !== true) {
-
-      throw new Error(
-        data?.message ||
-        "기록 저장에 실패했습니다."
-      );
-
+      throw new Error(data?.message || "기록 저장 실패");
     }
 
+    // 최고 기록을 경신한 경우
+    if (data.updated) {
+      console.log(`[최고 기록 경신] ${data.highest_floor}층`);
+
+      const refreshed = await loadLeaderboard();
+
+      return {
+        success: true,
+        updated: true,
+        refreshed,
+        message: refreshed
+          ? data.message
+          : "기록은 저장되었으나 순위 갱신에 실패했습니다."
+      };
+    }
+
+    // 기존 최고 기록 유지
+    return {
+      success: true,
+      updated: false,
+      message: data.message
+    };
 
   } catch (error) {
-
-    console.error(
-      "[도전 기록 갱신 실패]",
-      error
-    );
+    console.error("도전 기록 갱신 실패:", error);
 
     return {
-
       success: false,
-
       message: error.message
-
     };
-
   }
-
-
-  // ==================== 최고 기록 경신 ====================
-
-  if (data.updated) {
-
-    console.log(
-      `[최고 기록 경신] ${data.highest_floor}층`
-    );
-
-    const refreshed =
-      await loadLeaderboard();
-
-    return {
-
-      success: true,
-
-      updated: true,
-
-      refreshed,
-
-      message: refreshed
-
-        ? data.message
-
-        : "기록은 저장되었으나 순위 갱신에 실패했습니다."
-
-    };
-
-  }
-
-
-  // ==================== 기존 최고 기록 유지 ====================
-
-  return {
-
-    success: true,
-
-    updated: false,
-
-    message: data.message
-
-  };
-
 }
 
 
-// ==================== 탭 이벤트 등록 ====================
+// ==================== 이벤트 등록 ====================
 
-leaderboardTabs.forEach((tab) => {
-
-  tab.addEventListener(
-    "click",
-    () => {
-
-      changeLeaderboardTab(
-        tab.dataset.leaderboardClass
-      );
-
-    }
-  );
-
+leaderboardTabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    changeLeaderboardTab(tab.dataset.leaderboardClass);
+  });
 });
 
+refreshButton?.addEventListener("click", loadLeaderboard);
 
-// ==================== 새로고침 이벤트 ====================
+detailCloseButton?.addEventListener("click", closeDetail);
 
-if (refreshButton) {
-
-  refreshButton.addEventListener(
-    "click",
-    () => {
-
-      loadLeaderboard();
-
-    }
-  );
-
-}
-
-
-// ==================== 상세 보기 닫기 이벤트 ====================
-
-if (detailCloseButton) {
-
-  detailCloseButton.addEventListener(
-    "click",
-    closeDetail
-  );
-
-}
-
-
-// ==================== ESC 및 배경 클릭 ====================
+deleteButton?.addEventListener("click", deleteRecord);
 
 if (detailModal) {
+  // ESC 키로 닫기
+  detailModal.addEventListener("cancel", event => {
+    event.preventDefault();
+    closeDetail();
+  });
 
-  detailModal.addEventListener(
-    "cancel",
-    (event) => {
+  // 팝업 외부 클릭 시 닫기
+  detailModal.addEventListener("click", event => {
+    if (event.target !== detailModal) return;
 
-      event.preventDefault();
+    const rect = detailModal.getBoundingClientRect();
 
+    if (
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
+    ) {
       closeDetail();
-
     }
-  );
-
-  detailModal.addEventListener(
-    "click",
-    (event) => {
-
-      if (event.target === detailModal) {
-
-        closeDetail();
-
-      }
-
-    }
-  );
-
-}
-
-
-// ==================== 기록 삭제 이벤트 ====================
-
-if (deleteButton) {
-
-  deleteButton.addEventListener(
-    "click",
-    deleteRecord
-  );
-
+  });
 }
 
 
 // ==================== 초기 실행 ====================
 
 updateTabs();
-
-loadLeaderboard();
-    };
-
-  }
-
-
-  // 기존 최고 기록 유지
-  return {
-
-    success: true,
-
-    updated: false,
-
-    message: data.message
-
-  };
-
-}
-
-// ==================== 이벤트 등록 ====================
-
-if (refreshButton) {
-
-  refreshButton.addEventListener(
-    "click",
-    () => {
-      loadLeaderboard();
-    }
-  );
-
-}
-
-
-// ==================== 초기 실행 ====================
-
 loadLeaderboard();
