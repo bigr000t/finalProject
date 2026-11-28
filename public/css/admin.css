@@ -61,7 +61,11 @@
   font-size: 0.9rem;
 }
 
-.admin-panel input {
+
+/* ==================== 공통 입력 요소 ==================== */
+
+.admin-panel input,
+.admin-panel select {
   width: 100%;
   box-sizing: border-box;
   padding: 10px;
@@ -71,9 +75,29 @@
   color: #eeeeee;
 }
 
-.admin-panel input:focus {
+.admin-panel input:focus,
+.admin-panel select:focus {
   outline: 1px solid #d4af37;
   border-color: #d4af37;
+}
+
+
+/* ==================== 게시판 생성 ==================== */
+
+.admin-board-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-board-form label {
+  color: #e6bf65;
+  font-size: 0.9rem;
+}
+
+.admin-board-form .admin-actions {
+  justify-content: flex-end;
+  margin-top: 8px;
 }
 
 
@@ -107,12 +131,19 @@
 
 /* ==================== 관리자 처리 결과 ==================== */
 
-#adminMessage {
+#adminMessage,
+#adminBoardMessage {
   color: #e6bf65;
   font-size: 0.9rem;
   margin-top: 12px;
 }
 
-#adminMessage[data-error="true"] {
+#adminMessage[data-error="true"],
+#adminBoardMessage[data-error="true"] {
   color: #ef8080;
+}
+
+#adminMessage:empty,
+#adminBoardMessage:empty {
+  display: none;
 }
