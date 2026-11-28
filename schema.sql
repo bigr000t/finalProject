@@ -4,7 +4,8 @@ COLLATE utf8mb4_unicode_ci;
 
 USE finalProject;
 
--- ==================== 계정관리 ====================
+
+-- ==================== 계정 관리 ====================
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -13,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     role ENUM('user', 'admin') NOT NULL DEFAULT 'user'
 );
+
 
 -- ==================== 커뮤니티 ====================
 
@@ -24,9 +26,11 @@ CREATE TABLE IF NOT EXISTS posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
+
     FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE
 );
+
 
 -- ==================== 리더보드 ====================
 
@@ -36,19 +40,39 @@ CREATE TABLE IF NOT EXISTS runs (
     highest_floor INT NOT NULL,
     class_name VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    final_stats JSON,
+    special_items JSON,
+    passives JSON,
+
+    UNIQUE KEY uq_runs_user_id (user_id),
+    KEY idx_runs_class_floor (class_name, highest_floor DESC),
+
     FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE
 );
+
+
+-- ==================== 명예의 전당 ====================
+
+CREATE TABLE IF NOT EXISTS runs_archive (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    highest_floor INT NOT NULL,
+    class_name VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 -- ==================== 게임 저장 데이터 ====================
 
 CREATE TABLE IF NOT EXISTS game_saves (
     user_id INT NOT NULL PRIMARY KEY,
     save_data JSON NOT NULL,
-    updated_at TIMESTAMP
-        DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id)
-        REFERENCES users(id)
+
+    FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE
 );
