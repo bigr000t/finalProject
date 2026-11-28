@@ -10,6 +10,7 @@ import {
   getMaxHp,
   getHighestFloor,
   isLoggedIn,
+  isAdmin,
   saveGame,
   loadGame,
   deleteSave,
@@ -71,12 +72,13 @@ const pendingSaves = new Set();
 
 async function autoSave(force = false) {
 
-  // 종료된 도전의 자동 저장 방지
+  // 관리자 및 종료된 도전의 자동 저장 방지
 
   if (
     abandoning ||
     finishing ||
-    !isLoggedIn()
+    !isLoggedIn() ||
+    isAdmin()
   ) {
     return false;
   }
@@ -238,28 +240,16 @@ function handleBattleEvents(events) {
       // ==================== 일반 전투 효과 ====================
 
       case "lifesteal":
-
       case "reflection":
-
       case "counterAttack":
-
       case "lastStrike":
-
       case "magicBurst":
-
       case "extraAttack":
-
       case "damageBonus":
-
       case "damagePenalty":
-
       case "damageReduction":
-
       case "guard":
-
       case "damageNullified":
-
-        // 화면 출력은 renderBattleEvent()에서 처리
 
         break;
 
@@ -267,8 +257,6 @@ function handleBattleEvents(events) {
       // ==================== 불사의 증표 ====================
 
       case "revive":
-
-        // 증표 소모 상태 즉시 저장
 
         forceSave = true;
 
@@ -281,9 +269,6 @@ function handleBattleEvents(events) {
 
         battleEnded = true;
 
-        // 엘리트 패시브 포인트는
-        // battle.js에서 이미 지급됨
-
         renderAll();
 
         autoSave(true);
@@ -291,7 +276,9 @@ function handleBattleEvents(events) {
 
         // ==================== 실시간 리더보드 갱신 ====================
 
-        if (isLoggedIn()) {
+        // 관리자 계정은 등록 요청을 보내지 않음
+
+        if (isLoggedIn() && !isAdmin()) {
 
           const currentPlayer = state.player;
 
@@ -360,15 +347,11 @@ function handleBattleEvents(events) {
 
     if (forceSave) {
 
-      // 증표 소모 후 빌드 및 아이템 정보 갱신
-
       renderAll();
 
       autoSave(true);
 
     } else {
-
-      // 일반 전투 화면 갱신
 
       renderCombat();
 
@@ -383,8 +366,7 @@ function handleBattleEvents(events) {
 
 // ==================== 최대 생명력 소진 처리 ====================
 
-// 특수 아이템의 최대 생명력 감소로 사망하는 경우
-// 일반 전투 패배와 별도로 처리
+// 특수 아이템의 최대 생명력 감소로 사망
 // 불사의 증표는 발동하지 않음
 
 function handleFatalHpLoss() {
@@ -394,19 +376,17 @@ function handleFatalHpLoss() {
   }
 
 
-  // ==================== 최대 생명력 확인 ====================
+  // 최대 생명력 확인
 
   if (
     state.phase !== "dead" &&
     getMaxHp(state) > 0
   ) {
-
     return false;
-
   }
 
 
-  // ==================== 사망 상태 적용 ====================
+  // 사망 상태 적용
 
   stopBattle();
 
@@ -417,29 +397,20 @@ function handleFatalHpLoss() {
   state.rewards = [];
 
 
-  // ==================== 사망 로그 ====================
+  // 사망 로그
 
   addLog(
-
     "최대 생명력이 소진되어 사망했습니다.",
-
     "danger"
-
   );
 
   addLog(
-
     "불사의 증표로 소생할 수 없습니다.",
-
     "danger"
-
   );
 
 
-  // ==================== 도전 종료 ====================
-
-  // state.js의 getHighestFloor()에서
-  // 이미 클리어한 현재 층을 기록에 포함
+  // 도전 종료
 
   finishRun();
 
@@ -462,7 +433,7 @@ function selectReward(rewardId) {
   }
 
 
-  // ==================== 실제 제시된 보상 확인 ====================
+  // 실제 제시된 보상 확인
 
   const offered = state.rewards.some(
     reward => reward.id === rewardId
@@ -519,53 +490,41 @@ function selectReward(rewardId) {
     );
 
 
-    // ==================== 오만의 왕관 최초 획득 ====================
+    // 오만의 왕관 최초 획득
 
     if (reward.crownAcquired) {
 
       addLog(
-
         "오만의 왕관이 즉시 최대 중첩에 도달했습니다.",
-
         "success"
-
       );
 
       addLog(
-
         "다른 모든 특수 아이템의 효과가 무효화됩니다.",
-
         "normal"
-
       );
 
       addLog(
-
         "클래스 패시브는 정상적으로 유지됩니다.",
-
         "normal"
-
       );
 
     }
 
 
-    // ==================== 왕관 보유 중 아이템 획득 ====================
+    // 왕관 보유 중 아이템 획득
 
     if (reward.disabled) {
 
       addLog(
-
         "획득한 아이템은 오만의 왕관 성장에 기여합니다.",
-
         "success"
-
       );
 
     }
 
 
-    // ==================== 최대 생명력 변경 로그 ====================
+    // 최대 생명력 변경 로그
 
     if (
       Number.isFinite(reward.beforeMaxHp) &&
@@ -579,7 +538,6 @@ function selectReward(rewardId) {
       addLog(
 
         `최대 생명력: ${reward.beforeMaxHp}` +
-
         ` → ${reward.afterMaxHp}`,
 
         increased ? "success" : "danger"
@@ -590,7 +548,7 @@ function selectReward(rewardId) {
 
   } else {
 
-    // ==================== 일반 보상 획득 ====================
+    // 일반 보상 획득
 
     addLog(
       `${reward.title} 획득!`,
@@ -601,11 +559,6 @@ function selectReward(rewardId) {
 
 
   // ==================== 최대 생명력 감소 즉사 ====================
-
-  // reward.js의 syncPlayerHp()에서
-  // 사망 상태가 이미 적용됨
-
-  // 사망한 경우 상점 단계로 넘어가지 않음
 
   if (
     reward.fatal ||
@@ -686,7 +639,7 @@ function handleItemPurchase(itemId) {
   );
 
 
-  // ==================== 최대 생명력 소진 확인 ====================
+  // 최대 생명력 소진 확인
 
   if (
     state.phase === "dead" ||
@@ -698,10 +651,6 @@ function handleItemPurchase(itemId) {
     return;
 
   }
-
-
-  // 축복받은 성배의 추가 회복량은
-  // shop.js의 구매 메시지에 포함됨
 
   renderAll();
 
@@ -715,7 +664,7 @@ function handleItemPurchase(itemId) {
 function handlePassiveUpgrade(passiveId) {
 
 
-  // ==================== 강화 가능 단계 확인 ====================
+  // 강화 가능 단계 확인
 
   if (
     state.phase !== "shop" ||
@@ -726,7 +675,7 @@ function handlePassiveUpgrade(passiveId) {
   }
 
 
-  // ==================== 패시브 조회 ====================
+  // 패시브 조회
 
   const passive = getPassive(
     state.classKey,
@@ -745,7 +694,7 @@ function handlePassiveUpgrade(passiveId) {
   }
 
 
-  // ==================== 기존 패시브 레벨 ====================
+  // 기존 패시브 레벨
 
   const beforeLevel = getPassiveLevel(
     state.passives,
@@ -753,7 +702,7 @@ function handlePassiveUpgrade(passiveId) {
   );
 
 
-  // ==================== 최대 레벨 확인 ====================
+  // 최대 레벨 확인
 
   if (beforeLevel >= MAX_PASSIVE_LEVEL) {
 
@@ -767,7 +716,7 @@ function handlePassiveUpgrade(passiveId) {
   }
 
 
-  // ==================== 패시브 포인트 확인 ====================
+  // 패시브 포인트 확인
 
   if (state.passivePoints <= 0) {
 
@@ -781,7 +730,7 @@ function handlePassiveUpgrade(passiveId) {
   }
 
 
-  // ==================== 패시브 강화 적용 ====================
+  // 패시브 강화 적용
 
   const success = upgradePassive(
     passiveId,
@@ -800,7 +749,7 @@ function handlePassiveUpgrade(passiveId) {
   }
 
 
-  // ==================== 강화된 패시브 레벨 ====================
+  // 강화된 패시브 레벨
 
   const afterLevel = getPassiveLevel(
     state.passives,
@@ -808,12 +757,15 @@ function handlePassiveUpgrade(passiveId) {
   );
 
 
-  // ==================== 강화 결과 로그 ====================
+  // 강화 결과 로그
 
   addLog(
+
     `${passive.name} 강화! ` +
     `Lv.${beforeLevel} → Lv.${afterLevel}`,
+
     "success"
+
   );
 
   addLog(
@@ -822,7 +774,7 @@ function handlePassiveUpgrade(passiveId) {
   );
 
 
-  // ==================== 최대 레벨 달성 ====================
+  // 최대 레벨 달성
 
   if (afterLevel >= MAX_PASSIVE_LEVEL) {
 
@@ -834,7 +786,7 @@ function handlePassiveUpgrade(passiveId) {
   }
 
 
-  // ==================== 최대 생명력 소진 확인 ====================
+  // 최대 생명력 소진 확인
 
   if (
     state.phase === "dead" ||
@@ -848,7 +800,7 @@ function handlePassiveUpgrade(passiveId) {
   }
 
 
-  // ==================== 화면 갱신 및 저장 ====================
+  // 화면 갱신 및 저장
 
   renderAll();
 
@@ -867,13 +819,11 @@ function handleNextFloor() {
     finishing ||
     state.phase !== "shop"
   ) {
-
     return;
-
   }
 
 
-  // ==================== 생존 여부 확인 ====================
+  // 생존 여부 확인
 
   if (
     state.player &&
@@ -887,7 +837,7 @@ function handleNextFloor() {
   }
 
 
-  // ==================== 다음 층 적용 ====================
+  // 다음 층 적용
 
   if (!advanceFloor()) {
     return;
@@ -926,17 +876,27 @@ async function finishRun() {
     renderAll();
 
 
-    // ==================== 최고 클리어 기록 ====================
+    // ==================== 관리자 기록 저장 제외 ====================
 
-    // 일반 전투 사망 : 현재 층 - 1
-    // 보상 획득에 의한 사망 : 현재 층
+    if (isAdmin()) {
+
+      renderSaveStatus(
+        "관리자 계정의 도전 기록은 저장되지 않습니다."
+      );
+
+      return;
+
+    }
+
+
+    // 최고 클리어 기록
 
     const highestFloor = getHighestFloor();
 
     const classKey = state.classKey;
 
 
-    // ==================== 비로그인 사용자 ====================
+    // 비로그인 사용자
 
     if (!isLoggedIn()) {
 
@@ -949,17 +909,14 @@ async function finishRun() {
     }
 
 
-    // ==================== 기존 자동 저장 완료 대기 ====================
-
-    // 종료된 도전의 진행 데이터가
-    // 뒤늦게 다시 저장되는 문제 방지
+    // 기존 자동 저장 완료 대기
 
     await Promise.allSettled(
       [...pendingSaves]
     );
 
 
-    // ==================== 도전 기록 저장 ====================
+    // 도전 기록 저장
 
     renderSaveStatus(
       "도전 기록 저장 중..."
@@ -997,7 +954,7 @@ async function finishRun() {
     }
 
 
-    // ==================== 종료된 도전 저장 데이터 삭제 ====================
+    // 종료된 도전 저장 데이터 삭제
 
     const deleted = await deleteSave();
 
@@ -1037,7 +994,7 @@ async function finishRun() {
 async function abandonRun() {
 
 
-  // ==================== 중복 실행 방지 ====================
+  // 중복 실행 방지
 
   if (
     abandoning ||
@@ -1048,7 +1005,7 @@ async function abandonRun() {
   }
 
 
-  // ==================== 도전 포기 가능 상태 확인 ====================
+  // 도전 포기 가능 상태 확인
 
   const allowedPhases = [
     "rolling",
@@ -1062,7 +1019,7 @@ async function abandonRun() {
   }
 
 
-  // ==================== 사용자 확인 ====================
+  // 사용자 확인
 
   const confirmed = window.confirm(
 
@@ -1072,7 +1029,11 @@ async function abandonRun() {
 
     "특수 아이템이 초기화됩니다.\n" +
 
-    "리더보드 최고 기록은 유지됩니다."
+    (
+      isAdmin()
+        ? "관리자 기록은 저장되지 않습니다."
+        : "리더보드 최고 기록은 유지됩니다."
+    )
 
   );
 
@@ -1088,32 +1049,30 @@ async function abandonRun() {
     document.getElementById("game");
 
 
-  // ==================== 게임 조작 잠금 ====================
+  // 게임 조작 잠금
 
   if (gameSection) {
-
     gameSection.inert = true;
-
   }
 
 
-  // ==================== 전투 정지 ====================
+  // 전투 정지
 
   stopBattle();
 
   try {
 
 
-    // ==================== 진행 중인 자동 저장 완료 대기 ====================
+    // 진행 중인 자동 저장 완료 대기
 
     await Promise.allSettled(
       [...pendingSaves]
     );
 
 
-    // ==================== 로그인 사용자 저장 데이터 처리 ====================
+    // ==================== 일반 사용자만 기록 처리 ====================
 
-    if (isLoggedIn()) {
+    if (isLoggedIn() && !isAdmin()) {
 
 
       // 아직 반영되지 않은 최고 기록 저장 재시도
@@ -1154,29 +1113,29 @@ async function abandonRun() {
     }
 
 
-    // ==================== 게임 상태 초기화 ====================
+    // 게임 상태 초기화
 
     resetState();
 
 
-    // ==================== 기존 전투 로그 삭제 ====================
+    // 기존 전투 로그 삭제
 
     clearLogs();
 
 
-    // ==================== 남아 있는 전투 효과 제거 ====================
+    // 남아 있는 전투 효과 제거
 
     DOM.battleEffects?.replaceChildren();
 
 
-    // ==================== 저장 상태 초기화 ====================
+    // 저장 상태 초기화
 
     renderSaveStatus("");
 
     lastSaveTime = 0;
 
 
-    // ==================== 클래스 선택 화면 복귀 ====================
+    // 클래스 선택 화면 복귀
 
     renderAll();
 
@@ -1202,7 +1161,7 @@ async function abandonRun() {
     );
 
 
-    // ==================== 실패 시 기존 전투 재개 ====================
+    // 실패 시 기존 전투 재개
 
     if (
       previousPhase === "combat" &&
@@ -1286,13 +1245,7 @@ function handleChoiceClick(event) {
 
   const id = button.dataset.id;
 
-
-  // ==================== 버튼 종류별 처리 ====================
-
   switch (action) {
-
-
-    // ==================== 보상 선택 ====================
 
     case "reward":
 
@@ -1301,16 +1254,12 @@ function handleChoiceClick(event) {
       break;
 
 
-    // ==================== 일반 상점 상품 구매 ====================
-
     case "buy-item":
 
       handleItemPurchase(id);
 
       break;
 
-
-    // ==================== 패시브 강화 ====================
 
     case "upgrade-passive":
 
@@ -1328,7 +1277,7 @@ function handleChoiceClick(event) {
 function bindEvents() {
 
 
-  // ==================== 클래스 선택 ====================
+  // 클래스 선택
 
   DOM.classList.addEventListener(
     "click",
@@ -1348,7 +1297,7 @@ function bindEvents() {
   );
 
 
-  // ==================== 초기 스탯 리롤 ====================
+  // 초기 스탯 리롤
 
   DOM.rerollStats.addEventListener(
     "click",
@@ -1356,7 +1305,7 @@ function bindEvents() {
   );
 
 
-  // ==================== 초기 스탯 확정 ====================
+  // 초기 스탯 확정
 
   DOM.confirmStats.addEventListener(
     "click",
@@ -1364,7 +1313,7 @@ function bindEvents() {
   );
 
 
-  // ==================== 보상 선택 ====================
+  // 보상 선택
 
   DOM.rewards.addEventListener(
     "click",
@@ -1372,7 +1321,7 @@ function bindEvents() {
   );
 
 
-  // ==================== 보상 리롤 ====================
+  // 보상 리롤
 
   DOM.rerollRewards.addEventListener(
     "click",
@@ -1380,7 +1329,7 @@ function bindEvents() {
   );
 
 
-  // ==================== 일반 상점 ====================
+  // 일반 상점
 
   DOM.shopItems.addEventListener(
     "click",
@@ -1388,7 +1337,7 @@ function bindEvents() {
   );
 
 
-  // ==================== 패시브 강화 ====================
+  // 패시브 강화
 
   DOM.passives.addEventListener(
     "click",
@@ -1396,7 +1345,7 @@ function bindEvents() {
   );
 
 
-  // ==================== 다음 층 진입 ====================
+  // 다음 층 진입
 
   DOM.nextFloor.addEventListener(
     "click",
@@ -1404,7 +1353,7 @@ function bindEvents() {
   );
 
 
-  // ==================== 새로운 도전 ====================
+  // 새로운 도전
 
   DOM.restart.addEventListener(
     "click",
@@ -1412,7 +1361,7 @@ function bindEvents() {
   );
 
 
-  // ==================== 도전 포기 ====================
+  // 도전 포기
 
   DOM.abandonRun?.addEventListener(
     "click",
@@ -1422,11 +1371,42 @@ function bindEvents() {
 }
 
 
+// ==================== 관리자 모드 초기화 ====================
+
+async function initializeAdmin() {
+
+  if (!isAdmin()) {
+    return;
+  }
+
+  const { bindAdminControls } = await import(
+    "./admin.js"
+  );
+
+  bindAdminControls({
+
+    canControl: () => (
+
+      !initializing &&
+      !abandoning &&
+      !finishing
+
+    ),
+
+    onFloorChanged: beginCombat
+
+  });
+
+}
+
+
 // ==================== 저장된 게임 복구 ====================
 
 async function restoreGame() {
 
-  if (!isLoggedIn()) {
+  // 관리자 계정은 이전 게임 데이터를 불러오지 않음
+
+  if (!isLoggedIn() || isAdmin()) {
     return false;
   }
 
@@ -1437,7 +1417,7 @@ async function restoreGame() {
   }
 
 
-  // ==================== 복구 결과 로그 ====================
+  // 복구 결과 로그
 
   addLog(
     "저장된 도전을 불러왔습니다.",
@@ -1459,7 +1439,7 @@ async function restoreGame() {
   renderAll();
 
 
-  // ==================== 전투 도중 저장한 경우 ====================
+  // 전투 도중 저장한 경우
 
   if (state.phase === "combat") {
 
@@ -1490,6 +1470,8 @@ async function initializeGame() {
   try {
 
     await restoreGame();
+
+    await initializeAdmin();
 
   } catch (error) {
 
