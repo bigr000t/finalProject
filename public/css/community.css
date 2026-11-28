@@ -1,295 +1,478 @@
+/* ==================== 기본 설정 ==================== */
+
+#community [hidden] {
+  display: none !important;
+}
+
+
 /* ==================== 커뮤니티 헤더 ==================== */
 
 .community-header {
-
   display: flex;
-
   justify-content: space-between;
-
   align-items: center;
-
   flex-wrap: wrap;
-
   gap: 16px;
-
   margin-bottom: 20px;
-
 }
 
 .community-header h2 {
-
   margin-bottom: 4px;
-
 }
 
 .community-header p {
-
   color: var(--muted);
-
   font-size: 13px;
+}
 
+
+/* ==================== 게시판 탭 ==================== */
+
+.community-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.community-tabs button {
+  padding: 8px 16px;
+  background-color: var(--input);
+  color: var(--muted);
+}
+
+.community-tabs button.active {
+  background-color: #38332a;
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+#openReports {
+  margin-bottom: 16px;
+  color: #e2a5a5;
+}
+
+
+/* ==================== 게시글 도구 ==================== */
+
+.community-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.community-toolbar select {
+  width: auto;
+  min-width: 100px;
+}
+
+#postCount {
+  color: var(--muted);
+  font-size: 13px;
 }
 
 
 /* ==================== 게시글 목록 ==================== */
 
 .post-list {
-
   background-color: var(--input);
-
   border: 1px solid var(--border);
-
 }
 
 .post-list-head,
 .post-list-row {
-
   display: grid;
-
-  grid-template-columns: minmax(0, 1fr) 120px 110px;
-
+  grid-template-columns: 90px minmax(0, 1fr) 120px 50px 110px;
   align-items: center;
-
   gap: 12px;
-
   padding: 14px 16px;
-
 }
 
 .post-list-head {
-
   background-color: #383838;
-
   color: var(--gold);
-
   border-bottom: 1px solid var(--gold-dark);
-
   font-size: 13px;
-
 }
 
 .post-list-row {
-
   width: 100%;
-
   background-color: var(--input);
-
   border: none;
-
   border-bottom: 1px solid var(--border);
-
   border-radius: 0;
-
   box-shadow: none;
-
   text-align: left;
-
 }
 
 .post-list-row:last-child {
-
   border-bottom: none;
-
 }
 
 .post-list-row:hover:not(:disabled) {
-
   background-color: #35332e;
-
 }
 
 .post-list-row:active:not(:disabled) {
-
   transform: none;
-
   box-shadow: none;
-
 }
 
 .post-title {
-
   min-width: 0;
-
   overflow: hidden;
-
   text-overflow: ellipsis;
-
   white-space: nowrap;
-
   color: var(--text);
-
 }
 
+.post-board,
 .post-author,
 .post-date {
-
   min-width: 0;
-
   overflow: hidden;
-
   text-overflow: ellipsis;
-
   white-space: nowrap;
-
   color: var(--muted);
-
   font-size: 12px;
-
 }
 
-.empty-posts {
-
-  padding: 32px 16px;
-
+.post-likes,
+.post-list-head span:nth-child(4) {
   text-align: center;
+}
 
+.post-likes {
   color: var(--muted);
+  font-size: 12px;
+}
 
+.post-comment-count {
+  color: var(--gold);
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.empty-posts,
+#postList > .hint {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--muted);
 }
 
 
-/* ==================== 게시글 모달 ==================== */
+/* ==================== 관리자 게시글 ==================== */
 
-.post-modal {
-
-  width: min(680px, calc(100% - 32px));
-
-  max-height: 85vh;
-
-  padding: 24px;
-
-  background-color: var(--card);
-
-  color: var(--text);
-
-  border: 3px double var(--gold-dark);
-
-  border-radius: 3px;
-
-  box-shadow: 0 12px 40px var(--shadow);
-
+.post-list-row.admin-post {
+  background-color: #302b21;
+  box-shadow: inset 3px 0 var(--gold-dark);
 }
 
-.post-modal::backdrop {
-
-  background-color: rgba(0, 0, 0, 0.75);
-
+.admin-post .post-title,
+.admin-post .post-author,
+.admin-post .post-detail-title,
+.admin-post .post-meta {
+  color: var(--gold);
 }
 
-.modal-header {
+.post-list-row.admin-post:hover:not(:disabled) {
+  background-color: #40382a;
+}
 
+
+/* ==================== 페이지네이션 ==================== */
+
+.community-pagination {
   display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 16px 0;
+}
 
-  justify-content: space-between;
+.community-pagination:empty {
+  display: none;
+}
 
+.community-pagination button {
+  min-width: 36px;
+  padding: 7px 10px;
+}
+
+.community-pagination button.active {
+  background-color: #38332a;
+  border-color: var(--gold);
+  color: var(--gold);
+  opacity: 1;
+}
+
+
+/* ==================== 게시글 검색 ==================== */
+
+.community-search {
+  display: flex;
   align-items: center;
-
-  gap: 16px;
-
-  padding-bottom: 16px;
-
-  margin-bottom: 20px;
-
-  border-bottom: 1px solid var(--border);
-
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
 }
 
-.modal-header h2 {
+.community-search select {
+  width: auto;
+}
 
-  margin: 0;
+.community-search input {
+  flex: 1;
+  width: auto;
+  min-width: 120px;
+}
 
+
+/* ==================== 게시글 상세보기 ==================== */
+
+.community-back {
+  margin-bottom: 16px;
+}
+
+#postDetailContent {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.post-detail-title {
+  margin: 8px 0;
   overflow-wrap: anywhere;
-
-}
-
-.modal-close {
-
-  flex-shrink: 0;
-
-  padding: 6px 12px;
-
 }
 
 .post-meta {
-
   margin-bottom: 20px;
-
   color: var(--muted);
-
   font-size: 12px;
-
 }
 
 .post-content {
-
   min-height: 120px;
-
   padding: 18px;
-
   background-color: var(--input);
-
   border: 1px solid var(--border);
-
   white-space: pre-wrap;
-
   overflow-wrap: anywhere;
-
   line-height: 1.8;
+}
 
+.post-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.like-btn.active {
+  background-color: #38332a;
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.report-btn {
+  color: #e2a5a5;
 }
 
 
 /* ==================== 게시글 작성 및 수정 ==================== */
 
-.modal-form {
-
+.post-form {
   display: grid;
-
-  gap: 14px;
-
+  gap: 12px;
+  margin-top: 16px;
 }
 
-.modal-form textarea {
-
-  min-height: 200px;
-
+.post-form label {
+  color: var(--gold);
+  font-size: 13px;
 }
 
-.modal-form button {
+.post-form input,
+.post-form select,
+.post-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
 
+.post-form textarea {
+  min-height: 300px;
+  resize: vertical;
+  line-height: 1.8;
+}
+
+.post-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.post-form-actions .community-back {
+  margin-bottom: 0;
+}
+
+
+/* ==================== 댓글 ==================== */
+
+.comment-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--gold-dark);
+}
+
+.comment-section h3 {
+  margin-bottom: 16px;
+}
+
+#commentList > .hint {
+  padding: 20px 0;
+  text-align: center;
+}
+
+.comment-row {
+  padding: 14px;
+  background-color: var(--input);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.comment-author {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.comment-date {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.comment-header button {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.comment-content {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.admin-comment {
+  border-left: 3px solid var(--gold-dark);
+  background-color: #302b21;
+}
+
+.admin-comment .comment-author {
+  color: var(--gold);
+}
+
+.comment-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 90px;
+  resize: vertical;
+}
+
+.comment-form button {
   justify-self: end;
-
 }
 
-#modalContent button {
 
+/* ==================== 관리자 신고 관리 ==================== */
+
+.report-row {
+  padding: 16px;
+  margin-bottom: 12px;
+  background-color: var(--input);
+  border: 1px solid var(--border);
+}
+
+.report-title {
+  margin-bottom: 10px;
+  color: var(--gold);
+  overflow-wrap: anywhere;
+}
+
+.report-meta {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.report-status {
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.report-status.pending {
+  color: #e2a5a5;
+}
+
+.report-status.dismissed {
+  color: var(--muted);
+}
+
+.report-status.resolved {
+  color: #8fbe92;
+}
+
+.report-reason {
+  padding: 12px;
+  margin: 12px 0;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 12px;
-
-  margin-right: 8px;
-
 }
 
 
 /* ==================== 삭제 버튼 ==================== */
 
 .delete-btn {
-
   background-color: #492929;
-
   border-color: #754747;
-
   color: #e2a5a5;
-
 }
 
 .delete-btn:hover:not(:disabled) {
-
   background-color: #633333;
-
   border-color: var(--red);
-
   color: #f0baba;
-
 }
 
 
@@ -297,30 +480,76 @@
 
 @media (max-width: 600px) {
 
-  .post-list-head,
-  .post-list-row {
+  .community-tabs {
+    gap: 4px;
+  }
 
-    grid-template-columns: minmax(0, 1fr) 70px 80px;
-
-    gap: 8px;
-
-    padding: 12px 8px;
-
+  .community-tabs button {
+    padding: 7px 10px;
     font-size: 12px;
-
   }
 
-  .post-author,
+  .post-list-head {
+    display: none;
+  }
+
+  .post-list-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "title title title title"
+      "board author likes date";
+    gap: 6px;
+    padding: 12px 10px;
+  }
+
+  .post-title {
+    grid-area: title;
+    font-size: 14px;
+  }
+
+  .post-board {
+    grid-area: board;
+  }
+
+  .post-author {
+    grid-area: author;
+  }
+
   .post-date {
-
-    font-size: 10px;
-
+    grid-area: date;
   }
 
-  .post-modal {
+  .post-likes {
+    grid-area: likes;
+  }
 
-    padding: 16px;
+  .post-likes::before {
+    content: "추천 ";
+  }
 
+  .post-board,
+  .post-author,
+  .post-date,
+  .post-likes {
+    font-size: 10px;
+  }
+
+  .community-search select {
+    width: 100%;
+  }
+
+  .post-content {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .post-form textarea {
+    min-height: 240px;
+  }
+
+  .comment-row,
+  .report-row {
+    padding: 12px;
   }
 
 }
