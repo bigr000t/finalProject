@@ -1,51 +1,98 @@
-
 <section class="panel" id="leaderboard">
 
+  <!-- 리더보드 제목 -->
   <div class="panel-head">
-
     <div>
-
       <h2>🏆 리더보드</h2>
-
-      <p class="hint">
-        사용자별 최고 클리어 기록 TOP 10
-      </p>
-
+      <p class="hint">클래스별 최고 클리어 기록 TOP 10</p>
     </div>
 
-    <button
-      type="button"
-      id="refreshLeaderboard"
-    >
+    <button type="button" id="refreshLeaderboard">
       새로고침
+    </button>
+  </div>
+
+  <!-- 리더보드 탭 -->
+  <div class="leaderboard-tabs" role="group" aria-label="리더보드 분류">
+
+    <button type="button"
+      class="leaderboard-tab active"
+      data-leaderboard-class="warrior">
+      전사
+    </button>
+
+    <button type="button"
+      class="leaderboard-tab"
+      data-leaderboard-class="rogue">
+      도적
+    </button>
+
+    <button type="button"
+      class="leaderboard-tab"
+      data-leaderboard-class="mage">
+      마법사
+    </button>
+
+    <button type="button"
+      class="leaderboard-tab"
+      data-leaderboard-class="archive">
+      명예의 전당
     </button>
 
   </div>
 
+  <!-- 순위 목록 -->
   <table class="leaderboard-table">
-
     <thead>
-
       <tr>
         <th scope="col">순위</th>
         <th scope="col">도전자</th>
         <th scope="col">최고 층수</th>
       </tr>
-
     </thead>
 
     <tbody id="leaderboardBody">
-
       <tr>
         <td colspan="3">
           기록을 불러오는 중입니다.
         </td>
       </tr>
-
     </tbody>
-
   </table>
 
   <p id="leaderboardStatus" class="hint" aria-live="polite"></p>
+
+  <!-- 빌드 상세 보기 -->
+  <dialog
+    id="leaderboardDetailModal"
+    class="leaderboard-detail-modal"
+    aria-labelledby="leaderboardDetailTitle">
+
+    <div class="leaderboard-detail-head">
+      <h2 id="leaderboardDetailTitle">도전 기록 상세 보기</h2>
+
+      <button
+        type="button"
+        id="closeLeaderboardDetail"
+        aria-label="상세 보기 닫기">
+        ✕
+      </button>
+    </div>
+
+    <!-- 능력치, 특수 아이템, 패시브 출력 -->
+    <div id="leaderboardDetailBody"></div>
+
+    <!-- 본인 및 관리자 전용 삭제 버튼 -->
+    <div class="leaderboard-detail-footer">
+      <button
+        type="button"
+        id="deleteLeaderboardRecord"
+        class="leaderboard-delete-button"
+        hidden>
+        기록 삭제
+      </button>
+    </div>
+
+  </dialog>
 
 </section>
