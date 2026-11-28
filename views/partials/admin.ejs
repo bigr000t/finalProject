@@ -133,6 +133,45 @@
     <p id="adminBoardMessage" aria-live="polite"></p>
   </div>
 
+<!-- ==================== 게시판 수정 ==================== -->
+
+<div class="admin-section">
+  <h3>게시판 수정</h3>
+
+  <p class="admin-notice">
+    기존 게시글을 유지하면서 게시판 설정을 변경합니다.
+  </p>
+
+  <form id="adminEditBoardForm" class="admin-board-form">
+
+    <label for="adminEditBoard">수정할 게시판</label>
+    <select id="adminEditBoard" required></select>
+
+    <label for="adminEditBoardName">게시판 이름</label>
+    <input type="text" id="adminEditBoardName"
+      maxlength="50" required>
+
+    <label for="adminEditBoardOrder">표시 순서</label>
+    <input type="number" id="adminEditBoardOrder"
+      min="0" max="1000000" step="1" required>
+
+    <label for="adminEditBoardPermission">작성 권한</label>
+    <select id="adminEditBoardPermission">
+      <option value="user">모든 회원</option>
+      <option value="admin">관리자 전용</option>
+    </select>
+
+    <div class="admin-actions">
+      <button type="submit" id="adminUpdateBoard">
+        변경 사항 적용
+      </button>
+    </div>
+
+  </form>
+
+  <p id="adminEditBoardMessage" aria-live="polite"></p>
+</div>
+
   <p id="adminMessage" aria-live="polite"></p>
 
 </details>
