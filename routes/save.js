@@ -13,9 +13,7 @@ const {
 // ==================== 저장 설정 ====================
 
 const SAVE_VERSION = 3;
-
 const MAX_PASSIVE_LEVEL = 3;
-
 const MAX_ITEM_STACK = 3;
 
 
@@ -88,12 +86,50 @@ const SPECIAL_ITEM_IDS = new Set([
 // ==================== 저장 검증 실패 ====================
 
 function invalidSave(reason) {
-
-  console.warn(
-    `[게임 저장 거부] ${reason}`
-  );
-
+  console.warn(`[게임 저장 거부] ${reason}`);
   return false;
+}
+
+
+// ==================== 관리자 저장 비활성화 ====================
+
+// requireLogin 이후에 실행
+// 클라이언트가 아닌 서버에서 조회한 권한 사용
+
+function skipAdminSave(req, res, next) {
+
+  if (req.authUser.role !== "admin") {
+    return next();
+  }
+
+  res.set("Cache-Control", "no-store");
+
+  // 관리자 게임 불러오기 차단
+  if (req.method === "GET") {
+    return res.json({
+      success: true,
+      save: null,
+      skipped: true
+    });
+  }
+
+  // 관리자 게임 저장 차단
+  if (req.method === "POST") {
+    return res.json({
+      success: true,
+      saved: false,
+      skipped: true,
+      message: "관리자 계정은 게임을 저장하지 않습니다."
+    });
+  }
+
+  // 관리자 저장 데이터 변경 차단
+  return res.json({
+    success: true,
+    deleted: false,
+    skipped: true,
+    message: "관리자 계정의 저장 데이터는 변경하지 않습니다."
+  });
 
 }
 
@@ -106,21 +142,13 @@ function invalidSave(reason) {
 function getEarnedPassivePoints(clearedFloor) {
 
   if (
-
     !Number.isSafeInteger(clearedFloor) ||
-
     clearedFloor < 0
-
   ) {
-
     return 0;
-
   }
 
-  const cycles = Math.floor(
-    clearedFloor / 200
-  );
-
+  const cycles = Math.floor(clearedFloor / 200);
   const remainder = clearedFloor % 200;
 
   const eliteFloors = [
@@ -131,15 +159,10 @@ function getEarnedPassivePoints(clearedFloor) {
   ];
 
   return (
-
     cycles * 4 +
-
     eliteFloors.filter(
-
       floor => floor <= remainder
-
     ).length
-
   );
 
 }
@@ -160,11 +183,9 @@ function getMaxHp(data) {
   if (data.classKey === "warrior") {
 
     const level =
-
       data.passives?.warrior_iron_body ?? 0;
 
     // 레벨당 최대 생명력 4% 증가
-
     percentHp += 0.04 * level;
 
   }
@@ -173,69 +194,46 @@ function getMaxHp(data) {
   // ==================== 최상급 생명력 비급서 ====================
 
   const hpBookCount =
-
     data.items?.supremeHpBook ?? 0;
 
   const hpBookValues = [
-
     0,
-
     0.8,
-
     1.6,
-
     2.4
-
   ];
 
   const floorHp = Math.floor(
-
     data.floor *
-
     hpBookValues[hpBookCount]
-
   );
 
 
   // ==================== 광기의 가면 ====================
 
   const madnessMaskCount =
-
     data.items?.madnessMask ?? 0;
 
   const madnessMaskValues = [
-
     0,
-
     0.12,
-
     0.24,
-
     0.36
-
   ];
 
   const percentHpPenalty =
-
     madnessMaskValues[madnessMaskCount];
 
 
   // ==================== 최종 최대 체력 ====================
 
   return Math.max(
-
     1,
-
     Math.floor(
-
       (data.player.base.hp + floorHp) *
-
       (1 + percentHp) *
-
       (1 - percentHpPenalty)
-
     )
-
   );
 
 }
@@ -246,19 +244,13 @@ function getMaxHp(data) {
 function isValidSave(data) {
 
   if (
-
     !data ||
-
     typeof data !== "object" ||
-
     Array.isArray(data)
-
   ) {
-
     return invalidSave(
       "저장 데이터 없음"
     );
-
   }
 
 
@@ -267,9 +259,7 @@ function isValidSave(data) {
   if (data.version !== SAVE_VERSION) {
 
     return invalidSave(
-
       `저장 버전 불일치: ${data.version}`
-
     );
 
   }
@@ -278,23 +268,15 @@ function isValidSave(data) {
   // ==================== 클래스 및 진행 상태 ====================
 
   const allowedClasses = [
-
     "warrior",
-
     "rogue",
-
     "mage"
-
   ];
 
   const allowedPhases = [
-
     "combat",
-
     "reward",
-
     "shop"
-
   ];
 
   if (!allowedClasses.includes(data.classKey)) {
@@ -308,9 +290,7 @@ function isValidSave(data) {
   if (!allowedPhases.includes(data.phase)) {
 
     return invalidSave(
-
       `잘못된 진행 상태: ${data.phase}`
-
     );
 
   }
@@ -319,11 +299,8 @@ function isValidSave(data) {
   // ==================== 층수 검증 ====================
 
   if (
-
     !Number.isSafeInteger(data.floor) ||
-
     data.floor < 1
-
   ) {
 
     return invalidSave(
@@ -336,11 +313,8 @@ function isValidSave(data) {
   // ==================== 골드 검증 ====================
 
   if (
-
     !Number.isSafeInteger(data.gold) ||
-
     data.gold < 0
-
   ) {
 
     return invalidSave(
@@ -353,11 +327,8 @@ function isValidSave(data) {
   // ==================== 리롤 횟수 검증 ====================
 
   if (
-
     !Number.isSafeInteger(data.rerollCount) ||
-
     data.rerollCount < 0
-
   ) {
 
     return invalidSave(
@@ -370,11 +341,8 @@ function isValidSave(data) {
   // ==================== 패시브 포인트 검증 ====================
 
   if (
-
     !Number.isSafeInteger(data.passivePoints) ||
-
     data.passivePoints < 0
-
   ) {
 
     return invalidSave(
@@ -387,13 +355,9 @@ function isValidSave(data) {
   // ==================== 패시브 저장 구조 검증 ====================
 
   if (
-
     !data.passives ||
-
     typeof data.passives !== "object" ||
-
     Array.isArray(data.passives)
-
   ) {
 
     return invalidSave(
@@ -406,58 +370,39 @@ function isValidSave(data) {
   // ==================== 클래스별 패시브 검증 ====================
 
   const allowedPassives = new Set(
-
     CLASS_PASSIVES[data.classKey]
-
   );
 
   let spentPoints = 0;
 
   for (
-
     const [passiveId, level]
-
     of Object.entries(data.passives)
-
   ) {
 
-
     // 현재 클래스의 패시브인지 확인
-
     if (!allowedPassives.has(passiveId)) {
 
       return invalidSave(
-
         `허용되지 않은 패시브: ${passiveId}`
-
       );
 
     }
 
-
     // 패시브 레벨 검증
-
     if (
-
       !Number.isInteger(level) ||
-
       level < 1 ||
-
       level > MAX_PASSIVE_LEVEL
-
     ) {
 
       return invalidSave(
-
         `잘못된 패시브 레벨: ${passiveId}`
-
       );
 
     }
 
-
     // 사용한 패시브 포인트 계산
-
     spentPoints += level;
 
   }
@@ -469,40 +414,26 @@ function isValidSave(data) {
   // 보상 및 상점 단계에서는 현재 층 클리어 완료 상태
 
   const clearedFloor =
-
     data.phase === "combat"
-
       ? data.floor - 1
-
       : data.floor;
 
-
   const earnedPoints =
-
     getEarnedPassivePoints(clearedFloor);
-
 
   // 사용한 포인트와 남은 포인트의 합이
   // 획득 가능한 총 포인트와 일치해야 함
 
   if (
-
     spentPoints + data.passivePoints !==
-
     earnedPoints
-
   ) {
 
     return invalidSave(
-
       `패시브 포인트 불일치: ` +
-
       `사용 ${spentPoints}, ` +
-
       `보유 ${data.passivePoints}, ` +
-
       `획득 가능 ${earnedPoints}`
-
     );
 
   }
@@ -513,13 +444,9 @@ function isValidSave(data) {
   if (data.items !== undefined) {
 
     if (
-
       !data.items ||
-
       typeof data.items !== "object" ||
-
       Array.isArray(data.items)
-
     ) {
 
       return invalidSave(
@@ -528,45 +455,29 @@ function isValidSave(data) {
 
     }
 
-
     for (
-
       const [itemId, count]
-
       of Object.entries(data.items)
-
     ) {
 
-
       // 아이템 종류 검증
-
       if (!SPECIAL_ITEM_IDS.has(itemId)) {
 
         return invalidSave(
-
           `존재하지 않는 아이템: ${itemId}`
-
         );
 
       }
 
-
       // 아이템 보유량 검증
-
       if (
-
         !Number.isSafeInteger(count) ||
-
         count < 1 ||
-
         count > MAX_ITEM_STACK
-
       ) {
 
         return invalidSave(
-
           `잘못된 아이템 개수: ${itemId}`
-
         );
 
       }
@@ -579,11 +490,8 @@ function isValidSave(data) {
   // ==================== 플레이어 데이터 검증 ====================
 
   if (
-
     !data.player ||
-
     !data.player.base
-
   ) {
 
     return invalidSave(
@@ -596,33 +504,22 @@ function isValidSave(data) {
   // ==================== 플레이어 능력치 검증 ====================
 
   const stats = [
-
     "hp",
-
     "atk",
-
     "ap",
-
     "spd",
-
     "crit"
-
   ];
 
   for (const stat of stats) {
 
     if (
-
       !Number.isFinite(data.player.base[stat]) ||
-
       data.player.base[stat] < 0
-
     ) {
 
       return invalidSave(
-
         `잘못된 플레이어 능력치: ${stat}`
-
       );
 
     }
@@ -633,11 +530,8 @@ function isValidSave(data) {
   // ==================== 필수 능력치 검증 ====================
 
   if (
-
     data.player.base.hp <= 0 ||
-
     data.player.base.spd <= 0
-
   ) {
 
     return invalidSave(
@@ -652,11 +546,8 @@ function isValidSave(data) {
   const maxHp = getMaxHp(data);
 
   if (
-
     !Number.isFinite(maxHp) ||
-
     maxHp <= 0
-
   ) {
 
     return invalidSave(
@@ -669,21 +560,14 @@ function isValidSave(data) {
   // ==================== 플레이어 현재 체력 검증 ====================
 
   if (
-
     !Number.isFinite(data.player.hp) ||
-
     data.player.hp <= 0 ||
-
     data.player.hp > maxHp
-
   ) {
 
     return invalidSave(
-
       `잘못된 현재 체력: ` +
-
       `${data.player.hp}/${maxHp}`
-
     );
 
   }
@@ -692,19 +576,12 @@ function isValidSave(data) {
   // ==================== 몬스터 체력 검증 ====================
 
   if (
-
     !data.enemy ||
-
     !Number.isFinite(data.enemy.maxHp) ||
-
     !Number.isFinite(data.enemy.currentHp) ||
-
     data.enemy.maxHp <= 0 ||
-
     data.enemy.currentHp < 0 ||
-
     data.enemy.currentHp > data.enemy.maxHp
-
   ) {
 
     return invalidSave(
@@ -717,11 +594,8 @@ function isValidSave(data) {
   // ==================== 몬스터 공격력 검증 ====================
 
   if (
-
     !Number.isFinite(data.enemy.atk) ||
-
     data.enemy.atk < 0
-
   ) {
 
     return invalidSave(
@@ -734,13 +608,9 @@ function isValidSave(data) {
   // ==================== 몬스터 공격 속도 검증 ====================
 
   if (
-
     !Number.isFinite(data.enemy.spd) ||
-
     data.enemy.spd <= 0 ||
-
     data.enemy.spd > 3
-
   ) {
 
     return invalidSave(
@@ -753,13 +623,9 @@ function isValidSave(data) {
   // ==================== 몬스터 치명타 검증 ====================
 
   if (
-
     !Number.isFinite(data.enemy.crit) ||
-
     data.enemy.crit < 0 ||
-
     data.enemy.crit > 0.5
-
   ) {
 
     return invalidSave(
@@ -774,11 +640,8 @@ function isValidSave(data) {
   // 전투 중에는 몬스터가 살아 있어야 함
 
   if (
-
     data.phase === "combat" &&
-
     data.enemy.currentHp <= 0
-
   ) {
 
     return invalidSave(
@@ -787,15 +650,11 @@ function isValidSave(data) {
 
   }
 
-
   // 보상 및 상점 단계에서는 몬스터가 사망해야 함
 
   if (
-
     data.phase !== "combat" &&
-
     data.enemy.currentHp !== 0
-
   ) {
 
     return invalidSave(
@@ -808,11 +667,8 @@ function isValidSave(data) {
   // ==================== 보상 데이터 검증 ====================
 
   if (
-
     !Array.isArray(data.rewards) ||
-
     data.rewards.length > 3
-
   ) {
 
     return invalidSave(
@@ -821,15 +677,11 @@ function isValidSave(data) {
 
   }
 
-
   // 보상 선택 단계에서는 3개의 보상이 필요함
 
   if (
-
     data.phase === "reward" &&
-
     data.rewards.length !== 3
-
   ) {
 
     return invalidSave(
@@ -849,10 +701,10 @@ function isValidSave(data) {
 // ==================== 게임 불러오기 ====================
 
 router.get(
-
   "/api/save",
 
   requireLogin,
+  skipAdminSave,
 
   async (req, res) => {
 
@@ -864,15 +716,12 @@ router.get(
       // ==================== 저장 데이터 조회 ====================
 
       const [rows] = await db.execute(
-
         `
         SELECT save_data, updated_at
         FROM game_saves
         WHERE user_id = ?
         `,
-
         [userId]
-
       );
 
       res.set(
@@ -886,11 +735,8 @@ router.get(
       if (rows.length === 0) {
 
         return res.json({
-
           success: true,
-
           save: null
-
         });
 
       }
@@ -901,11 +747,8 @@ router.get(
       const row = rows[0];
 
       const saveData =
-
         typeof row.save_data === "string"
-
           ? JSON.parse(row.save_data)
-
           : row.save_data;
 
 
@@ -914,18 +757,18 @@ router.get(
       // 이전 버전 데이터는 불러오지 않음
       // 기존 데이터는 DB에서 강제로 삭제하지 않음
 
-      if (!saveData || saveData.version !== SAVE_VERSION) {
+      if (
+        !saveData ||
+        saveData.version !== SAVE_VERSION
+      ) {
 
         return res.json({
-
           success: true,
-
           save: null,
 
           message:
             "이전 버전의 저장 데이터입니다. " +
             "새로운 도전을 시작해주세요."
-
         });
 
       }
@@ -936,14 +779,11 @@ router.get(
       if (!isValidSave(saveData)) {
 
         return res.json({
-
           success: true,
-
           save: null,
 
           message:
             "호환되지 않는 저장 데이터입니다."
-
         });
 
       }
@@ -952,13 +792,9 @@ router.get(
       // ==================== 저장 데이터 반환 ====================
 
       return res.json({
-
         success: true,
-
         save: saveData,
-
         updatedAt: row.updated_at
-
       });
 
     } catch (error) {
@@ -969,12 +805,10 @@ router.get(
       );
 
       return res.status(500).json({
-
         success: false,
 
         message:
           "게임을 불러오지 못했습니다."
-
       });
 
     }
@@ -987,26 +821,23 @@ router.get(
 // ==================== 게임 저장 ====================
 
 router.post(
-
   "/api/save",
 
   requireLogin,
+  skipAdminSave,
 
   async (req, res) => {
 
     try {
 
       const userId = req.session.user.id;
-
       const data = req.body;
 
 
       // ==================== 저장 요청 확인 ====================
 
       console.log(
-
         `[게임 저장 요청] 사용자: ${userId}`
-
       );
 
 
@@ -1015,12 +846,10 @@ router.post(
       if (!isValidSave(data)) {
 
         return res.status(400).json({
-
           success: false,
 
           message:
             "잘못된 저장 데이터입니다."
-
         });
 
       }
@@ -1034,7 +863,6 @@ router.post(
       // ==================== 데이터베이스 저장 ====================
 
       await db.execute(
-
         `
         INSERT INTO game_saves (
           user_id,
@@ -1045,46 +873,32 @@ router.post(
           save_data = ?,
           updated_at = CURRENT_TIMESTAMP
         `,
-
         [
-
           userId,
-
           saveData,
-
           saveData
-
         ]
-
       );
 
 
       // ==================== 저장 성공 로그 ====================
 
       console.log(
-
         `[게임 저장 성공] ` +
-
         `사용자: ${userId}, ` +
-
         `층수: ${data.floor}, ` +
-
         `상태: ${data.phase}, ` +
-
         `버전: ${data.version}`
-
       );
 
 
       // ==================== 저장 결과 반환 ====================
 
       return res.json({
-
         success: true,
 
         message:
           "게임이 저장되었습니다."
-
       });
 
     } catch (error) {
@@ -1095,12 +909,10 @@ router.post(
       );
 
       return res.status(500).json({
-
         success: false,
 
         message:
           "게임을 저장하지 못했습니다."
-
       });
 
     }
@@ -1113,10 +925,10 @@ router.post(
 // ==================== 저장 데이터 삭제 ====================
 
 router.delete(
-
   "/api/save",
 
   requireLogin,
+  skipAdminSave,
 
   async (req, res) => {
 
@@ -1128,35 +940,28 @@ router.delete(
       // ==================== 사용자 진행 데이터 삭제 ====================
 
       await db.execute(
-
         `
         DELETE FROM game_saves
         WHERE user_id = ?
         `,
-
         [userId]
-
       );
 
 
       // ==================== 삭제 성공 로그 ====================
 
       console.log(
-
         `[게임 저장 삭제] 사용자: ${userId}`
-
       );
 
 
       // ==================== 삭제 결과 반환 ====================
 
       return res.json({
-
         success: true,
 
         message:
           "저장 데이터가 삭제되었습니다."
-
       });
 
     } catch (error) {
@@ -1167,12 +972,10 @@ router.delete(
       );
 
       return res.status(500).json({
-
         success: false,
 
         message:
           "저장 데이터를 삭제하지 못했습니다."
-
       });
 
     }
