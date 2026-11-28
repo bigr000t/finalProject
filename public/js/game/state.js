@@ -20,6 +20,7 @@ import {
   ITEM_CONFIG,
   createInitialItems,
   getItemEffects,
+  getOwnedItems,
   getFloorItemBonuses,
   isValidItems
 } from "./item.js";
@@ -30,9 +31,6 @@ import {
 export const MAX_FLOOR = Infinity;
 export const MAX_STAT_REROLLS = 3;
 export const SAVE_VERSION = 3;
-
-
-// ==================== 전투 설정 ====================
 
 export const COMBAT_CONFIG = Object.freeze({
   lowHpThreshold: 0.33,
@@ -52,50 +50,29 @@ export function apScaling(ap) {
 // ==================== 게임 초기 상태 ====================
 
 export function createInitialState() {
-
   return {
     version: SAVE_VERSION,
-
     phase: "setup",
-
     floor: 1,
-
     classKey: null,
-
     player: null,
-
     enemy: null,
-
     gold: 0,
-
     passivePoints: 0,
-
     passives: {},
-
     items: createInitialItems(),
-
+    leaderboardSnapshot: null,
     rewards: [],
-
     rerollCount: 0,
-
     timer: null,
-
     lastPlayerAttack: 0,
-
     lastEnemyAttack: 0,
-
     statRerollCount: 0,
 
     // 관리자 전용 임시 능력치
-    // 저장 데이터에는 포함하지 않음
-
     adminBaseCritMultiplier: null
   };
-
 }
-
-
-// ==================== 공유 게임 상태 ====================
 
 export const state = createInitialState();
 
@@ -103,83 +80,60 @@ export const state = createInitialState();
 // ==================== 게임 상태 초기화 ====================
 
 export function resetState() {
-
   if (state.timer !== null) {
     clearInterval(state.timer);
   }
 
-  Object.assign(
-    state,
-    createInitialState()
-  );
+  Object.assign(state, createInitialState());
 
   return state;
-
 }
 
 
 // ==================== 새로운 도전 생성 ====================
 
 export function startNewRun(classKey) {
-
   if (state.phase !== "setup") {
     return false;
   }
 
   getClass(classKey);
-
   resetState();
 
   state.classKey = classKey;
-
   state.player = createPlayer(classKey);
-
   state.statRerollCount = 0;
-
   state.phase = "rolling";
 
   return state;
-
-}
-
-
-// ==================== 초기 스탯 리롤 가능 여부 ====================
-
-export function canRerollStats() {
-
-  return (
-    state.phase === "rolling" &&
-    state.statRerollCount < MAX_STAT_REROLLS
-  );
-
 }
 
 
 // ==================== 초기 스탯 리롤 ====================
 
-export function rerollStats() {
+export function canRerollStats() {
+  return (
+    state.phase === "rolling" &&
+    state.statRerollCount < MAX_STAT_REROLLS
+  );
+}
 
+export function rerollStats() {
   if (!canRerollStats()) {
     return false;
   }
 
-  state.player = createPlayer(
-    state.classKey
-  );
-
+  state.player = createPlayer(state.classKey);
   state.adminBaseCritMultiplier = null;
-
   state.statRerollCount++;
 
   return true;
-
 }
 
 
 // ==================== 초기 스탯 확정 ====================
 
 export function confirmStats() {
-
   if (
     state.phase !== "rolling" ||
     !state.player
@@ -187,72 +141,49 @@ export function confirmStats() {
     return false;
   }
 
-  state.enemy = createEnemy(
-    state.floor
-  );
-
+  state.enemy = createEnemy(state.floor);
   state.phase = "combat";
 
   return true;
-
 }
 
 
 // ==================== 플레이어 패시브 효과 ====================
 
-export function getPlayerPassiveEffects(
-  gameState = state
-) {
-
+export function getPlayerPassiveEffects(gameState = state) {
   return getPassiveEffects(
     gameState.classKey,
     gameState.passives
   );
-
 }
 
 
-// ==================== 플레이어 최대 체력 ====================
+// ==================== 최대 생명력 계산 ====================
 
 export function getMaxHp(gameState = state) {
-
   if (!gameState.player) {
     return 0;
   }
 
   const baseHp = gameState.player.base.hp;
-
-  const passives = getPlayerPassiveEffects(
-    gameState
-  );
-
-  const items = getItemEffects(
-    gameState.items
-  );
+  const passives = getPlayerPassiveEffects(gameState);
+  const items = getItemEffects(gameState.items);
 
   const floorBonus = getFloorItemBonuses(
     gameState.items,
     gameState.floor
   );
 
-
   // 최대 생명력 증가 및 감소 합연산
-
   const hpMultiplier =
     1 +
     passives.percentHp +
     items.percentHp -
     items.percentHpPenalty;
 
-
-  // 최대 생명력 소진
-
   if (hpMultiplier <= 0) {
     return 0;
   }
-
-
-  // 최종 최대 생명력
 
   return Math.max(
     0,
@@ -263,49 +194,30 @@ export function getMaxHp(gameState = state) {
       1e-9
     )
   );
-
 }
 
 
-// ==================== 최대 생명력 변경 처리 ====================
+// ==================== 최대 생명력 변경 ====================
 
-export function syncPlayerHp(
-  beforeMaxHp,
-  gameState = state
-) {
-
+export function syncPlayerHp(beforeMaxHp, gameState = state) {
   if (!gameState.player) {
     return false;
   }
 
-  const afterMaxHp = getMaxHp(
-    gameState
-  );
+  const afterMaxHp = getMaxHp(gameState);
 
-
-  // 최대 생명력 감소 사망
-  // 불사의 증표를 발동하지 않음
-
+  // 최대 생명력 소진 시 즉사
+  // 불사의 증표 미발동
   if (afterMaxHp <= 0) {
-
     gameState.player.hp = 0;
-
     gameState.phase = "dead";
-
     return false;
-
   }
-
-
-  // 최대 생명력 증가
 
   const hpGrowth = Math.max(
     0,
     afterMaxHp - beforeMaxHp
   );
-
-
-  // 현재 생명력 갱신
 
   gameState.player.hp = Math.min(
     afterMaxHp,
@@ -313,162 +225,101 @@ export function syncPlayerHp(
   );
 
   return true;
-
 }
 
 
 // ==================== 플레이어 최종 능력치 ====================
 
 export function getPlayerStats(gameState = state) {
-
   if (!gameState.player) {
     return null;
   }
 
   const base = gameState.player.base;
-
-
-  // 특수 아이템 효과
-
-  const items = getItemEffects(
-    gameState.items
-  );
-
-
-  // 클래스 패시브 효과
-  // 오만의 왕관 보유 여부와 관계없이 정상 적용
-
-  const passives = getPlayerPassiveEffects(
-    gameState
-  );
-
-
-  // 층수 비례 능력치
+  const items = getItemEffects(gameState.items);
+  const passives = getPlayerPassiveEffects(gameState);
 
   const floorBonus = getFloorItemBonuses(
     gameState.items,
     gameState.floor
   );
 
-
   // 오만의 왕관 배율
-
   const crownPrimary = items.crownPrimary;
-
   const crownSecondary = items.crownSecondary;
 
-
-  // 최대 체력
-
+  // 최대 생명력
   const hp = getMaxHp(gameState);
 
-
   // 저체력 판정
-
   const isLowHp =
     hp > 0 &&
     gameState.player.hp / hp <=
-    COMBAT_CONFIG.lowHpThreshold;
+      COMBAT_CONFIG.lowHpThreshold;
 
 
-  // 공격력
+  // ==================== 공격력 ====================
 
   const rawAtk = Math.max(
     0,
-
     (base.atk + floorBonus.atk) *
-
     (
       1 +
       passives.percentAtk +
       items.percentAtk
     ) *
-
     (
       1 +
-      (
-        isLowHp
-          ? passives.lowHpAtkBonus
-          : 0
-      )
+      (isLowHp ? passives.lowHpAtkBonus : 0)
     )
   );
 
-
   // 부러진 마검
-  // 감소 공격력의 150%를 주문력으로 전환
-
-  const convertedAtk =
-    rawAtk * items.atkToApConversion;
-
-  const convertedAp =
-    convertedAtk * 1.5;
-
-
-  // 왕관 적용 전 공격력
+  const convertedAtk = rawAtk * items.atkToApConversion;
+  const convertedAp = convertedAtk * 1.5;
 
   const atkBeforeCrown = Math.max(
     0,
     rawAtk - convertedAtk
   );
 
-
-  // 최종 공격력
-
   const atk = Math.max(
     0,
-
     Math.floor(
-      atkBeforeCrown *
-      crownPrimary +
-      1e-9
+      atkBeforeCrown * crownPrimary + 1e-9
     )
   );
 
 
-  // 주문력
-  // 왕관 배율 중복 적용 방지
+  // ==================== 주문력 ====================
 
   const ap = Math.max(
     0,
-
     Math.floor(
-
       (
         base.ap +
-
         (floorBonus.ap ?? 0) +
-
         Math.floor(atkBeforeCrown + 1e-9) *
           passives.atkToApRatio +
-
         convertedAp
       ) *
-
       (
         1 +
         passives.percentAp +
         items.percentAp
       ) *
-
       crownPrimary +
-
       1e-9
-
     )
   );
-
-
-  // 주문력 점감 계수
 
   const scaling = apScaling(ap);
 
 
-  // 공격 속도
+  // ==================== 공격 속도 ====================
 
   const spd = Math.max(
     0.1,
-
     (
       base.spd +
       items.flatSpd +
@@ -476,43 +327,33 @@ export function getPlayerStats(gameState = state) {
       scaling * passives.apSpdBonus -
       items.flatSpdPenalty
     ) *
-
     (
       1 +
       items.percentSpd -
       items.percentSpdPenalty
     ) *
-
     crownSecondary
   );
 
 
-  // 사냥하는 말벌
+  // ==================== 치명타 확률 ====================
 
+  // 사냥하는 말벌
   const isEnemyLowHp =
     !!gameState.enemy &&
     gameState.enemy.maxHp > 0 &&
     gameState.enemy.currentHp > 0 &&
-
     gameState.enemy.currentHp /
       gameState.enemy.maxHp <=
-
-    ITEM_CONFIG.huntingHpRatio;
-
-
-  // 치명타 확률
+        ITEM_CONFIG.huntingHpRatio;
 
   const lowEnemyHpCritBonus =
-    isEnemyLowHp
-      ? items.lowEnemyHpCritBonus
-      : 0;
+    isEnemyLowHp ? items.lowEnemyHpCritBonus : 0;
 
   const crit = Math.min(
     1,
-
     Math.max(
       0,
-
       (
         base.crit +
         items.crit +
@@ -520,294 +361,178 @@ export function getPlayerStats(gameState = state) {
         lowEnemyHpCritBonus -
         items.critPenalty
       ) *
-
       crownSecondary
-
     )
   );
 
 
-  // ==================== 기본 치명타 피해량 ====================
-
-  // 일반 사용자는 기존 기본 배율 160%
-  // 관리자는 서버에서 승인받은 임시 배율 사용
+  // ==================== 치명타 피해량 ====================
 
   const adminCritMultiplier =
     gameState.adminBaseCritMultiplier;
 
   const baseCritMultiplier =
-
     isAdmin() &&
     Number.isFinite(adminCritMultiplier) &&
     adminCritMultiplier >= 1
-
       ? adminCritMultiplier
-
       : COMBAT_CONFIG.baseCritMultiplier;
 
-
-  // ==================== 최종 치명타 피해 배율 ====================
-
   const critMultiplier =
-
     (
       baseCritMultiplier +
       passives.critDamageBonus +
       items.critDamageBonus
     ) *
-
     crownSecondary;
 
 
-  // 받는 피해 감소
+  // ==================== 피해 증가 및 감소 ====================
 
   const damageReduction = Math.max(
     0,
-
     scaling * passives.apDamageReduction +
-
-    (
-      isLowHp
-        ? passives.lowHpDamageReduction
-        : 0
-    ) +
-
+    (isLowHp ? passives.lowHpDamageReduction : 0) +
     items.damageReduction
   );
 
-
-  // 가하는 기본 공격 피해 증가
-
   const damageBonus = items.damageBonus;
-
-
-  // 가하는 기본 공격 피해 감소
-
   const damagePenalty = items.damagePenalty;
 
-
-  // 저체력 피해 증가
-
   const lowHpDamageBonus =
-    isLowHp
-      ? items.lowHpDamageBonus
-      : 0;
-
-
-  // 최대 체력 피해 감소
+    isLowHp ? items.lowHpDamageBonus : 0;
 
   const fullHpDamageReduction =
-    hp > 0 &&
-    gameState.player.hp >= hp
-
+    hp > 0 && gameState.player.hp >= hp
       ? items.fullHpDamageReduction
       : 0;
-
-
-  // 치명타 피해 감소
 
   const criticalDamageReduction =
     items.criticalDamageReduction;
 
 
-  // 수호자의 망토
+  // ==================== 수호자의 망토 ====================
 
   const guardChance = Math.min(
     1,
-
-    Math.max(
-      0,
-      items.guardChance
-    )
+    Math.max(0, items.guardChance)
   );
 
   const guardDamageReduction =
     ITEM_CONFIG.guardDamageReduction;
 
 
-  // 추가 공격 확률
+  // ==================== 패시브 효과 ====================
 
+  // 도적 : 연격
   const extraAttackChance = Math.min(
     1,
-
-    Math.max(
-      0,
-      passives.extraAttackChance
-    )
+    Math.max(0, passives.extraAttackChance)
   );
 
-
-  // 전사 패시브 : 응징
-
+  // 전사 : 응징
   const counterDamage = Math.max(
     0,
-
     Math.floor(
       hp * passives.counterHpRatio +
       ap * passives.counterApRatio
     )
   );
 
-
-  // 기본 공격 피해량
+  // 기본 공격 피해
   // 마법사 : ATK 40% + AP 50%
-
   const basicAttackDamage =
     gameState.classKey === "mage"
-
       ? atk * 0.4 + ap * 0.5
       : atk;
 
-
-  // 전사 패시브 : 최후의 일격
-
+  // 전사 : 최후의 일격
   const attackExtraDamage = Math.max(
     0,
-
     Math.floor(
-      isLowHp
-        ? atk * passives.lowHpExtraDamage
-        : 0
+      isLowHp ? atk * passives.lowHpExtraDamage : 0
     )
   );
 
-
-  // 마법사 패시브 : 마력 폭발
-
+  // 마법사 : 마력 폭발
   const magicBurstDamage =
     gameState.classKey === "mage"
-
       ? Math.max(
           0,
-
           Math.floor(
             ap * (passives.attackApRatio ?? 0)
           )
         )
-
       : 0;
-
-
-  // 마력 폭발 추가 타격 횟수
 
   const magicBurstHits =
     gameState.classKey === "mage"
-
       ? Math.min(
           6,
-
           Math.max(
             0,
-
-            Math.floor(
-              passives.attackApHits ?? 0
-            )
+            Math.floor(passives.attackApHits ?? 0)
           )
         )
-
       : 0;
 
 
   // ==================== 최종 능력치 반환 ====================
 
   return {
-
     hp,
-
     atk,
-
     ap,
-
     spd,
-
     crit,
-
     critMultiplier,
 
-
     // 기본 공격 및 패시브 피해
-
     basicAttackDamage,
-
     attackExtraDamage,
-
     magicBurstDamage,
-
     magicBurstHits,
-
     extraAttackChance,
-
     counterDamage,
 
-
     // 피해 증감
-
     damageReduction,
-
     damageBonus,
-
     damagePenalty,
-
     lowHpDamageBonus,
-
     fullHpDamageReduction,
-
     criticalDamageReduction,
 
-
     // 조건부 치명타 증가
-
     lowEnemyHpCritBonus,
 
-
     // 확률형 피해 감소
-
     guardChance,
-
     guardDamageReduction,
 
-
     // 부러진 마검
-
     convertedAtk,
-
     convertedAp,
 
-
     // 층수 비례 능력치
-
     floorBonus,
 
-
     // 오만의 왕관
-
     crownActive: items.crown > 0,
-
     crownCount: items.crownCount,
-
     crownPrimary,
-
     crownSecondary,
 
-
     // 조건부 효과 판정
-
     isLowHp,
-
     isEnemyLowHp
-
   };
-
 }
 
 
 // ==================== 패시브 포인트 관리 ====================
 
-// 200층마다 엘리트 4종
-// 10층, 50층, 150층, 190층
-
 export function getEarnedPassivePoints(clearedFloor) {
-
   if (
     !Number.isSafeInteger(clearedFloor) ||
     clearedFloor < 0
@@ -815,38 +540,23 @@ export function getEarnedPassivePoints(clearedFloor) {
     return 0;
   }
 
-  const cycles = Math.floor(
-    clearedFloor / 200
-  );
-
+  const cycles = Math.floor(clearedFloor / 200);
   const remainder = clearedFloor % 200;
 
-  const eliteFloors = [
-    10,
-    50,
-    150,
-    190
-  ];
+  const eliteFloors = [10, 50, 150, 190];
 
   return (
-
     cycles * 4 +
-
     eliteFloors.filter(
       floor => floor <= remainder
     ).length
-
   );
-
 }
 
 
 // ==================== 엘리트 패시브 포인트 지급 ====================
 
-export function grantElitePassivePoint(
-  gameState = state
-) {
-
+export function grantElitePassivePoint(gameState = state) {
   if (
     !gameState.enemy?.isElite ||
     gameState.enemy.currentHp !== 0 ||
@@ -858,10 +568,7 @@ export function grantElitePassivePoint(
 
   const spent = Object.values(
     gameState.passives
-  ).reduce(
-    (sum, level) => sum + level,
-    0
-  );
+  ).reduce((sum, level) => sum + level, 0);
 
   const earned = getEarnedPassivePoints(
     gameState.floor
@@ -872,95 +579,60 @@ export function grantElitePassivePoint(
     earned - spent - gameState.passivePoints
   );
 
-  const granted = Math.min(
-    1,
-    missing
-  );
+  const granted = Math.min(1, missing);
 
   gameState.passivePoints += granted;
 
   return granted;
-
 }
 
 
 // ==================== 패시브 강화 가능 여부 ====================
 
-export function canUpgradePassive(
-  passiveId,
-  gameState = state
-) {
-
+export function canUpgradePassive(passiveId, gameState = state) {
   return (
-
     gameState.phase === "shop" &&
-
     !!gameState.player &&
-
     !!gameState.classKey &&
-
     gameState.passivePoints > 0 &&
-
-    !!getPassive(
-      gameState.classKey,
-      passiveId
-    ) &&
-
+    !!getPassive(gameState.classKey, passiveId) &&
     getPassiveLevel(
       gameState.passives,
       passiveId
     ) < MAX_PASSIVE_LEVEL
-
   );
-
 }
 
 
 // ==================== 패시브 강화 ====================
 
-export function upgradePassive(
-  passiveId,
-  gameState = state
-) {
-
+export function upgradePassive(passiveId, gameState = state) {
   if (!canUpgradePassive(passiveId, gameState)) {
     return false;
   }
 
-  const beforeMaxHp = getMaxHp(
-    gameState
-  );
+  const beforeMaxHp = getMaxHp(gameState);
 
   const currentLevel = getPassiveLevel(
     gameState.passives,
     passiveId
   );
 
-  gameState.passives[passiveId] =
-    currentLevel + 1;
-
+  gameState.passives[passiveId] = currentLevel + 1;
   gameState.passivePoints--;
 
-  syncPlayerHp(
-    beforeMaxHp,
-    gameState
-  );
+  syncPlayerHp(beforeMaxHp, gameState);
 
   return true;
-
 }
 
 
 // ==================== 다음 층 진입 ====================
 
 export function advanceFloor() {
-
   if (state.phase !== "shop") {
     return false;
   }
-
-
-  // 생존 여부 확인
 
   if (
     !state.player ||
@@ -970,62 +642,32 @@ export function advanceFloor() {
     return false;
   }
 
-
-  // 안전한 정수 범위 초과 방지
-
   if (!Number.isSafeInteger(state.floor + 1)) {
     return false;
   }
 
-
-  // 이전 층의 최대 체력 저장
-
   const beforeMaxHp = getMaxHp();
-
-
-  // 다음 층의 몬스터 생성
-
   const nextFloor = state.floor + 1;
-
   const nextEnemy = createEnemy(nextFloor);
 
-
-  // 다음 층 적용
-
   state.floor = nextFloor;
-
   state.rerollCount = 0;
-
   state.rewards = [];
 
-
-  // 층수 비례 최대 생명력 반영
-
-  syncPlayerHp(
-    beforeMaxHp,
-    state
-  );
-
-
-  // 다음 전투 준비
+  syncPlayerHp(beforeMaxHp, state);
 
   state.enemy = nextEnemy;
-
   state.lastPlayerAttack = 0;
-
   state.lastEnemyAttack = 0;
-
   state.phase = "combat";
 
   return true;
-
 }
 
 
 // ==================== 최고 클리어 층수 ====================
 
 export function getHighestFloor() {
-
   if (
     state.phase === "reward" ||
     state.phase === "shop" ||
@@ -1034,9 +676,7 @@ export function getHighestFloor() {
     return state.floor;
   }
 
-
   // 보상 획득으로 사망
-
   if (
     state.phase === "dead" &&
     state.enemy?.currentHp === 0
@@ -1044,21 +684,147 @@ export function getHighestFloor() {
     return state.floor;
   }
 
-
   // 일반 전투 사망
+  return Math.max(0, state.floor - 1);
+}
 
-  return Math.max(
-    0,
-    state.floor - 1
-  );
 
+// ==================== 리더보드 빌드 데이터 ====================
+
+export function createLeaderboardBuild(gameState = state) {
+  const stats = getPlayerStats(gameState);
+
+  if (!stats || !gameState.classKey) {
+    return null;
+  }
+
+  return {
+
+    // 최종 능력치
+    final_stats: {
+      maxHp: stats.hp,
+      atk: stats.atk,
+      ap: stats.ap,
+      spd: stats.spd,
+      crit: stats.crit * 100,
+      critDamage: stats.critMultiplier * 100
+    },
+
+    // 현재 보유한 특수 아이템
+    special_items: getOwnedItems(gameState.items)
+      .map(({ id, name, count }) => ({
+        id,
+        name,
+        count
+      })),
+
+    // 해금한 패시브
+    passives: getClass(gameState.classKey).passives
+      .map(({ id, name }) => ({
+        id,
+        name,
+        level: getPassiveLevel(gameState.passives, id)
+      }))
+      .filter(passive => passive.level > 0)
+
+  };
+}
+
+
+// ==================== 리더보드 스냅샷 생성 ====================
+
+export function captureLeaderboardSnapshot() {
+  if (
+    !state.player ||
+    state.enemy?.currentHp !== 0
+  ) {
+    return null;
+  }
+
+  const floor = state.floor;
+
+  if (!Number.isSafeInteger(floor) || floor < 1) {
+    return null;
+  }
+
+  // 동일 층의 스냅샷은 덮어쓰지 않음
+  if (state.leaderboardSnapshot?.floor === floor) {
+    return state.leaderboardSnapshot;
+  }
+
+  const build = createLeaderboardBuild();
+
+  if (!build) {
+    return null;
+  }
+
+  state.leaderboardSnapshot = {
+    floor,
+    classKey: state.classKey,
+    build
+  };
+
+  return state.leaderboardSnapshot;
+}
+
+
+// ==================== 리더보드 스냅샷 복원 ====================
+
+function normalizeLeaderboardSnapshot(snapshot, data) {
+  if (
+    !snapshot ||
+    snapshot.classKey !== data.classKey
+  ) {
+    return null;
+  }
+
+  const floor =
+    data.phase === "combat"
+      ? data.floor - 1
+      : data.floor;
+
+  if (
+    !Number.isSafeInteger(snapshot.floor) ||
+    snapshot.floor !== floor ||
+    floor < 1
+  ) {
+    return null;
+  }
+
+  const build = snapshot.build;
+
+  if (
+    !build ||
+    !build.final_stats ||
+    !Array.isArray(build.special_items) ||
+    !Array.isArray(build.passives)
+  ) {
+    return null;
+  }
+
+  const keys = [
+    "maxHp",
+    "atk",
+    "ap",
+    "spd",
+    "crit",
+    "critDamage"
+  ];
+
+  if (!keys.every(key =>
+    Number.isFinite(build.final_stats[key]) &&
+    build.final_stats[key] >= 0
+  )) {
+    return null;
+  }
+
+  return snapshot;
 }
 
 
 // ==================== 로그인 여부 ====================
 
 export function isLoggedIn() {
-
   const userId = Number(
     document.body.dataset.userId
   );
@@ -1067,65 +833,46 @@ export function isLoggedIn() {
     Number.isSafeInteger(userId) &&
     userId > 0
   );
-
 }
 
 
 // ==================== 관리자 여부 ====================
 
-// 클라이언트 UI 및 저장 요청 제어용
-// 실제 관리자 권한 검증은 서버에서 수행
-
 export function isAdmin() {
-
   return (
     typeof document !== "undefined" &&
-
     document.body?.dataset.userRole === "admin"
   );
-
 }
 
 
 // ==================== 저장용 게임 데이터 ====================
 
 export function createSaveData() {
-
   return {
-
     version: state.version,
-
     phase: state.phase,
-
     floor: state.floor,
-
     classKey: state.classKey,
-
     player: state.player,
-
     enemy: state.enemy,
-
     gold: state.gold,
-
     passivePoints: state.passivePoints,
-
     passives: { ...state.passives },
-
     items: state.items,
 
+    // 마지막 클리어 시점의 빌드
+    leaderboardSnapshot: state.leaderboardSnapshot,
+
     rewards: state.rewards,
-
     rerollCount: state.rerollCount
-
   };
-
 }
 
 
 // ==================== 몬스터 데이터 복원 ====================
 
 function normalizeEnemyData(enemy, floor) {
-
   if (!enemy || typeof enemy !== "object") {
     return null;
   }
@@ -1135,71 +882,47 @@ function normalizeEnemyData(enemy, floor) {
   );
 
   return {
-
     ...enemy,
 
-
-    // 최신 몬스터 정보 우선 적용
-
     name: monster?.name ?? enemy.name,
-
     image: monster?.image ?? enemy.image,
-
-
-    // 보스 여부 복원
 
     isBoss:
       enemy.isBoss ??
       monster?.isBoss ??
       false,
 
-
-    // 엘리트 여부 복원
-
     isElite:
       enemy.isElite ??
       monster?.isElite ??
       false,
-
-
-    // 공격 속도 복원
 
     spd: enemy.spd ?? calculateEnemySpd(
       monster?.spd ?? (1000 / 1400),
       floor
     ),
 
-
-    // 치명타 확률 복원
-
     crit: enemy.crit ?? calculateEnemyCrit(
       monster?.crit ?? 0.03,
       floor
     )
-
   };
-
 }
 
 
 // ==================== 저장 데이터 유효성 확인 ====================
 
 export function isValidSave(data) {
-
   if (!data || typeof data !== "object") {
     return false;
   }
 
-
-  // 저장 버전 검증
-
+  // 저장 버전
   if (data.version !== SAVE_VERSION) {
     return false;
   }
 
-
-  // 층수 검증
-
+  // 층수
   if (
     !Number.isSafeInteger(data.floor) ||
     data.floor < 1
@@ -1207,9 +930,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 골드 검증
-
+  // 골드
   if (
     !Number.isSafeInteger(data.gold) ||
     data.gold < 0
@@ -1217,9 +938,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 보상 리롤 횟수 검증
-
+  // 보상 리롤 횟수
   if (
     !Number.isSafeInteger(data.rerollCount) ||
     data.rerollCount < 0
@@ -1227,9 +946,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 저장 가능한 진행 상태
-
+  // 진행 상태
   const allowedPhases = [
     "combat",
     "reward",
@@ -1240,24 +957,16 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 클래스 검증
-
+  // 클래스
   let classData;
 
   try {
-
     classData = getClass(data.classKey);
-
   } catch {
-
     return false;
-
   }
 
-
-  // 패시브 및 보상 데이터 검증
-
+  // 패시브 및 보상
   if (
     !data.passives ||
     typeof data.passives !== "object" ||
@@ -1269,25 +978,13 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 현재 클래스가 강화 가능한 패시브
-
   const allowedPassives = new Set(
-    classData.passives.map(
-      passive => passive.id
-    )
+    classData.passives.map(passive => passive.id)
   );
 
   let spentPoints = 0;
 
-
-  // 패시브 종류 및 레벨 검증
-
-  for (
-    const [id, level]
-    of Object.entries(data.passives)
-  ) {
-
+  for (const [id, level] of Object.entries(data.passives)) {
     if (
       !allowedPassives.has(id) ||
       !Number.isInteger(level) ||
@@ -1298,23 +995,14 @@ export function isValidSave(data) {
     }
 
     spentPoints += level;
-
   }
 
-
-  // 현재 클리어한 층수 확인
-
   const clearedFloor =
-
     data.phase === "combat"
-
       ? data.floor - 1
-
       : data.floor;
 
-
-  // 패시브 포인트 총량 검증
-
+  // 패시브 포인트 총량
   if (
     spentPoints + data.passivePoints !==
     getEarnedPassivePoints(clearedFloor)
@@ -1322,9 +1010,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 특수 아이템 데이터 검증
-
+  // 특수 아이템
   if (
     data.items !== undefined &&
     !isValidItems(data.items)
@@ -1332,34 +1018,21 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 플레이어 데이터 검증
-
+  // 플레이어 데이터
   if (!data.player || !data.player.base) {
     return false;
   }
 
-  const stats = [
-    "hp",
-    "atk",
-    "ap",
-    "spd",
-    "crit"
-  ];
+  const stats = ["hp", "atk", "ap", "spd", "crit"];
 
   for (const stat of stats) {
-
     if (
       !Number.isFinite(data.player.base[stat]) ||
       data.player.base[stat] < 0
     ) {
       return false;
     }
-
   }
-
-
-  // 플레이어 필수 능력치 검증
 
   if (
     data.player.base.hp <= 0 ||
@@ -1368,9 +1041,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 최대 생명력 검증
-
+  // 최대 생명력
   const maxHp = getMaxHp(data);
 
   if (
@@ -1380,9 +1051,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 플레이어 현재 체력 검증
-
+  // 현재 생명력
   if (
     !Number.isFinite(data.player.hp) ||
     data.player.hp <= 0 ||
@@ -1391,9 +1060,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 몬스터 데이터 검증
-
+  // 몬스터 데이터
   const enemy = normalizeEnemyData(
     data.enemy,
     data.floor
@@ -1403,9 +1070,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 몬스터 체력 검증
-
+  // 몬스터 생명력
   if (
     !Number.isFinite(enemy.maxHp) ||
     !Number.isFinite(enemy.currentHp) ||
@@ -1416,9 +1081,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 몬스터 공격력 검증
-
+  // 몬스터 공격력
   if (
     !Number.isFinite(enemy.atk) ||
     enemy.atk < 0
@@ -1426,9 +1089,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 몬스터 공격 속도 검증
-
+  // 몬스터 공격 속도
   if (
     !Number.isFinite(enemy.spd) ||
     enemy.spd <= 0 ||
@@ -1437,9 +1098,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 몬스터 치명타 확률 검증
-
+  // 몬스터 치명타 확률
   if (
     !Number.isFinite(enemy.crit) ||
     enemy.crit < 0 ||
@@ -1448,9 +1107,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 전투 중에는 몬스터가 살아 있어야 함
-
+  // 전투 중 몬스터 생존 확인
   if (
     data.phase === "combat" &&
     enemy.currentHp <= 0
@@ -1458,9 +1115,7 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 보상 및 상점 단계에서는 몬스터가 사망해야 함
-
+  // 보상 및 상점 단계 몬스터 사망 확인
   if (
     (
       data.phase === "reward" ||
@@ -1471,18 +1126,13 @@ export function isValidSave(data) {
     return false;
   }
 
-
-  // 모든 검증 통과
-
   return true;
-
 }
 
 
 // ==================== 저장 데이터 복원 ====================
 
 export function restoreState(data) {
-
   if (!isValidSave(data)) {
     return false;
   }
@@ -1495,37 +1145,30 @@ export function restoreState(data) {
   resetState();
 
   Object.assign(state, {
-
     version: data.version,
-
     phase: data.phase,
-
     floor: data.floor,
-
     classKey: data.classKey,
-
     player: data.player,
-
     enemy,
-
     gold: data.gold,
-
     passivePoints: data.passivePoints,
-
     passives: { ...data.passives },
 
     items: data.items
       ? { ...data.items }
       : createInitialItems(),
 
+    leaderboardSnapshot: normalizeLeaderboardSnapshot(
+      data.leaderboardSnapshot,
+      data
+    ),
+
     rewards: data.rewards,
-
     rerollCount: data.rerollCount
-
   });
 
   return true;
-
 }
 
 
@@ -1534,20 +1177,17 @@ export function restoreState(data) {
 let saveQueue = Promise.resolve();
 
 function queueSaveRequest(task) {
-
   const request = saveQueue.then(task);
 
   saveQueue = request.catch(() => {});
 
   return request;
-
 }
 
 
 // ==================== 서버에 게임 저장 ====================
 
 export async function saveGame() {
-
   if (!isLoggedIn() || isAdmin()) {
     return false;
   }
@@ -1558,55 +1198,37 @@ export async function saveGame() {
     return false;
   }
 
-
-  // 호출 시점의 상태를 고정
-
+  // 호출 시점의 상태 고정
   const body = JSON.stringify(data);
 
   return queueSaveRequest(async () => {
-
     try {
-
       const response = await fetch("/api/save", {
-
         method: "POST",
-
         headers: {
           "Content-Type": "application/json"
         },
-
         body
-
       });
 
       return response.ok;
 
     } catch (error) {
-
-      console.error(
-        "게임 저장 실패:",
-        error
-      );
-
+      console.error("게임 저장 실패:", error);
       return false;
-
     }
-
   });
-
 }
 
 
 // ==================== 서버에서 게임 불러오기 ====================
 
 export async function loadGame() {
-
   if (!isLoggedIn() || isAdmin()) {
     return false;
   }
 
   try {
-
     await saveQueue;
 
     const response = await fetch("/api/save", {
@@ -1626,31 +1248,21 @@ export async function loadGame() {
     return restoreState(result.save);
 
   } catch (error) {
-
-    console.error(
-      "게임 불러오기 실패:",
-      error
-    );
-
+    console.error("게임 불러오기 실패:", error);
     return false;
-
   }
-
 }
 
 
 // ==================== 서버 저장 데이터 삭제 ====================
 
 export async function deleteSave() {
-
   if (!isLoggedIn() || isAdmin()) {
     return false;
   }
 
   return queueSaveRequest(async () => {
-
     try {
-
       const response = await fetch("/api/save", {
         method: "DELETE"
       });
@@ -1658,16 +1270,8 @@ export async function deleteSave() {
       return response.ok;
 
     } catch (error) {
-
-      console.error(
-        "저장 데이터 삭제 실패:",
-        error
-      );
-
+      console.error("저장 데이터 삭제 실패:", error);
       return false;
-
     }
-
   });
-
 }
