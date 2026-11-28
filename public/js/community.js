@@ -212,6 +212,93 @@ async function loadBoards() {
   renderBoards();
 }
 
+// ==================== 관리자 게시판 수정 ====================
+
+function fillBoardEditForm() {
+  if (!isAdmin || !$("adminEditBoard")) return;
+
+  const id = Number($("adminEditBoard").value);
+  const board = boards.find(item => item.id === id);
+
+  if (!board) return;
+
+  $("adminEditBoardName").value = board.name;
+  $("adminEditBoardOrder").value = board.sort_order;
+
+  $("adminEditBoardPermission").value =
+    board.admin_only ? "admin" : "user";
+}
+
+function renderBoardEditOptions() {
+  const select = $("adminEditBoard");
+
+  if (!isAdmin || !select) return;
+
+  const previousId = select.value;
+
+  select.replaceChildren();
+
+  for (const board of boards) {
+    const option = createElement("option", "", board.name);
+    option.value = board.id;
+    select.appendChild(option);
+  }
+
+  if (boards.some(board => String(board.id) === previousId)) {
+    select.value = previousId;
+  }
+
+  fillBoardEditForm();
+}
+
+$("adminEditBoard")?.addEventListener("change", fillBoardEditForm);
+
+$("adminEditBoardForm")?.addEventListener("submit", event => {
+  event.preventDefault();
+
+  if (!isAdmin) return;
+
+  const button = $("adminUpdateBoard");
+  const message = $("adminEditBoardMessage");
+  const id = Number($("adminEditBoard").value);
+
+  const payload = {
+    name: $("adminEditBoardName").value.trim(),
+    sort_order: Number($("adminEditBoardOrder").value),
+    admin_only:
+      $("adminEditBoardPermission").value === "admin"
+  };
+
+  if (!window.confirm("게시판 설정을 변경하시겠습니까?")) {
+    return;
+  }
+
+  runAction(button, async () => {
+    message.textContent = "변경 중입니다.";
+    message.dataset.error = "false";
+
+    try {
+      const { data } = await sendJSON(
+        `/api/admin/boards/${id}`,
+        "PATCH",
+        payload
+      );
+
+      await loadBoards();
+
+      if (currentView === "list") {
+        await loadPosts();
+      }
+
+      message.textContent = data.message;
+
+    } catch (err) {
+      message.textContent = err.message;
+      message.dataset.error = "true";
+    }
+  });
+});
+
 function renderBoardOptions(post = null) {
   const select = $("postBoard");
 
