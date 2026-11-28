@@ -13,34 +13,24 @@
   <!-- ==================== 층 이동 ==================== -->
 
   <div class="admin-section">
-
     <h3>층 건너뛰기</h3>
 
     <div class="admin-floor-control">
-
-      <input
-        type="number"
-        id="adminFloor"
-        min="1"
-        max="1000000"
-        step="1"
+      <input type="number" id="adminFloor"
+        min="1" max="1000000" step="1"
         placeholder="이동할 층수"
-        aria-label="이동할 층수"
-      >
+        aria-label="이동할 층수">
 
       <button type="button" id="adminJumpFloor">
         층 이동
       </button>
-
     </div>
-
   </div>
 
 
   <!-- ==================== 능력치 수정 ==================== -->
 
   <div class="admin-section">
-
     <h3>기본 능력치 수정</h3>
 
     <p class="admin-notice">
@@ -95,7 +85,6 @@
     </div>
 
     <div class="admin-actions">
-
       <button type="button" id="adminLoadStats">
         현재 능력치 불러오기
       </button>
@@ -103,9 +92,45 @@
       <button type="button" id="adminApplyStats">
         능력치 적용
       </button>
-
     </div>
+  </div>
 
+
+  <!-- ==================== 게시판 관리 ==================== -->
+
+  <div class="admin-section">
+    <h3>게시판 생성</h3>
+
+    <p class="admin-notice">
+      생성된 게시판은 커뮤니티에 즉시 추가됩니다.
+    </p>
+
+    <form id="adminBoardForm" class="admin-board-form">
+
+      <label for="adminBoardName">게시판 이름</label>
+      <input type="text" id="adminBoardName"
+        maxlength="50" placeholder="게시판 이름" required>
+
+      <label for="adminBoardOrder">표시 순서</label>
+      <input type="number" id="adminBoardOrder"
+        min="0" max="1000000" step="1"
+        placeholder="미입력 시 마지막에 배치">
+
+      <label for="adminBoardPermission">작성 권한</label>
+      <select id="adminBoardPermission">
+        <option value="user">모든 회원</option>
+        <option value="admin">관리자 전용</option>
+      </select>
+
+      <div class="admin-actions">
+        <button type="submit" id="adminCreateBoard">
+          게시판 생성
+        </button>
+      </div>
+
+    </form>
+
+    <p id="adminBoardMessage" aria-live="polite"></p>
   </div>
 
   <p id="adminMessage" aria-live="polite"></p>
