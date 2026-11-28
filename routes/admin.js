@@ -800,7 +800,7 @@ router.patch("/posts/:id/board", requireJson, handle(async (req, res) => {
 
   await transaction(async connection => {
     const [boards] = await connection.execute(
-      "SELECT id FROM boards WHERE id = ? FOR SHARE",
+      "SELECT id FROM boards WHERE id = ? LOCK IN SHARE MODE",
       [boardId]
     );
 
