@@ -147,3 +147,20 @@
 #adminBoardMessage:empty {
   display: none;
 }
+
+
+/* ==================== 게시판 수정 결과 ==================== */
+
+#adminEditBoardMessage {
+  color: #e6bf65;
+  font-size: 0.9rem;
+  margin-top: 12px;
+}
+
+#adminEditBoardMessage[data-error="true"] {
+  color: #ef8080;
+}
+
+#adminEditBoardMessage:empty {
+  display: none;
+}
