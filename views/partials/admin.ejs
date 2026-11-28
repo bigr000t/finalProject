@@ -1,0 +1,113 @@
+<details class="panel admin-panel" id="adminPanel">
+
+  <summary class="admin-heading">
+    👑 관리자 모드
+  </summary>
+
+  <p class="admin-notice">
+    발표 및 테스트 전용 계정입니다.
+    게임 진행 데이터는 저장되지 않습니다.
+  </p>
+
+
+  <!-- ==================== 층 이동 ==================== -->
+
+  <div class="admin-section">
+
+    <h3>층 건너뛰기</h3>
+
+    <div class="admin-floor-control">
+
+      <input
+        type="number"
+        id="adminFloor"
+        min="1"
+        max="1000000"
+        step="1"
+        placeholder="이동할 층수"
+        aria-label="이동할 층수"
+      >
+
+      <button type="button" id="adminJumpFloor">
+        층 이동
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==================== 능력치 수정 ==================== -->
+
+  <div class="admin-section">
+
+    <h3>기본 능력치 수정</h3>
+
+    <p class="admin-notice">
+      입력하지 않은 능력치는 기존 값을 유지합니다.
+      패시브 및 특수 아이템 효과는 정상적으로 적용됩니다.
+    </p>
+
+    <div class="admin-stat-grid">
+
+      <label>
+        기본 최대 생명력
+        <input type="number" id="adminHp"
+          min="1" max="1000000000" step="1">
+      </label>
+
+      <label>
+        현재 생명력
+        <input type="number" id="adminCurrentHp"
+          min="1" max="1000000000" step="1">
+      </label>
+
+      <label>
+        기본 공격력
+        <input type="number" id="adminAtk"
+          min="0" max="1000000000" step="1">
+      </label>
+
+      <label>
+        기본 주문력
+        <input type="number" id="adminAp"
+          min="0" max="1000000000" step="1">
+      </label>
+
+      <label>
+        기본 공격 속도
+        <input type="number" id="adminSpd"
+          min="0.1" max="100" step="any">
+      </label>
+
+      <label>
+        기본 치명타 확률 (%)
+        <input type="number" id="adminCrit"
+          min="0" max="100" step="any">
+      </label>
+
+      <label>
+        기본 치명타 피해량 (%)
+        <input type="number" id="adminCritDamage"
+          min="100" max="10000" step="any">
+      </label>
+
+    </div>
+
+    <div class="admin-actions">
+
+      <button type="button" id="adminLoadStats">
+        현재 능력치 불러오기
+      </button>
+
+      <button type="button" id="adminApplyStats">
+        능력치 적용
+      </button>
+
+    </div>
+
+  </div>
+
+  <p id="adminMessage" aria-live="polite"></p>
+
+</details>
