@@ -1,0 +1,118 @@
+/* ==================== 관리자 패널 ==================== */
+
+.admin-panel {
+  border: 1px solid #8c7138;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.admin-heading {
+  color: #d4af37;
+  font-size: 1.25rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.admin-notice {
+  color: #a99b7d;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+
+/* ==================== 관리자 기능 영역 ==================== */
+
+.admin-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.admin-section h3 {
+  color: #d4af37;
+}
+
+.admin-floor-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-floor-control input {
+  flex: 1;
+  min-width: 120px;
+}
+
+
+/* ==================== 능력치 입력 영역 ==================== */
+
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.admin-stat-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.admin-panel input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #70603f;
+  border-radius: 5px;
+  background: #242424;
+  color: #eeeeee;
+}
+
+.admin-panel input:focus {
+  outline: 1px solid #d4af37;
+  border-color: #d4af37;
+}
+
+
+/* ==================== 관리자 버튼 ==================== */
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.admin-panel button {
+  padding: 10px 16px;
+  border: 1px solid #8c7138;
+  border-radius: 5px;
+  background: #30291c;
+  color: #e6bf65;
+  cursor: pointer;
+}
+
+.admin-panel button:hover:not(:disabled) {
+  background: #493b24;
+}
+
+.admin-panel button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* ==================== 관리자 처리 결과 ==================== */
+
+#adminMessage {
+  color: #e6bf65;
+  font-size: 0.9rem;
+  margin-top: 12px;
+}
+
+#adminMessage[data-error="true"] {
+  color: #ef8080;
+}
