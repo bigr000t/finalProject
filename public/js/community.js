@@ -210,6 +210,7 @@ async function loadBoards() {
   }
 
   renderBoards();
+  renderBoardEditOptions();
 }
 
 // ==================== 관리자 게시판 수정 ====================
@@ -540,6 +541,9 @@ function renderPost(post) {
 
     actions.appendChild(deleteButton);
   }
+
+  // 관리자 게시물 이동
+  renderPostMove(post, actions);
 }
 
 
@@ -610,6 +614,64 @@ postForm?.addEventListener("submit", event => {
   });
 });
 
+// ==================== 관리자 게시글 이동 ====================
+
+function renderPostMove(post, actions) {
+  if (!isAdmin) return;
+
+  const available = boards.filter(
+    board => board.id !== post.board_id
+  );
+
+  if (!available.length) return;
+
+  const control = createElement("div", "post-move-control");
+  const select = createElement("select", "post-move-select");
+
+  select.setAttribute("aria-label", "이동할 게시판");
+
+  for (const board of available) {
+    const option = createElement("option", "", board.name);
+    option.value = board.id;
+    select.appendChild(option);
+  }
+
+  const button = createButton(
+    "게시글 이동",
+    "",
+    () => movePost(post.id, select, button)
+  );
+
+  control.append(select, button);
+  actions.appendChild(control);
+}
+
+function movePost(postId, select, button) {
+  const targetId = Number(select.value);
+  const target = boards.find(board => board.id === targetId);
+
+  if (!isAdmin || !target) return;
+
+  if (!window.confirm(`'${target.name}' 게시판으로 이동하시겠습니까?`)) {
+    return;
+  }
+
+  const token = requestId;
+
+  runAction(button, async () => {
+    const { data } = await sendJSON(
+      `/api/admin/posts/${postId}/board`,
+      "PATCH",
+      { board_id: targetId }
+    );
+
+    window.alert(data.message);
+
+    if (token === requestId) {
+      await showPost(postId);
+    }
+  });
+}
 
 // ==================== 게시글 삭제 ====================
 
