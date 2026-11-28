@@ -723,6 +723,112 @@ router.patch(
   })
 );
 
+// ==================== 게시판 수정 ====================
+
+router.patch("/boards/:id", requireJson, handle(async (req, res) => {
+  const id = Number(req.params.id);
+  const name = cleanText(req.body?.name);
+  const adminOnly = req.body?.admin_only;
+  const sortOrder = req.body?.sort_order;
+
+  if (!validId(id)) {
+    fail(400, "잘못된 게시판 번호입니다.");
+  }
+
+  if (!name || name.length > 50) {
+    fail(400, "게시판 이름은 1~50자로 입력해주세요.");
+  }
+
+  if (["전체", "신고 관리", "신고관리"].includes(name)) {
+    fail(400, "시스템에서 사용하는 게시판 이름입니다.");
+  }
+
+  if (typeof adminOnly !== "boolean") {
+    fail(400, "잘못된 작성 권한입니다.");
+  }
+
+  if (
+    !Number.isSafeInteger(sortOrder) ||
+    sortOrder < 0 ||
+    sortOrder > 1000000
+  ) {
+    fail(400, "잘못된 표시 순서입니다.");
+  }
+
+  try {
+    await transaction(async connection => {
+      const [boards] = await connection.execute(
+        "SELECT id FROM boards WHERE id = ? FOR UPDATE",
+        [id]
+      );
+
+      if (!boards.length) {
+        fail(404, "게시판을 찾을 수 없습니다.");
+      }
+
+      await connection.execute(`
+        UPDATE boards
+        SET name = ?, admin_only = ?, sort_order = ?
+        WHERE id = ?
+      `, [name, adminOnly ? 1 : 0, sortOrder, id]);
+    });
+
+  } catch (err) {
+    if (err.code === "ER_DUP_ENTRY") {
+      fail(409, "이미 존재하는 게시판 이름입니다.");
+    }
+
+    throw err;
+  }
+
+  res.json({
+    success: true,
+    message: "게시판이 수정되었습니다."
+  });
+}));
+
+
+// ==================== 게시글 이동 ====================
+
+router.patch("/posts/:id/board", requireJson, handle(async (req, res) => {
+  const postId = Number(req.params.id);
+  const boardId = req.body?.board_id;
+
+  if (!validId(postId) || !validId(boardId)) {
+    fail(400, "잘못된 게시글 또는 게시판 번호입니다.");
+  }
+
+  await transaction(async connection => {
+    const [boards] = await connection.execute(
+      "SELECT id FROM boards WHERE id = ? FOR SHARE",
+      [boardId]
+    );
+
+    if (!boards.length) {
+      fail(404, "이동할 게시판을 찾을 수 없습니다.");
+    }
+
+    const [posts] = await connection.execute(
+      "SELECT id FROM posts WHERE id = ? FOR UPDATE",
+      [postId]
+    );
+
+    if (!posts.length) {
+      fail(404, "게시글을 찾을 수 없습니다.");
+    }
+
+    await connection.execute(`
+      UPDATE posts
+      SET board_id = ?, updated_at = updated_at
+      WHERE id = ?
+    `, [boardId, postId]);
+  });
+
+  res.json({
+    success: true,
+    message: "게시글이 이동되었습니다."
+  });
+}));
 
 // ==================== 모듈 내보내기 ====================
 
